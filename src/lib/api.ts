@@ -34,6 +34,12 @@ export async function fetchProducts(): Promise<Product[]> {
   return data ?? []
 }
 
+export async function fetchProduct(id: string): Promise<Product | null> {
+  const { data, error } = await supabase.from('products').select('*').eq('id', id).single()
+  if (error) return null
+  return data
+}
+
 export async function insertProduct(
   product: Omit<Product, 'id' | 'created_at'>,
 ): Promise<Product | null> {

@@ -1,18 +1,8 @@
 # Bocado
 
-PoC de marketplace de mecato universitario: un catálogo compartido para comprar, vender y medir interés real.
-
-Port del MVP publicado en [bocado-poc.lovable.app](https://bocado-poc.lovable.app/). Misma UI, mismas pestañas y el mismo backend de Supabase, para que el equipo pueda ver y correr el código fuera de Lovable.
-
-## Qué incluye
-
-- **Comprar**: catálogo, filtros, búsqueda y “¡Lo quiero!”
-- **Vender**: publicar snack, inventario, foto y simulación de comisión
-- **Métricas**: clicks de interés, inventario y resultados de la encuesta del experimento
+Marketplace de mecato universitario: landing pública, cuentas con JWT, catálogo, carrito, reservas y puesto de vendedor.
 
 ## Cómo correrlo
-
-Necesitas Node.js 20+.
 
 ```bash
 cp .env.example .env
@@ -20,12 +10,19 @@ npm install
 npm run dev
 ```
 
-Abre `http://localhost:5173`. El `.env.example` ya trae la URL y la anon key públicas del PoC, así que apunta al mismo catálogo que el sitio de Lovable.
+Abre `http://localhost:5173`.
+
+## Qué incluye
+
+- Landing responsive (no es solo vista de teléfono)
+- Registro e inicio de sesión con JWT
+- Catálogo, detalle de producto y carrito
+- Checkout por punto de encuentro en el campus
+- Pedidos para quien compra y para quien vende
+- Publicar snacks, inventario y métricas del experimento
+
+El catálogo de productos sigue en el Supabase del PoC. Cuentas y pedidos se guardan para que el equipo pueda probar sin confirmar correo.
 
 ## Stack
 
-- React + Vite + TypeScript
-- Tailwind CSS
-- Supabase (Postgres + Storage)
-
-Si quieres un proyecto de Supabase propio, corre `supabase/schema.sql` y cambia las variables de `.env`.
+React + Vite + TypeScript + Tailwind + Supabase
