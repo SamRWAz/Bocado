@@ -34,7 +34,7 @@ export function LoginPage() {
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-2">
         <div className="hidden lg:block">
           <p className="text-sm text-primary">Sesión con JWT</p>
-          <h1 className="mt-2 font-display text-4xl font-bold">Entra a tu puesto o a tu feed de mecato.</h1>
+          <h1 className="mt-2 font-display text-4xl font-bold">Entra a comprar o a vender comida en el campus.</h1>
           <p className="mt-4 text-muted-foreground">
             Tu sesión se firma con JWT. Si Supabase confirma el correo, usamos ese token; si no, te
             dejamos entrar igual para que el equipo pueda probar la app.

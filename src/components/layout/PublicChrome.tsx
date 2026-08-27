@@ -2,8 +2,8 @@ import { Link, NavLink } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
 const links = [
-  { to: '/#como-funciona', label: 'Cómo funciona' },
   { to: '/#puestos', label: 'Puestos' },
+  { to: '/#beneficios', label: 'Beneficios' },
   { to: '/catalogo', label: 'Catálogo' },
 ]
 
@@ -59,7 +59,7 @@ export function PublicFooter() {
     <footer className="border-t border-border py-10 text-sm text-muted-foreground">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <p className="font-display font-semibold text-foreground">🍿 Bocado</p>
-        <p>El mecato de tu campus, en un solo lugar.</p>
+        <p>La comida de tu campus, en un solo lugar.</p>
         <p className="text-xs">Validación de concepto · 2026</p>
       </div>
     </footer>

@@ -1,6 +1,6 @@
 # Bocado
 
-Marketplace de mecato universitario: landing pública, cuentas con JWT, catálogo, carrito, reservas y puesto de vendedor.
+Marketplace de comida universitaria: landing pública, cuentas con JWT, catálogo, carrito, reservas y puesto de vendedor.
 
 ## Cómo correrlo
 

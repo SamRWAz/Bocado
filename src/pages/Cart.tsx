@@ -50,7 +50,7 @@ export function CartPage() {
       <aside className="h-fit rounded-lg border border-border bg-card p-5">
         <p className="text-sm text-muted-foreground">Total</p>
         <p className="font-display text-3xl font-bold text-primary">{money(total)}</p>
-        <p className="mt-2 text-xs text-muted-foreground">Pagas al recoger. Aquí solo reservas el mecato.</p>
+        <p className="mt-2 text-xs text-muted-foreground">Pagas al recoger. Aquí solo reservas la comida.</p>
         <Link
           to="/checkout"
           className="mt-5 block rounded-lg bg-primary py-3 text-center font-display font-bold text-primary-foreground"

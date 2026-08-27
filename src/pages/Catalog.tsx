@@ -51,14 +51,14 @@ export function CatalogPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="font-display text-3xl font-bold">Catálogo</h1>
-          <p className="text-sm text-muted-foreground">El mecato que hay hoy en el campus.</p>
+          <p className="text-sm text-muted-foreground">Lo que se cocina hoy en el campus.</p>
         </div>
         <div className="relative w-full sm:max-w-sm">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar snack o vendedor..."
+            placeholder="Buscar comida o vendedor..."
             className="w-full rounded-lg border border-border bg-card py-3 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
@@ -89,7 +89,7 @@ export function CatalogPage() {
         <div className="py-20 text-center">
           <ShoppingBag size={48} className="mx-auto mb-4 opacity-40" />
           <p className="text-sm text-muted-foreground">
-            {query ? 'No se encontraron snacks' : 'No hay snacks disponibles aún'}
+            {query ? 'No se encontró comida' : 'Todavía no hay comida publicada'}
           </p>
         </div>
       ) : (

@@ -31,7 +31,6 @@ export function ProductCard({ product, onWant }: Props) {
           </div>
           <div className="shrink-0 text-right">
             <p className="font-display text-xl font-bold text-primary">{money(product.price)}</p>
-            <p className="text-xs text-muted-foreground">{product.stock} disponibles</p>
           </div>
         </div>
         <button
