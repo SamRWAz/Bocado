@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { PublicFooter, PublicHeader } from '../components/layout/PublicChrome'
 import { useAuth } from '../context/AuthContext'
 import { CAMPUSES, inputClass, labelClass } from '../lib/constants'
 import type { UserRole } from '../types'
@@ -31,13 +30,11 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <PublicHeader />
-      <div className="mx-auto max-w-xl px-4 py-12 sm:px-6">
+    <div className="mx-auto max-w-xl px-4 py-12 sm:px-6">
         <form onSubmit={(e) => void onSubmit(e)} className="rounded-lg border border-border bg-card p-6 sm:p-8">
           <h1 className="font-display text-2xl font-bold">Crear cuenta</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Compra, vende o las dos. La sesión queda firmada con JWT.
+            Compra, vende o las dos.
           </p>
           <div className="mt-6 space-y-4">
             <div>
@@ -50,7 +47,7 @@ export function RegisterPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className={inputClass}
-                placeholder="Cómo te conocen en el campus"
+                placeholder="Así te verán las personas en la app si eres vendedor o comprador"
               />
             </div>
             <div>
@@ -130,8 +127,6 @@ export function RegisterPage() {
             </Link>
           </p>
         </form>
-      </div>
-      <PublicFooter />
     </div>
   )
 }

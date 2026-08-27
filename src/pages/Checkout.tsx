@@ -77,11 +77,11 @@ export function CheckoutPage() {
   }
 
   if (items.length === 0) {
-    return <p className="text-sm text-muted-foreground">No hay nada para reservar.</p>
+    return <p className="px-4 py-16 text-center text-sm text-muted-foreground">No hay nada para reservar.</p>
   }
 
   return (
-    <form onSubmit={(e) => void onSubmit(e)} className="mx-auto max-w-xl space-y-5">
+    <form onSubmit={(e) => void onSubmit(e)} className="mx-auto max-w-xl space-y-5 px-4 py-6 sm:px-6">
       <h1 className="font-display text-3xl font-bold">Checkout</h1>
       <p className="text-sm text-muted-foreground">
         Reservarás {items.length} producto(s) por {money(total)}. Pagas cuando recojas.

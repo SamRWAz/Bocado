@@ -5,6 +5,8 @@ import { signJwt, verifyJwt } from './jwt'
 import { findStoredUser, saveStoredUser } from './storage-db'
 import { supabase } from './supabase'
 
+const ROLES: UserRole[] = ['comprar', 'vender', 'ambos', 'admin']
+
 const asUser = (input: {
   id: string
   email: string
@@ -16,7 +18,7 @@ const asUser = (input: {
   email: input.email,
   name: input.name?.trim() || input.email.split('@')[0] || 'Bocado',
   campus: input.campus?.trim() || 'Icesi',
-  role: (input.role as UserRole) || 'ambos',
+  role: ROLES.includes(input.role as UserRole) ? (input.role as UserRole) : 'ambos',
 })
 
 const persist = (session: Session) => {

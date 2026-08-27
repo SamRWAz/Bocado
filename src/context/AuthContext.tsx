@@ -70,9 +70,13 @@ export function useAuth() {
 }
 
 export function canSell(role?: UserRole) {
-  return role === 'vender' || role === 'ambos'
+  return role === 'vender' || role === 'ambos' || role === 'admin'
 }
 
 export function canBuy(role?: UserRole) {
-  return role === 'comprar' || role === 'ambos'
+  return role === 'comprar' || role === 'ambos' || role === 'admin'
+}
+
+export function isAdmin(role?: UserRole) {
+  return role === 'admin'
 }

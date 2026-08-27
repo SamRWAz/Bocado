@@ -11,7 +11,8 @@ create table if not exists public.products (
   seller text not null,
   intent_count integer not null default 0,
   image_url text,
-  category text not null,
+  category text not null, -- uno o varios tags separados por coma
+  description text,
   created_at timestamptz not null default now()
 );
 

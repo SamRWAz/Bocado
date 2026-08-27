@@ -27,6 +27,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem;
 }
 
 * {
@@ -155,7 +156,74 @@ h6 {
 
 @media (prefers-reduced-motion: reduce) {
   .landing-orb,
-  .stall-track {
+  .stall-track,
+  .page-transition,
+  .page-transition-mark,
+  .page-transition-mark::after {
     animation: none;
+  }
+}
+
+.page-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: hsl(var(--background) / 0.86);
+  backdrop-filter: blur(12px);
+  animation: fade-veil 0.62s ease;
+}
+
+.page-transition-mark {
+  position: relative;
+  animation: bite-in 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.page-transition-mark::after {
+  content: '';
+  position: absolute;
+  inset: -1.4rem;
+  border-radius: 9999px;
+  border: 2px solid hsl(var(--primary) / 0.45);
+  animation: bite-ring 0.55s ease-out;
+}
+
+@keyframes fade-veil {
+  0% {
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes bite-in {
+  0% {
+    transform: scale(0.55) rotate(-18deg);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(1.12) rotate(4deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes bite-ring {
+  from {
+    transform: scale(0.45);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.85);
+    opacity: 0;
   }
 }

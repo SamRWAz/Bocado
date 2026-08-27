@@ -4,13 +4,13 @@ import { CAMPUSES, inputClass, labelClass } from '../lib/constants'
 import type { UserRole } from '../types'
 
 export function AccountPage() {
-  const { user, session, updateProfile, logout } = useAuth()
+  const { user, updateProfile, logout } = useAuth()
   const [name, setName] = useState(user?.name ?? '')
   const [campus, setCampus] = useState(user?.campus ?? CAMPUSES[0])
   const [role, setRole] = useState<UserRole>(user?.role ?? 'ambos')
   const [saved, setSaved] = useState(false)
 
-  if (!user || !session) return null
+  if (!user) return null
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -46,6 +46,7 @@ export function AccountPage() {
             <option value="ambos">Comprar y vender</option>
             <option value="comprar">Solo comprar</option>
             <option value="vender">Solo vender</option>
+            <option value="admin">Admin</option>
           </select>
         </div>
         {saved && <p className="text-sm text-primary">Cambios guardados</p>}
@@ -53,10 +54,6 @@ export function AccountPage() {
           Guardar
         </button>
       </form>
-      <div className="rounded-lg border border-border bg-card p-5">
-        <p className="text-xs text-muted-foreground">JWT de sesión ({session.source})</p>
-        <p className="mt-2 break-all font-mono text-[11px] text-muted-foreground">{session.token}</p>
-      </div>
       <p className="text-sm text-muted-foreground">{user.email}</p>
       <button type="button" onClick={() => void logout()} className="text-sm text-destructive">
         Cerrar sesión

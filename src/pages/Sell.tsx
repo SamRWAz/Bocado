@@ -1,5 +1,7 @@
 import { Camera, Minus, Plus, Users } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { Navigate } from 'react-router-dom'
+import { TagList } from '../components/TagList'
 import { canSell, useAuth } from '../context/AuthContext'
 import {
   fetchProducts,
@@ -9,7 +11,7 @@ import {
   uploadProductImage,
 } from '../lib/api'
 import { CATEGORIES, inputClass } from '../lib/constants'
-import { encodeSeller, money, ownsListing } from '../lib/format'
+import { encodeSeller, joinTags, money, ownsListing, parseTags } from '../lib/format'
 import type { Product } from '../types'
 
 export function SellPage() {
@@ -18,7 +20,7 @@ export function SellPage() {
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
   const [stock, setStock] = useState('')
-  const [category, setCategory] = useState('')
+  const [description, setDescription] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -34,7 +36,7 @@ export function SellPage() {
   }, [refresh])
 
   if (!user || !canSell(user.role)) {
-    return <p className="text-sm text-muted-foreground">Tu cuenta no tiene rol de vendedor. Cámbialo en Cuenta.</p>
+    return <Navigate to="/catalogo" replace />
   }
 
   const mine = products.filter((p) => ownsListing(p.seller, user.id, user.name))
@@ -47,7 +49,7 @@ export function SellPage() {
   }
 
   const publish = async () => {
-    if (!name.trim() || !price || !stock || !category) return
+    if (!name.trim() || !price || !stock || tags.length === 0) return
     setUploading(true)
     setError('')
     try {
@@ -61,13 +63,15 @@ export function SellPage() {
         seller: encodeSeller(user.name, user.id),
         intent_count: 0,
         image_url: imageUrl,
-        category,
+        category: joinTags(tags),
+        description: description.trim() || undefined,
       })
       if (!created) throw new Error('No se pudo publicar el snack')
       setName('')
       setPrice('')
       setStock('')
-      setCategory('')
+      setTags([])
+      setDescription('')
       setFile(null)
       setPreview(null)
       await refresh()
@@ -92,23 +96,38 @@ export function SellPage() {
       <div className="space-y-3 rounded-lg border border-border bg-card p-4">
         <h1 className="font-display text-xl font-bold">Publicar snack</h1>
         <input placeholder="Nombre del snack" value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
+        <textarea
+          placeholder="Descripción del producto"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className={inputClass}
+          rows={3}
+        />
         <div className="flex gap-3">
           <input placeholder="Precio $" type="number" value={price} onChange={(e) => setPrice(e.target.value)} className={inputClass} />
           <input placeholder="Cantidad" type="number" value={stock} onChange={(e) => setStock(e.target.value)} className={inputClass} />
         </div>
+        <p className="text-xs text-muted-foreground">Tags · puedes elegir más de uno</p>
         <div className="flex flex-wrap gap-2">
-          {CATEGORIES.map((item) => (
-            <button
-              type="button"
-              key={item}
-              onClick={() => setCategory(item)}
-              className={`rounded-full px-3 py-2 text-xs font-display font-semibold ${
-                category === item ? 'bg-primary text-primary-foreground' : 'bg-secondary'
-              }`}
-            >
-              {item}
-            </button>
-          ))}
+          {CATEGORIES.map((item) => {
+            const selected = tags.includes(item)
+            return (
+              <button
+                type="button"
+                key={item}
+                onClick={() =>
+                  setTags((current) =>
+                    current.includes(item) ? current.filter((tag) => tag !== item) : [...current, item],
+                  )
+                }
+                className={`rounded-full px-3 py-2 text-xs font-display font-semibold ${
+                  selected ? 'bg-primary text-primary-foreground' : 'bg-secondary'
+                }`}
+              >
+                {item}
+              </button>
+            )
+          })}
         </div>
         <input ref={fileInput} type="file" accept="image/*" className="hidden" onChange={onFile} />
         {preview ? (
@@ -126,7 +145,7 @@ export function SellPage() {
         <button
           type="button"
           onClick={() => void publish()}
-          disabled={uploading || !name.trim() || !price || !stock || !category}
+          disabled={uploading || !name.trim() || !price || !stock || tags.length === 0}
           className="w-full rounded-lg bg-primary py-3 font-display font-bold text-primary-foreground disabled:opacity-50"
         >
           {uploading ? 'Subiendo...' : '+ Publicar'}
@@ -146,6 +165,7 @@ export function SellPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <h3 className="font-display font-semibold">{product.name}</h3>
+                    <TagList tags={parseTags(product.category)} />
                     <p className="font-bold text-primary">{money(product.price)}</p>
                   </div>
                   <button

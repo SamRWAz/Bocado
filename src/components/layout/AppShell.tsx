@@ -1,26 +1,29 @@
 import { BarChart3, ClipboardList, LogOut, ShoppingBag, Store, UserRound } from 'lucide-react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
+import { canSell, isAdmin, useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
 import { initials } from '../../lib/format'
-
-const links = [
-  { to: '/catalogo', label: 'Catálogo', icon: ShoppingBag },
-  { to: '/vender', label: 'Vender', icon: Store },
-  { to: '/pedidos', label: 'Pedidos', icon: ClipboardList },
-  { to: '/metricas', label: 'Métricas', icon: BarChart3 },
-]
+import { BrandMark } from '../BrandMark'
 
 export function AppShell() {
   const { user, logout } = useAuth()
   const { count } = useCart()
+  const seller = canSell(user?.role)
+  const admin = isAdmin(user?.role)
+
+  const links = [
+    { to: '/catalogo', label: 'Catálogo', icon: ShoppingBag },
+    ...(seller ? [{ to: '/vender', label: 'Vender', icon: Store }] : []),
+    { to: '/pedidos', label: 'Pedidos', icon: ClipboardList },
+    ...(admin ? [{ to: '/metricas', label: 'Métricas', icon: BarChart3 }] : []),
+  ]
 
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold">
-            <span className="text-xl">🍿</span>
+            <BrandMark size={28} className="text-primary" />
             Bocado
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
@@ -42,11 +45,11 @@ export function AppShell() {
           <div className="flex items-center gap-2">
             <Link
               to="/carrito"
-              className="relative rounded-lg bg-secondary px-3 py-2 text-sm font-display font-medium"
+              className="relative rounded-lg px-3 py-2 text-sm font-display font-medium text-muted-foreground hover:text-foreground"
             >
               Carrito
               {count > 0 && (
-                <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-primary px-1 text-center text-[10px] font-bold text-primary-foreground">
+                <span className="absolute -right-0.5 -top-0.5 min-w-5 rounded-full bg-primary px-1 text-center text-[10px] font-bold text-primary-foreground">
                   {count}
                 </span>
               )}

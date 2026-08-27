@@ -1,4 +1,4 @@
-export type UserRole = 'comprar' | 'vender' | 'ambos'
+export type UserRole = 'comprar' | 'vender' | 'ambos' | 'admin'
 
 export type AuthUser = {
   id: string
@@ -26,6 +26,7 @@ export type Product = {
   created_at: string
   image_url: string | null
   category: string
+  description?: string | null
 }
 
 export type Metrics = {

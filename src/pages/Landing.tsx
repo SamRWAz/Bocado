@@ -1,36 +1,31 @@
 import { ShoppingBag, Store } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { PublicFooter, PublicHeader } from '../components/layout/PublicChrome'
 import { AnimatedBackdrop } from '../components/landing/AnimatedBackdrop'
 import { StallCarousel } from '../components/landing/StallCarousel'
 
 const buyerPerks = [
-  'Toda la comida del campus en un solo catálogo',
+  'Todo el catálogo del campus en un solo lugar',
   'Reservas en segundos y recoges entre clases',
   'Descubres puestos que no están en tu bloque',
 ]
 
 const sellerPerks = [
-  'Tu puesto visible para todo el campus',
+  'Tu puesto visible para toda la universidad',
   'Pedidos ordenados, sin chats perdidos',
   'Publicas tu menú y lo actualizas cuando quieras',
 ]
 
 export function LandingPage() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background">
+    <div className="relative">
       <AnimatedBackdrop />
-      <PublicHeader />
 
-      <section className="relative mx-auto max-w-3xl px-4 pb-10 pt-16 text-center sm:px-6 sm:pt-24">
-        <p className="mb-4 inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-display font-semibold text-primary">
-          Comida de campus
-        </p>
+      <section className="relative z-[1] mx-auto max-w-3xl px-4 pb-10 pt-16 text-center sm:px-6 sm:pt-24">
         <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
           Compra y vende comida en tu universidad.
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-          Bocado reúne los puestos del campus para que reserves lo que se te antoje y lo recojas en el receso.
+          Bocado reúne los puestos para que reserves lo que se te antoje y lo recojas en el receso.
         </p>
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           <Link
@@ -48,12 +43,14 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section id="puestos" className="relative py-10 sm:py-14">
-        <h2 className="mb-6 text-center font-display text-2xl font-bold sm:text-3xl">Puestos que podrías encontrar</h2>
+      <section id="puestos" className="relative z-[1] scroll-mt-24 py-10 sm:py-14">
+        <h2 className="mb-6 text-center font-display text-2xl font-bold sm:text-3xl">
+          Puestos que podrías encontrar
+        </h2>
         <StallCarousel />
       </section>
 
-      <section id="beneficios" className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <section id="beneficios" className="relative z-[1] mx-auto max-w-6xl scroll-mt-24 px-4 py-16 sm:px-6">
         <h2 className="mb-8 text-center font-display text-2xl font-bold sm:text-3xl">Por qué usar Bocado</h2>
         <div className="grid gap-4 md:grid-cols-2">
           <article className="rounded-lg border border-border bg-card/80 p-6 backdrop-blur-sm">
@@ -77,14 +74,12 @@ export function LandingPage() {
                 <li key={item}>{item}</li>
               ))}
             </ul>
-            <Link to="/vender" className="mt-6 inline-block text-sm font-display font-semibold text-primary">
-              Abrir mi puesto →
+            <Link to="/registro" className="mt-6 inline-block text-sm font-display font-semibold text-primary">
+              Crear cuenta para vender →
             </Link>
           </article>
         </div>
       </section>
-
-      <PublicFooter />
     </div>
   )
 }
