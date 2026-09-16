@@ -2,12 +2,12 @@ import { type MouseEvent } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { canSell, useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
-import { BrandMark } from '../BrandMark'
 import { scrollToSection } from '../../lib/scroll'
+import { BrandMark } from '../BrandMark'
+import { ThemeToggle } from '../ThemeToggle'
 
 const sectionLinks = [
-  { id: 'puestos', label: 'Puestos' },
-  { id: 'beneficios', label: 'Beneficios' },
+  { id: 'snacks', label: 'Snacks en Campus' },
 ]
 
 function SectionNav({ onGoToSection }: { onGoToSection: (event: MouseEvent<HTMLAnchorElement>, id: string) => void }) {
@@ -18,16 +18,16 @@ function SectionNav({ onGoToSection }: { onGoToSection: (event: MouseEvent<HTMLA
           key={link.id}
           href={`/#${link.id}`}
           onClick={(event) => onGoToSection(event, link.id)}
-          className="hover:text-foreground"
+          className="hover:text-foreground font-medium transition-colors"
         >
           {link.label}
         </a>
       ))}
       <NavLink
         to="/catalogo"
-        className={({ isActive }) => (isActive ? 'text-foreground' : 'hover:text-foreground')}
+        className={({ isActive }) => (isActive ? 'text-primary font-bold' : 'hover:text-foreground font-medium transition-colors')}
       >
-        Catálogo
+        Catálogo en Vivo
       </NavLink>
     </>
   )
@@ -52,7 +52,7 @@ export function PublicHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold">
+        <Link to="/" className="flex items-center gap-2 font-brand text-xl font-bold text-foreground">
           <BrandMark size={32} className="text-primary" />
           Bocado
         </Link>
@@ -60,6 +60,7 @@ export function PublicHeader() {
           <SectionNav onGoToSection={goToSection} />
         </nav>
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Link
             to="/carrito"
             className="relative rounded-lg px-3 py-2 text-sm font-display font-medium text-muted-foreground hover:text-foreground"
@@ -107,11 +108,11 @@ export function PublicFooter() {
   return (
     <footer className="border-t border-border py-10 text-sm text-muted-foreground">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <p className="flex items-center gap-2 font-display font-semibold text-foreground">
+        <p className="flex items-center gap-2 font-brand font-semibold text-foreground text-base">
           <BrandMark size={22} className="text-primary" />
-          Bocado
+          Bocado · Micro-comercio universitario
         </p>
-        <p>Compra y vende en tu universidad.</p>
+        <p>Universidad Icesi · Entregas y snacks entre clases.</p>
         <p className="text-xs">Validación de concepto · 2026</p>
       </div>
     </footer>

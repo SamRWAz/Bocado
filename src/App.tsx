@@ -13,12 +13,12 @@ import { CatalogPage } from './pages/Catalog'
 import { CheckoutPage } from './pages/Checkout'
 import { LandingPage } from './pages/Landing'
 import { LoginPage } from './pages/Login'
+import { MessagesPage } from './pages/Messages'
 import { MetricsPage } from './pages/Metrics'
 import { NotFoundPage } from './pages/NotFound'
 import { OrdersPage } from './pages/Orders'
 import { ProductDetailPage } from './pages/ProductDetail'
 import { RegisterPage } from './pages/Register'
-import { ShopPage } from './pages/Shop'
 import { SellPage } from './pages/Sell'
 
 function Guard({ children }: { children: ReactNode }) {
@@ -32,15 +32,18 @@ export default function App() {
         <BrowserRouter>
           <PageTransition />
           <Routes>
+            {/* Public landing & auth */}
             <Route element={<PublicLayout />}>
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/registro" element={<RegisterPage />} />
             </Route>
+
+            {/* Catalog & Shop views */}
             <Route element={<StoreLayout />}>
               <Route path="/catalogo" element={<CatalogPage />} />
-              <Route path="/tienda/:slug" element={<ShopPage />} />
               <Route path="/producto/:id" element={<ProductDetailPage />} />
+              <Route path="/tienda/:slug" element={<Navigate to="/catalogo" replace />} />
               <Route
                 path="/carrito"
                 element={
@@ -58,6 +61,8 @@ export default function App() {
                 }
               />
             </Route>
+
+            {/* Protected authenticated dashboard / app views */}
             <Route
               element={
                 <Guard>
@@ -65,6 +70,7 @@ export default function App() {
                 </Guard>
               }
             >
+              <Route path="/mensajes" element={<MessagesPage />} />
               <Route path="/vender" element={<SellPage />} />
               <Route path="/pedidos" element={<OrdersPage />} />
               <Route
@@ -77,7 +83,8 @@ export default function App() {
               />
               <Route path="/cuenta" element={<AccountPage />} />
             </Route>
-            <Route path="/app" element={<Navigate to="/vender" replace />} />
+
+            <Route path="/app" element={<Navigate to="/catalogo" replace />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </BrowserRouter>

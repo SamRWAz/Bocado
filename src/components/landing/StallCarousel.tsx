@@ -1,27 +1,34 @@
-const stalls = [
-  { emoji: '🍫', name: 'El Rincón Dulce', offer: 'Brownies y galletas', place: 'Bloque A' },
-  { emoji: '🥟', name: 'La Esquina Salada', offer: 'Empanadas y sándwiches', place: 'Cafetería' },
-  { emoji: '☕', name: 'Café del Bloque', offer: 'Café y muffins', place: 'Ingeniería' },
-  { emoji: '🥗', name: 'Naturalmente', offer: 'Bowls y fruta fresca', place: 'Biblioteca' },
-  { emoji: '🍰', name: 'Casa Arequipe', offer: 'Tortas y postres', place: 'Plazoleta' },
-  { emoji: '🌯', name: 'Don Wrap', offer: 'Wraps para el receso', place: 'Portería' },
+const snacks = [
+  { emoji: '🍫', name: 'Brownie Melcochudo', seller: 'Valeria M.', place: '📍 Edificio D (Piso 2)', tag: '🌱 Vegano / Sin Gluten' },
+  { emoji: '🥟', name: 'Empanadas de Pollo & Champiñón', seller: 'Juan Pablo', place: '📍 Cafetería Central', tag: '🔥 Salado' },
+  { emoji: '🍪', name: 'Galletas de Avena & Canela', seller: 'Sofía G.', place: '📍 Edificio E (Ingeniería)', tag: '⚡ Fit & Proteína' },
+  { emoji: '🥑', name: 'Bowl de Fruta & Chía', seller: 'Andrés V.', place: '📍 Biblioteca Central', tag: '🍯 Sin Azúcar' },
+  { emoji: '🥐', name: 'Alfajores Artesanales de Maicena', seller: 'Camila T.', place: '📍 El Samán', tag: '✨ Recién horneados' },
+  { emoji: '🌯', name: 'Burrito Ranchero Express', seller: 'Santiago B.', place: '📍 Plazoleta Las Palmas', tag: '⚡ Alto en proteína' },
 ]
 
 export function StallCarousel() {
-  const loop = [...stalls, ...stalls]
+  const loop = [...snacks, ...snacks]
 
   return (
-    <div className="stall-marquee" aria-label="Puestos del campus">
+    <div className="stall-marquee" aria-label="Snacks del campus">
       <div className="stall-track">
-        {loop.map((stall, index) => (
+        {loop.map((item, index) => (
           <article
-            key={`${stall.name}-${index}`}
-            className="w-[240px] shrink-0 rounded-lg border border-border bg-card/80 p-5 backdrop-blur-sm sm:w-[280px]"
+            key={`${item.name}-${index}`}
+            className="w-[260px] shrink-0 rounded-2xl border border-border/80 bg-card/80 p-5 backdrop-blur-md transition-all hover:border-primary/50 sm:w-[300px]"
           >
-            <p className="text-3xl">{stall.emoji}</p>
-            <h3 className="mt-3 font-display text-lg font-semibold">{stall.name}</h3>
-            <p className="mt-1 text-sm text-muted-foreground">{stall.offer}</p>
-            <p className="mt-3 text-xs text-primary">{stall.place}</p>
+            <div className="flex items-center justify-between">
+              <span className="text-3xl">{item.emoji}</span>
+              <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold text-primary">
+                {item.tag}
+              </span>
+            </div>
+            <h3 className="mt-3 font-display text-base font-bold text-foreground leading-snug line-clamp-1">
+              {item.name}
+            </h3>
+            <p className="mt-1 text-xs text-muted-foreground">Por {item.seller}</p>
+            <p className="mt-3 text-xs font-semibold text-primary">{item.place}</p>
           </article>
         ))}
       </div>

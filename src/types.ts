@@ -15,6 +15,26 @@ export type Session = {
   source: 'supabase' | 'local'
 }
 
+export type DietaryTag =
+  | 'vegano'
+  | 'vegetariano'
+  | 'sin-gluten'
+  | 'fit-proteico'
+  | 'sin-azucar'
+  | 'keto'
+  | 'contiene-nueces'
+  | 'sin-lactosa'
+
+export type SellerPresence = {
+  sellerId: string
+  sellerName: string
+  zone: string
+  detail: string
+  activeUntil: string
+  isOnline: boolean
+  updatedAt: string
+}
+
 export type Product = {
   id: string
   name: string
@@ -27,6 +47,8 @@ export type Product = {
   image_url: string | null
   category: string
   description?: string | null
+  dietary?: DietaryTag[]
+  sellerPresence?: SellerPresence | null
 }
 
 export type Metrics = {
@@ -74,8 +96,41 @@ export type Order = {
   note: string
   status: OrderStatus
   createdAt: string
+  isGuaranteed?: boolean
+  reserveFee?: number
 }
 
 export type StoredUser = AuthUser & {
   passwordHash: string
+}
+
+export type ChatMessageType = 'text' | 'quick' | 'location' | 'status'
+
+export type ChatMessage = {
+  id: string
+  conversationId: string
+  orderId?: string
+  productId?: string
+  productName?: string
+  senderId: string
+  senderName: string
+  recipientId: string
+  recipientName: string
+  text: string
+  messageType?: ChatMessageType
+  locationZone?: string
+  timestamp: string
+  read: boolean
+}
+
+export type ConversationSummary = {
+  id: string
+  partnerId: string
+  partnerName: string
+  orderId?: string
+  productName?: string
+  lastMessage: string
+  lastTimestamp: string
+  unreadCount: number
+  orderStatus?: OrderStatus
 }

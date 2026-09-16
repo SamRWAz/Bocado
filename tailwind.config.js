@@ -39,8 +39,9 @@ export default {
         ring: 'hsl(var(--ring))',
       },
       fontFamily: {
-        display: ['"Space Grotesk"', 'sans-serif'],
-        body: ['Inter', 'sans-serif'],
+        display: ['"Outfit"', '"Plus Jakarta Sans"', 'sans-serif'],
+        body: ['"Plus Jakarta Sans"', 'sans-serif'],
+        brand: ['"Fredoka"', '"Outfit"', 'sans-serif'],
       },
       borderRadius: {
         lg: 'var(--radius)',
