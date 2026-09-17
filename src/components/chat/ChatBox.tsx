@@ -5,8 +5,8 @@ import { canSell, useAuth } from '../../context/AuthContext'
 import { getSellerPresence, ICESI_ZONES } from '../../lib/campus'
 import {
   getMessagesByConversation,
+  isUserSender,
   markConversationAsRead,
-  matchesUser,
   sendMessage,
   subscribeToChatUpdates,
 } from '../../lib/chat'
@@ -49,7 +49,7 @@ export function ChatBox({
   const partnerPresence = getSellerPresence(partnerId)
 
   const loadMessages = useCallback(() => {
-    const list = getMessagesByConversation(conversationId)
+    const list = getMessagesByConversation(conversationId, user?.id, user?.name)
     setMessages(list)
     if (user) {
       markConversationAsRead(conversationId, user.id, canSell(user.role), user.name)
@@ -197,13 +197,7 @@ export function ChatBox({
           </div>
         ) : (
           messages.map((msg) => {
-            const isMe = matchesUser(
-              msg.senderId,
-              msg.senderName,
-              user?.id,
-              user?.name,
-              canSell(user?.role),
-            )
+            const isMe = isUserSender(msg, user?.id, user?.name)
             return (
               <div
                 key={msg.id}

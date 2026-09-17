@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { fetchProduct, incrementMetric, updateProduct } from '../lib/api'
 import { getSellerPresence } from '../lib/campus'
-import { displaySeller, initials, money, parseTags, productDescription, sellerUserId } from '../lib/format'
+import { displaySeller, initials, money, ownsListing, parseTags, productDescription, sellerUserId } from '../lib/format'
 import type { Product } from '../types'
 
 export function ProductDetailPage() {
@@ -35,6 +35,7 @@ export function ProductDetailPage() {
   const sellerId = sellerUserId(product.seller)
   const sellerName = displaySeller(product.seller)
   const presence = getSellerPresence(sellerId)
+  const isMyProduct = user ? ownsListing(product.seller, user.id, user.name) : false
 
   const addToCart = async () => {
     if (!user) {
@@ -50,6 +51,10 @@ export function ProductDetailPage() {
   const handleStartChat = () => {
     if (!user) {
       navigate('/login', { state: { from: `/producto/${product.id}` } })
+      return
+    }
+    if (isMyProduct) {
+      navigate('/vender')
       return
     }
     navigate(
@@ -126,7 +131,7 @@ export function ProductDetailPage() {
                 className="flex items-center gap-1.5 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-xs font-display font-bold text-primary hover:bg-primary hover:text-primary-foreground transition-all"
               >
                 <MessageCircle size={14} />
-                <span>Chatear</span>
+                <span>{isMyProduct ? 'Mi Panel de Venta' : 'Chatear'}</span>
               </button>
             </div>
 

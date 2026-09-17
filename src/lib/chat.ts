@@ -18,51 +18,106 @@ export const CAMPUS_QUICK_REPLIES = [
 
 const normalize = (val?: string | null) => (val ?? '').trim().toLowerCase()
 
+/**
+ * Checks if a user is the sender of a message.
+ */
+export function isUserSender(
+  m: ChatMessage,
+  userId?: string | null,
+  userName?: string | null,
+): boolean {
+  if (!userId && !userName) return false
+  const uid = normalize(userId)
+  const uname = normalize(userName)
+
+  if (uid) {
+    const sId = normalize(m.senderId)
+    if (sId === uid || sId.endsWith(`::${uid}`) || sId.split('::')[1] === uid) {
+      return true
+    }
+  }
+
+  if (uname) {
+    const sName = normalize(m.senderName)
+    const sId = normalize(m.senderId)
+    if (sName === uname || sId === uname || sId.split('::')[0] === uname) {
+      return true
+    }
+  }
+
+  return false
+}
+
+/**
+ * Checks if a user is the recipient of a message.
+ */
+export function isUserRecipient(
+  m: ChatMessage,
+  userId?: string | null,
+  userName?: string | null,
+): boolean {
+  if (!userId && !userName) return false
+  const uid = normalize(userId)
+  const uname = normalize(userName)
+
+  if (uid) {
+    const rId = normalize(m.recipientId)
+    if (rId === uid || rId.endsWith(`::${uid}`) || rId.split('::')[1] === uid) {
+      return true
+    }
+  }
+
+  if (uname) {
+    const rName = normalize(m.recipientName)
+    const rId = normalize(m.recipientId)
+    if (rName === uname || rId === uname || rId.split('::')[0] === uname) {
+      return true
+    }
+  }
+
+  return false
+}
+
+/**
+ * Checks if a user is a participant (sender or recipient) in a message.
+ */
+export function isUserParticipant(
+  m: ChatMessage,
+  userId?: string | null,
+  userName?: string | null,
+): boolean {
+  return isUserSender(m, userId, userName) || isUserRecipient(m, userId, userName)
+}
+
+/**
+ * Legacy alias for backwards compatibility
+ */
 export function matchesUser(
   targetId: string | undefined | null,
   targetName: string | undefined | null,
   userId: string | undefined | null,
   userName?: string | null,
-  isSeller?: boolean,
+  _isSeller?: boolean,
 ): boolean {
-  const normTargetId = normalize(targetId)
-  const normTargetName = normalize(targetName)
+  if (!userId && !userName) return false
   const normUserId = normalize(userId)
   const normUserName = normalize(userName)
+  const normTargetId = normalize(targetId)
+  const normTargetName = normalize(targetName)
 
-  if (!normTargetId && !normTargetName) return false
-
-  // Direct exact match with User ID
-  if (normUserId && (normTargetId === normUserId || normTargetName === normUserId)) return true
-
-  // Direct exact match with User Name
+  if (normUserId && (normTargetId === normUserId || normTargetId.endsWith(`::${normUserId}`))) return true
   if (normUserName && (normTargetName === normUserName || normTargetId === normUserName)) return true
-
-  // If targetId has the "Name::userId" format
-  if (targetId && targetId.includes('::')) {
-    const parts = targetId.split('::')
-    const partName = normalize(parts[0])
-    const partId = normalize(parts[1])
-    if (normUserId && partId === normUserId) return true
-    if (normUserName && partName === normUserName) return true
-  }
-
-  // Seller stand fallback
-  if (isSeller) {
-    if (normTargetId === 'mi puesto' || normTargetName === 'mi puesto') return true
-  }
-
   return false
 }
 
 export function readLocalMessages(): ChatMessage[] {
   try {
     const raw = localStorage.getItem(CHAT_STORAGE_KEY)
-    if (!raw) return getInitialDemoMessages()
+    if (!raw) return []
     const parsed = JSON.parse(raw) as ChatMessage[]
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : getInitialDemoMessages()
+    return Array.isArray(parsed) ? parsed : []
   } catch {
-    return getInitialDemoMessages()
+    return []
   }
 }
 
@@ -141,7 +196,6 @@ export async function syncRemoteMessages(): Promise<ChatMessage[]> {
 
     const existingIds = new Set(local.map((m) => m.id))
     const missingFiles = chatFiles.filter((f) => {
-      // file name is `chat-${msgId}.json`
       const id = f.name.replace(/^chat-/, '').replace(/\.json$/, '')
       return !existingIds.has(id)
     })
@@ -174,7 +228,7 @@ export async function syncRemoteMessages(): Promise<ChatMessage[]> {
       return combined
     }
   } catch {
-    // Network or remote storage issue; fallback gracefully to local
+    // Graceful fallback
   }
   return local
 }
@@ -202,10 +256,10 @@ export function subscribeToChatUpdates(callback: () => void): () => void {
   // Trigger an initial remote sync in the background
   void syncRemoteMessages().then(() => callback())
 
-  // Periodic heartbeat sync every 8 seconds for robust sync across all tabs/devices
+  // Periodic heartbeat sync every 6 seconds for robust sync across all tabs/devices
   const interval = setInterval(() => {
     void syncRemoteMessages().then(() => callback())
-  }, 8000)
+  }, 6000)
 
   return () => {
     clearInterval(interval)
@@ -281,24 +335,33 @@ export async function sendMessage(params: {
   return message
 }
 
-export function getMessagesByConversation(conversationId: string): ChatMessage[] {
+export function getMessagesByConversation(
+  conversationId: string,
+  userId?: string,
+  userName?: string,
+): ChatMessage[] {
   const all = readLocalMessages()
   return all
-    .filter((m) => m.conversationId === conversationId)
+    .filter((m) => {
+      if (m.conversationId !== conversationId) return false
+      if (userId || userName) {
+        return isUserParticipant(m, userId, userName)
+      }
+      return true
+    })
     .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
 }
 
 export function getUserConversations(
   userId: string,
-  isSeller?: boolean,
+  _isSeller?: boolean,
   userName?: string,
 ): ConversationSummary[] {
+  if (!userId && !userName) return []
   const all = readLocalMessages()
-  const userMessages = all.filter((m) => {
-    const isSender = matchesUser(m.senderId, m.senderName, userId, userName, isSeller)
-    const isRecipient = matchesUser(m.recipientId, m.recipientName, userId, userName, isSeller)
-    return isSender || isRecipient
-  })
+
+  // Filter messages to ONLY those where current user is sender OR recipient
+  const userMessages = all.filter((m) => isUserParticipant(m, userId, userName))
 
   const groupMap = new Map<string, ChatMessage[]>()
   for (const msg of userMessages) {
@@ -312,21 +375,20 @@ export function getUserConversations(
   for (const [conversationId, messages] of groupMap.entries()) {
     messages.sort((a, b) => a.timestamp.localeCompare(b.timestamp))
     const last = messages[messages.length - 1]
-    const isSender = matchesUser(last.senderId, last.senderName, userId, userName, isSeller)
+
+    // Determine the other participant (partner)
+    const isSender = isUserSender(last, userId, userName)
     const partnerId = isSender ? last.recipientId : last.senderId
     const partnerName = isSender ? last.recipientName : last.senderName
 
     const unreadCount = messages.filter(
-      (m) =>
-        !m.read &&
-        !matchesUser(m.senderId, m.senderName, userId, userName, isSeller) &&
-        matchesUser(m.recipientId, m.recipientName, userId, userName, isSeller),
+      (m) => !m.read && isUserRecipient(m, userId, userName) && !isUserSender(m, userId, userName),
     ).length
 
     summaries.push({
       id: conversationId,
-      partnerId,
-      partnerName: partnerName || 'Vendedor/Comprador',
+      partnerId: partnerId || 'partner',
+      partnerName: partnerName || 'Usuario',
       orderId: last.orderId,
       productName: last.productName,
       lastMessage: last.text,
@@ -341,16 +403,17 @@ export function getUserConversations(
 export function markConversationAsRead(
   conversationId: string,
   currentUserId: string,
-  isSeller?: boolean,
+  _isSeller?: boolean,
   userName?: string,
 ): void {
+  if (!currentUserId && !userName) return
   const all = readLocalMessages()
   let changed = false
   for (const msg of all) {
     if (
       msg.conversationId === conversationId &&
       !msg.read &&
-      matchesUser(msg.recipientId, msg.recipientName, currentUserId, userName, isSeller)
+      isUserRecipient(msg, currentUserId, userName)
     ) {
       msg.read = true
       changed = true
@@ -363,7 +426,7 @@ export function markConversationAsRead(
       void live.send({
         type: 'broadcast',
         event: 'messages_read',
-        payload: { conversationId },
+        payload: { conversationId, readerId: currentUserId },
       })
     } catch {
       // ignore
@@ -371,61 +434,13 @@ export function markConversationAsRead(
   }
 }
 
-export function getUnreadCount(userId: string, isSeller?: boolean, userName?: string): number {
+export function getUnreadCount(userId: string, _isSeller?: boolean, userName?: string): number {
   if (!userId && !userName) return 0
   const all = readLocalMessages()
   return all.filter(
     (m) =>
       !m.read &&
-      !matchesUser(m.senderId, m.senderName, userId, userName, isSeller) &&
-      matchesUser(m.recipientId, m.recipientName, userId, userName, isSeller),
+      isUserRecipient(m, userId, userName) &&
+      !isUserSender(m, userId, userName),
   ).length
-}
-
-function getInitialDemoMessages(): ChatMessage[] {
-  return [
-    {
-      id: 'demo_1',
-      conversationId: 'order_demo_101',
-      orderId: 'demo_101',
-      productName: 'Brownie Melcochudo con Nueces',
-      senderId: 'valeria',
-      senderName: 'Valeria M.',
-      recipientId: 'user_default',
-      recipientName: 'Tú',
-      text: '¡Hola! Ya tengo tu Brownie listo. ¿A qué hora pasas por el Edificio D?',
-      messageType: 'text',
-      timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
-      read: true,
-    },
-    {
-      id: 'demo_2',
-      conversationId: 'order_demo_101',
-      orderId: 'demo_101',
-      productName: 'Brownie Melcochudo con Nueces',
-      senderId: 'user_default',
-      senderName: 'Tú',
-      recipientId: 'valeria',
-      recipientName: 'Valeria M.',
-      text: '¡Hola Valeria! Salgo de clase a las 11:15 y paso de inmediato por el 2do piso.',
-      messageType: 'text',
-      timestamp: new Date(Date.now() - 1000 * 60 * 18).toISOString(),
-      read: true,
-    },
-    {
-      id: 'demo_3',
-      conversationId: 'order_demo_101',
-      orderId: 'demo_101',
-      productName: 'Brownie Melcochudo con Nueces',
-      senderId: 'valeria',
-      senderName: 'Valeria M.',
-      recipientId: 'user_default',
-      recipientName: 'Tú',
-      text: 'Perfecto, acá te espero frente a las salas de estudio. 📍 Edificio D - Piso 2',
-      messageType: 'location',
-      locationZone: 'Edificio D (Plazoleta / Pisos)',
-      timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
-      read: false,
-    },
-  ]
 }

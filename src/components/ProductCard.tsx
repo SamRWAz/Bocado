@@ -2,7 +2,7 @@ import { Flame, MapPin, MessageCircle, ShoppingBag } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getSellerPresence } from '../lib/campus'
-import { displaySeller, money, parseTags, productDescription, sellerUserId } from '../lib/format'
+import { displaySeller, money, ownsListing, parseTags, productDescription, sellerUserId } from '../lib/format'
 import type { Product } from '../types'
 import { BrandMark } from './BrandMark'
 import { TagList } from './TagList'
@@ -18,12 +18,17 @@ export function ProductCard({ product, onAdd }: Props) {
   const sellerId = sellerUserId(product.seller)
   const sellerName = displaySeller(product.seller)
   const presence = getSellerPresence(sellerId)
+  const isMyProduct = user ? ownsListing(product.seller, user.id, user.name) : false
 
   const handleStartChat = (e: React.MouseEvent) => {
     e.stopPropagation()
     e.preventDefault()
     if (!user) {
       navigate('/login', { state: { from: `/catalogo` } })
+      return
+    }
+    if (isMyProduct) {
+      navigate('/vender')
       return
     }
     navigate(
@@ -92,10 +97,10 @@ export function ProductCard({ product, onAdd }: Props) {
             type="button"
             onClick={handleStartChat}
             className="flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-medium text-primary hover:bg-primary/15 transition-colors"
-            title={`Chatear con ${sellerName}`}
+            title={isMyProduct ? 'Tu propio snack (Ir al panel)' : `Chatear con ${sellerName}`}
           >
             <MessageCircle size={12} />
-            <span>Chat</span>
+            <span>{isMyProduct ? 'Mi Snack' : 'Chat'}</span>
           </button>
         </div>
 

@@ -7,7 +7,7 @@ import {
   createConversationId,
   getMessagesByConversation,
   getUserConversations,
-  matchesUser,
+  isUserSender,
   subscribeToChatUpdates,
   syncRemoteMessages,
 } from '../lib/chat'
@@ -64,10 +64,10 @@ export function MessagesPage() {
           })
         } else {
           // Resolve partner from message history for this conversation
-          const msgs = getMessagesByConversation(convParam)
+          const msgs = getMessagesByConversation(convParam, user.id, user.name)
           if (msgs.length > 0) {
             const last = msgs[msgs.length - 1]
-            const isSender = matchesUser(last.senderId, last.senderName, user.id, user.name, isSeller)
+            const isSender = isUserSender(last, user.id, user.name)
             setActivePartner({
               id: isSender ? last.recipientId : last.senderId,
               name: isSender ? last.recipientName : last.senderName,
