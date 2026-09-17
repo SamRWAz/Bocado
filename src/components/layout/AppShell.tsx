@@ -24,12 +24,15 @@ export function AppShell() {
   const admin = isAdmin(user?.role)
 
   useEffect(() => {
-    if (!user) return
-    const update = () => setUnreadChat(getUnreadCount(user.id))
+    if (!user) {
+      setUnreadChat(0)
+      return
+    }
+    const update = () => setUnreadChat(getUnreadCount(user.id, seller, user.name))
     update()
     const unsubscribe = subscribeToChatUpdates(update)
     return () => unsubscribe()
-  }, [user])
+  }, [user, seller])
 
   const links = [
     { to: '/catalogo', label: 'Snacks', icon: ShoppingBag },

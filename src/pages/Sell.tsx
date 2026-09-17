@@ -28,7 +28,7 @@ import {
   PRESENCE_DURATIONS,
   saveSellerPresence,
 } from '../lib/campus'
-import { getUnreadCount } from '../lib/chat'
+import { getUnreadCount, subscribeToChatUpdates } from '../lib/chat'
 import { CATEGORIES, inputClass, labelClass } from '../lib/constants'
 import { encodeSeller, joinTags, money, ownsListing, parseTags } from '../lib/format'
 import type { DietaryTag, Product, SellerPresence } from '../types'
@@ -36,6 +36,7 @@ import type { DietaryTag, Product, SellerPresence } from '../types'
 export function SellPage() {
   const { user } = useAuth()
   const [products, setProducts] = useState<Product[]>([])
+  const [unreadMessages, setUnreadMessages] = useState(0)
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
   const [stock, setStock] = useState('')
@@ -69,6 +70,10 @@ export function SellPage() {
         setPresenceDuration(current.activeUntil)
         setIsOnline(current.isOnline)
       }
+      const updateUnread = () => setUnreadMessages(getUnreadCount(user.id, true, user.name))
+      updateUnread()
+      const unsubscribe = subscribeToChatUpdates(updateUnread)
+      return () => unsubscribe()
     }
   }, [refresh, user])
 
@@ -77,7 +82,6 @@ export function SellPage() {
   }
 
   const mine = products.filter((p) => ownsListing(p.seller, user.id, user.name))
-  const unreadMessages = getUnreadCount(user.id)
 
   const onFile = (event: ChangeEvent<HTMLInputElement>) => {
     const next = event.target.files?.[0]

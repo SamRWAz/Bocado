@@ -1,9 +1,16 @@
-import { MessageSquare, Navigation, Search, ShoppingBag } from 'lucide-react'
+import { MessageSquare, Navigation, RefreshCw, Search, ShoppingBag } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { ChatBox } from '../components/chat/ChatBox'
 import { canSell, useAuth } from '../context/AuthContext'
-import { createConversationId, getUserConversations, subscribeToChatUpdates } from '../lib/chat'
+import {
+  createConversationId,
+  getMessagesByConversation,
+  getUserConversations,
+  matchesUser,
+  subscribeToChatUpdates,
+  syncRemoteMessages,
+} from '../lib/chat'
 import { initials, timeAgo } from '../lib/format'
 import type { ConversationSummary } from '../types'
 
@@ -12,6 +19,7 @@ export function MessagesPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [conversations, setConversations] = useState<ConversationSummary[]>([])
   const [search, setSearch] = useState('')
+  const [isSyncing, setIsSyncing] = useState(false)
   const [activeConvId, setActiveConvId] = useState<string | null>(null)
   const [activePartner, setActivePartner] = useState<{
     id: string
@@ -54,6 +62,20 @@ export function MessagesPage() {
             orderId: found.orderId,
             productName: found.productName,
           })
+        } else {
+          // Resolve partner from message history for this conversation
+          const msgs = getMessagesByConversation(convParam)
+          if (msgs.length > 0) {
+            const last = msgs[msgs.length - 1]
+            const isSender = matchesUser(last.senderId, last.senderName, user.id, user.name, isSeller)
+            setActivePartner({
+              id: isSender ? last.recipientId : last.senderId,
+              name: isSender ? last.recipientName : last.senderName,
+              orderId: last.orderId,
+              productName: last.productName,
+              productId: last.productId,
+            })
+          }
         }
       }
     } else if (partnerIdParam && partnerNameParam) {
@@ -78,8 +100,20 @@ export function MessagesPage() {
     }
   }, [user, convParam, partnerIdParam, partnerNameParam, orderIdParam, productNameParam, productIdParam, activeConvId])
 
+  const handleManualSync = async () => {
+    setIsSyncing(true)
+    try {
+      await syncRemoteMessages()
+      refreshConversations()
+    } finally {
+      setIsSyncing(false)
+    }
+  }
+
   useEffect(() => {
-    refreshConversations()
+    void syncRemoteMessages().then(() => {
+      refreshConversations()
+    })
     const unsubscribe = subscribeToChatUpdates(() => {
       refreshConversations()
     })
@@ -106,11 +140,24 @@ export function MessagesPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Centro de Mensajes</h1>
-        <p className="text-xs text-muted-foreground sm:text-sm">
-          Coordinación rápida y ubicación en tiempo real entre compradores y vendedores del campus.
-        </p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Centro de Mensajes</h1>
+          <p className="text-xs text-muted-foreground sm:text-sm">
+            Coordinación rápida y ubicación en tiempo real entre compradores y vendedores del campus.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => void handleManualSync()}
+          disabled={isSyncing}
+          className="inline-flex items-center gap-1.5 self-start rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:border-primary/50 hover:text-foreground transition-all sm:self-auto"
+          title="Sincronizar mensajes en tiempo real con la nube"
+        >
+          <RefreshCw size={13} className={`text-primary ${isSyncing ? 'animate-spin' : ''}`} />
+          <span>{isSyncing ? 'Sincronizando...' : 'Sincronizar'}</span>
+        </button>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[340px_1fr]">

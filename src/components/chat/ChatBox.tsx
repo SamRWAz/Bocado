@@ -1,11 +1,12 @@
 import { ArrowLeft, Check, CheckCheck, MapPin, Navigation, Send, ShoppingBag } from 'lucide-react'
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { canSell, useAuth } from '../../context/AuthContext'
 import { getSellerPresence, ICESI_ZONES } from '../../lib/campus'
 import {
   getMessagesByConversation,
   markConversationAsRead,
+  matchesUser,
   sendMessage,
   subscribeToChatUpdates,
 } from '../../lib/chat'
@@ -47,13 +48,13 @@ export function ChatBox({
 
   const partnerPresence = getSellerPresence(partnerId)
 
-  const loadMessages = () => {
+  const loadMessages = useCallback(() => {
     const list = getMessagesByConversation(conversationId)
     setMessages(list)
     if (user) {
-      markConversationAsRead(conversationId, user.id, canSell(user.role))
+      markConversationAsRead(conversationId, user.id, canSell(user.role), user.name)
     }
-  }
+  }, [conversationId, user])
 
   useEffect(() => {
     loadMessages()
@@ -61,7 +62,7 @@ export function ChatBox({
       loadMessages()
     })
     return () => unsubscribe()
-  }, [conversationId, user])
+  }, [loadMessages])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -196,8 +197,13 @@ export function ChatBox({
           </div>
         ) : (
           messages.map((msg) => {
-            const isMe =
-              msg.senderId === user?.id || (user?.name && msg.senderName === user.name)
+            const isMe = matchesUser(
+              msg.senderId,
+              msg.senderName,
+              user?.id,
+              user?.name,
+              canSell(user?.role),
+            )
             return (
               <div
                 key={msg.id}

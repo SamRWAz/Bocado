@@ -3,6 +3,7 @@ import { supabase } from './supabase'
 
 const CHAT_STORAGE_KEY = 'bocado.chat_messages'
 const BUCKET = 'product-images'
+const REALTIME_CHANNEL = 'bocado_live_chat'
 
 export const CAMPUS_QUICK_REPLIES = [
   { icon: '📍', text: '¡Ya estoy en el punto de encuentro!' },
@@ -15,19 +16,65 @@ export const CAMPUS_QUICK_REPLIES = [
   { icon: '✅', text: '¡Listo, ya lo recibí! Muchas gracias' },
 ] as const
 
-const readLocalMessages = (): ChatMessage[] => {
+const normalize = (val?: string | null) => (val ?? '').trim().toLowerCase()
+
+export function matchesUser(
+  targetId: string | undefined | null,
+  targetName: string | undefined | null,
+  userId: string | undefined | null,
+  userName?: string | null,
+  isSeller?: boolean,
+): boolean {
+  const normTargetId = normalize(targetId)
+  const normTargetName = normalize(targetName)
+  const normUserId = normalize(userId)
+  const normUserName = normalize(userName)
+
+  if (!normTargetId && !normTargetName) return false
+
+  // Direct exact match with User ID
+  if (normUserId && (normTargetId === normUserId || normTargetName === normUserId)) return true
+
+  // Direct exact match with User Name
+  if (normUserName && (normTargetName === normUserName || normTargetId === normUserName)) return true
+
+  // If targetId has the "Name::userId" format
+  if (targetId && targetId.includes('::')) {
+    const parts = targetId.split('::')
+    const partName = normalize(parts[0])
+    const partId = normalize(parts[1])
+    if (normUserId && partId === normUserId) return true
+    if (normUserName && partName === normUserName) return true
+  }
+
+  // Seller stand fallback
+  if (isSeller) {
+    if (normTargetId === 'mi puesto' || normTargetName === 'mi puesto') return true
+  }
+
+  return false
+}
+
+export function readLocalMessages(): ChatMessage[] {
   try {
     const raw = localStorage.getItem(CHAT_STORAGE_KEY)
     if (!raw) return getInitialDemoMessages()
-    return JSON.parse(raw) as ChatMessage[]
+    const parsed = JSON.parse(raw) as ChatMessage[]
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : getInitialDemoMessages()
   } catch {
     return getInitialDemoMessages()
   }
 }
 
-const saveLocalMessages = (messages: ChatMessage[]) => {
-  localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages))
-  notifySync(messages)
+export function saveLocalMessages(messages: ChatMessage[], broadcast = true) {
+  try {
+    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages))
+  } catch {
+    // ignore
+  }
+  if (broadcast) {
+    notifySync(messages)
+  }
 }
 
 function notifySync(messages: ChatMessage[]) {
@@ -42,7 +89,100 @@ function notifySync(messages: ChatMessage[]) {
   window.dispatchEvent(new CustomEvent('bocado_chat_sync'))
 }
 
+// Global realtime channel instance
+let liveChannel: ReturnType<typeof supabase.channel> | null = null
+
+function getLiveChannel() {
+  if (!liveChannel) {
+    liveChannel = supabase.channel(REALTIME_CHANNEL)
+    liveChannel
+      .on('broadcast', { event: 'new_message' }, (payload) => {
+        if (payload?.payload) {
+          const incoming = payload.payload as ChatMessage
+          const current = readLocalMessages()
+          if (!current.some((m) => m.id === incoming.id)) {
+            current.push(incoming)
+            saveLocalMessages(current, true)
+          }
+        }
+      })
+      .on('broadcast', { event: 'messages_read' }, (payload) => {
+        if (payload?.payload?.conversationId) {
+          const convId = payload.payload.conversationId as string
+          const current = readLocalMessages()
+          let changed = false
+          for (const m of current) {
+            if (m.conversationId === convId && !m.read) {
+              m.read = true
+              changed = true
+            }
+          }
+          if (changed) {
+            saveLocalMessages(current, true)
+          }
+        }
+      })
+      .subscribe()
+  }
+  return liveChannel
+}
+
+export async function syncRemoteMessages(): Promise<ChatMessage[]> {
+  const local = readLocalMessages()
+  try {
+    const { data, error } = await supabase.storage.from(BUCKET).list('', {
+      limit: 200,
+      search: 'chat-',
+    })
+    if (error || !data) return local
+
+    const chatFiles = data.filter((f) => f.name.startsWith('chat-') && f.name.endsWith('.json'))
+    if (chatFiles.length === 0) return local
+
+    const existingIds = new Set(local.map((m) => m.id))
+    const missingFiles = chatFiles.filter((f) => {
+      // file name is `chat-${msgId}.json`
+      const id = f.name.replace(/^chat-/, '').replace(/\.json$/, '')
+      return !existingIds.has(id)
+    })
+
+    if (missingFiles.length === 0) return local
+
+    const fetched: ChatMessage[] = []
+    await Promise.all(
+      missingFiles.map(async (file) => {
+        try {
+          const { data: blob, error: dlErr } = await supabase.storage.from(BUCKET).download(file.name)
+          if (!dlErr && blob) {
+            const text = await blob.text()
+            const msg = JSON.parse(text) as ChatMessage
+            if (msg && msg.id && msg.conversationId) {
+              fetched.push(msg)
+            }
+          }
+        } catch {
+          // Ignore individual fetch failure
+        }
+      }),
+    )
+
+    if (fetched.length > 0) {
+      const mergedMap = new Map<string, ChatMessage>()
+      ;[...local, ...fetched].forEach((m) => mergedMap.set(m.id, m))
+      const combined = [...mergedMap.values()]
+      saveLocalMessages(combined, true)
+      return combined
+    }
+  } catch {
+    // Network or remote storage issue; fallback gracefully to local
+  }
+  return local
+}
+
 export function subscribeToChatUpdates(callback: () => void): () => void {
+  // Ensure realtime channel is active
+  getLiveChannel()
+
   let channel: BroadcastChannel | null = null
   try {
     channel = new BroadcastChannel('bocado_chat_channel')
@@ -59,7 +199,16 @@ export function subscribeToChatUpdates(callback: () => void): () => void {
   window.addEventListener('bocado_chat_sync', handleCustomEvent)
   window.addEventListener('storage', handleStorageEvent)
 
+  // Trigger an initial remote sync in the background
+  void syncRemoteMessages().then(() => callback())
+
+  // Periodic heartbeat sync every 8 seconds for robust sync across all tabs/devices
+  const interval = setInterval(() => {
+    void syncRemoteMessages().then(() => callback())
+  }, 8000)
+
   return () => {
+    clearInterval(interval)
     channel?.close()
     window.removeEventListener('bocado_chat_sync', handleCustomEvent)
     window.removeEventListener('storage', handleStorageEvent)
@@ -68,7 +217,7 @@ export function subscribeToChatUpdates(callback: () => void): () => void {
 
 export function createConversationId(userId1: string, userId2: string, orderId?: string): string {
   if (orderId) return `order_${orderId}`
-  const sorted = [userId1.trim().toLowerCase(), userId2.trim().toLowerCase()].sort()
+  const sorted = [normalize(userId1), normalize(userId2)].sort()
   return `direct_${sorted[0]}_${sorted[1]}`
 }
 
@@ -104,12 +253,27 @@ export async function sendMessage(params: {
 
   const all = readLocalMessages()
   all.push(message)
-  saveLocalMessages(all)
+  saveLocalMessages(all, true)
 
-  // Asynchronous remote storage backup
+  // 1. Broadcast over Supabase Realtime Channel for instant cross-device reception
+  try {
+    const live = getLiveChannel()
+    await live.send({
+      type: 'broadcast',
+      event: 'new_message',
+      payload: message,
+    })
+  } catch {
+    // Fallback continues
+  }
+
+  // 2. Asynchronous remote storage backup so offline recipients can fetch it
   try {
     const file = new Blob([JSON.stringify(message)], { type: 'application/json' })
-    await supabase.storage.from(BUCKET).upload(`chat-${message.id}.json`, file, { upsert: true })
+    await supabase.storage.from(BUCKET).upload(`chat-${message.id}.json`, file, {
+      contentType: 'application/json',
+      upsert: true,
+    })
   } catch {
     // Local fallback is completely operational
   }
@@ -130,13 +294,11 @@ export function getUserConversations(
   userName?: string,
 ): ConversationSummary[] {
   const all = readLocalMessages()
-  const userMessages = all.filter(
-    (m) =>
-      m.senderId === userId ||
-      m.recipientId === userId ||
-      (userName && (m.senderName === userName || m.recipientName === userName)) ||
-      (isSeller && (m.recipientId === 'Mi Puesto' || m.senderId === 'Mi Puesto')),
-  )
+  const userMessages = all.filter((m) => {
+    const isSender = matchesUser(m.senderId, m.senderName, userId, userName, isSeller)
+    const isRecipient = matchesUser(m.recipientId, m.recipientName, userId, userName, isSeller)
+    return isSender || isRecipient
+  })
 
   const groupMap = new Map<string, ChatMessage[]>()
   for (const msg of userMessages) {
@@ -150,14 +312,15 @@ export function getUserConversations(
   for (const [conversationId, messages] of groupMap.entries()) {
     messages.sort((a, b) => a.timestamp.localeCompare(b.timestamp))
     const last = messages[messages.length - 1]
-    const isSender = last.senderId === userId || (userName && last.senderName === userName)
+    const isSender = matchesUser(last.senderId, last.senderName, userId, userName, isSeller)
     const partnerId = isSender ? last.recipientId : last.senderId
     const partnerName = isSender ? last.recipientName : last.senderName
 
     const unreadCount = messages.filter(
       (m) =>
-        (m.recipientId === userId || (isSeller && m.recipientId === 'Mi Puesto')) &&
-        !m.read,
+        !m.read &&
+        !matchesUser(m.senderId, m.senderName, userId, userName, isSeller) &&
+        matchesUser(m.recipientId, m.recipientName, userId, userName, isSeller),
     ).length
 
     summaries.push({
@@ -179,29 +342,43 @@ export function markConversationAsRead(
   conversationId: string,
   currentUserId: string,
   isSeller?: boolean,
+  userName?: string,
 ): void {
   const all = readLocalMessages()
   let changed = false
   for (const msg of all) {
     if (
       msg.conversationId === conversationId &&
-      (msg.recipientId === currentUserId || (isSeller && msg.recipientId === 'Mi Puesto')) &&
-      !msg.read
+      !msg.read &&
+      matchesUser(msg.recipientId, msg.recipientName, currentUserId, userName, isSeller)
     ) {
       msg.read = true
       changed = true
     }
   }
   if (changed) {
-    saveLocalMessages(all)
+    saveLocalMessages(all, true)
+    try {
+      const live = getLiveChannel()
+      void live.send({
+        type: 'broadcast',
+        event: 'messages_read',
+        payload: { conversationId },
+      })
+    } catch {
+      // ignore
+    }
   }
 }
 
-export function getUnreadCount(userId: string, isSeller?: boolean): number {
-  if (!userId) return 0
+export function getUnreadCount(userId: string, isSeller?: boolean, userName?: string): number {
+  if (!userId && !userName) return 0
   const all = readLocalMessages()
   return all.filter(
-    (m) => (m.recipientId === userId || (isSeller && m.recipientId === 'Mi Puesto')) && !m.read,
+    (m) =>
+      !m.read &&
+      !matchesUser(m.senderId, m.senderName, userId, userName, isSeller) &&
+      matchesUser(m.recipientId, m.recipientName, userId, userName, isSeller),
   ).length
 }
 
