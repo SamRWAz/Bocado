@@ -74,12 +74,23 @@ export function ChatBox({
 
     setSending(true)
     try {
+      const targetRecipientId =
+        partnerId ||
+        (conversationId.startsWith('direct_')
+          ? conversationId
+              .replace('direct_', '')
+              .split('_')
+              .find((id) => id !== user.id.toLowerCase())
+          : '') ||
+        'partner'
+      const targetRecipientName = partnerName || 'Usuario'
+
       await sendMessage({
         conversationId,
         senderId: user.id,
         senderName: user.name,
-        recipientId: partnerId,
-        recipientName: partnerName,
+        recipientId: targetRecipientId,
+        recipientName: targetRecipientName,
         text: text.trim(),
         orderId,
         productId,

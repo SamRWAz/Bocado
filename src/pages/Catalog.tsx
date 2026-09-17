@@ -1,6 +1,6 @@
-import { Check, Filter, MapPin, Search, ShoppingBag, Sparkles } from 'lucide-react'
+import { Filter, MapPin, Search, ShoppingBag, Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { ProductCard } from '../components/ProductCard'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
@@ -13,12 +13,12 @@ import type { Product } from '../types'
 export function CatalogPage() {
   const { user } = useAuth()
   const { add } = useCart()
+  const navigate = useNavigate()
   const [products, setProducts] = useState<Product[]>([])
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<(typeof FILTERS)[number]>('Todos')
   const [dietaryFilter, setDietaryFilter] = useState<string | null>(null)
   const [zoneFilter, setZoneFilter] = useState<string>('Todas las zonas')
-  const [addedNotice, setAddedNotice] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   const refresh = useCallback(async () => {
@@ -34,10 +34,9 @@ export function CatalogPage() {
 
   const handleAddToCart = async (product: Product) => {
     add(product, 1)
-    await updateProduct(product.id, { intent_count: product.intent_count + 1 })
-    await incrementMetric('total_intents')
-    setAddedNotice(`¡${product.name} añadido a tu reserva!`)
-    setTimeout(() => setAddedNotice(null), 3500)
+    void updateProduct(product.id, { intent_count: product.intent_count + 1 })
+    void incrementMetric('total_intents')
+    navigate('/carrito')
   }
 
   // Filter products
@@ -96,19 +95,6 @@ export function CatalogPage() {
           />
         </div>
       </div>
-
-      {/* Added notice banner */}
-      {addedNotice && (
-        <div className="flex items-center justify-between rounded-xl border border-primary/40 bg-primary/10 px-4 py-3 text-sm text-primary shadow-sm animate-in fade-in">
-          <div className="flex items-center gap-2 font-display font-medium">
-            <Check size={18} className="text-primary" />
-            <span>{addedNotice}</span>
-          </div>
-          <Link to="/carrito" className="font-display text-xs font-bold underline hover:opacity-80">
-            Ir al Carrito →
-          </Link>
-        </div>
-      )}
 
       {/* Main Filter Bar */}
       <div className="space-y-3 rounded-2xl border border-border/80 bg-card p-4 shadow-sm">

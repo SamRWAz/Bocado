@@ -7,6 +7,7 @@ import {
   createConversationId,
   getMessagesByConversation,
   getUserConversations,
+  isUserRecipient,
   isUserSender,
   subscribeToChatUpdates,
   syncRemoteMessages,
@@ -66,11 +67,30 @@ export function MessagesPage() {
           // Resolve partner from message history for this conversation
           const msgs = getMessagesByConversation(convParam, user.id, user.name)
           if (msgs.length > 0) {
+            let pId = ''
+            let pName = ''
+            for (const m of msgs) {
+              if (!isUserSender(m, user.id, user.name)) {
+                pId = m.senderId
+                pName = m.senderName
+                break
+              }
+              if (!isUserRecipient(m, user.id, user.name)) {
+                pId = m.recipientId
+                pName = m.recipientName
+                break
+              }
+            }
+            if (!pId) {
+              const last = msgs[msgs.length - 1]
+              const isSender = isUserSender(last, user.id, user.name)
+              pId = isSender ? last.recipientId : last.senderId
+              pName = isSender ? last.recipientName : last.senderName
+            }
             const last = msgs[msgs.length - 1]
-            const isSender = isUserSender(last, user.id, user.name)
             setActivePartner({
-              id: isSender ? last.recipientId : last.senderId,
-              name: isSender ? last.recipientName : last.senderName,
+              id: pId || 'partner',
+              name: pName || 'Usuario',
               orderId: last.orderId,
               productName: last.productName,
               productId: last.productId,
@@ -128,7 +148,13 @@ export function MessagesPage() {
       orderId: conv.orderId,
       productName: conv.productName,
     })
-    setSearchParams({ conv: conv.id })
+    setSearchParams({
+      conv: conv.id,
+      partnerId: conv.partnerId,
+      partnerName: conv.partnerName,
+      ...(conv.orderId ? { orderId: conv.orderId } : {}),
+      ...(conv.productName ? { productName: conv.productName } : {}),
+    })
   }
 
   const filtered = conversations.filter(

@@ -16,7 +16,6 @@ export function ShopPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const [products, setProducts] = useState<Product[]>([])
-  const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(true)
 
   const refresh = useCallback(async () => {
@@ -37,9 +36,9 @@ export function ShopPage() {
       return
     }
     add(product)
-    await updateProduct(product.id, { intent_count: product.intent_count + 1 })
-    await incrementMetric('total_intents')
-    setNotice(`${product.name} se agregó al carrito`)
+    void updateProduct(product.id, { intent_count: product.intent_count + 1 })
+    void incrementMetric('total_intents')
+    navigate('/carrito')
   }
 
   if (loading) {
@@ -70,10 +69,6 @@ export function ShopPage() {
         </p>
         <TagList tags={shop.tags} size="md" />
       </div>
-
-      {notice && (
-        <p className="rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary">{notice}</p>
-      )}
 
       {available.length === 0 ? (
         <p className="py-12 text-center text-sm text-muted-foreground">Esta tienda no tiene productos disponibles.</p>

@@ -256,10 +256,10 @@ export function subscribeToChatUpdates(callback: () => void): () => void {
   // Trigger an initial remote sync in the background
   void syncRemoteMessages().then(() => callback())
 
-  // Periodic heartbeat sync every 6 seconds for robust sync across all tabs/devices
+  // Periodic heartbeat sync every 5 seconds for fast sync across all tabs/devices
   const interval = setInterval(() => {
     void syncRemoteMessages().then(() => callback())
-  }, 6000)
+  }, 5000)
 
   return () => {
     clearInterval(interval)
@@ -288,6 +288,18 @@ export async function sendMessage(params: {
   messageType?: ChatMessage['messageType']
   locationZone?: string
 }): Promise<ChatMessage> {
+  // Ensure valid recipient ID and recipient Name fallback
+  let rId = params.recipientId?.trim()
+  let rName = params.recipientName?.trim()
+
+  if (!rId && params.conversationId.startsWith('direct_')) {
+    const parts = params.conversationId.replace('direct_', '').split('_')
+    rId = parts.find((p) => p !== normalize(params.senderId)) || parts[0] || 'partner'
+  }
+  if (!rName) {
+    rName = 'Usuario'
+  }
+
   const message: ChatMessage = {
     id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
     conversationId: params.conversationId,
@@ -296,8 +308,8 @@ export async function sendMessage(params: {
     productName: params.productName,
     senderId: params.senderId,
     senderName: params.senderName,
-    recipientId: params.recipientId,
-    recipientName: params.recipientName,
+    recipientId: rId,
+    recipientName: rName,
     text: params.text.trim(),
     messageType: params.messageType ?? 'text',
     locationZone: params.locationZone,
@@ -376,10 +388,28 @@ export function getUserConversations(
     messages.sort((a, b) => a.timestamp.localeCompare(b.timestamp))
     const last = messages[messages.length - 1]
 
-    // Determine the other participant (partner)
-    const isSender = isUserSender(last, userId, userName)
-    const partnerId = isSender ? last.recipientId : last.senderId
-    const partnerName = isSender ? last.recipientName : last.senderName
+    // Determine the partner (the other participant in the conversation)
+    let partnerId = ''
+    let partnerName = ''
+
+    for (const m of messages) {
+      if (!isUserSender(m, userId, userName)) {
+        partnerId = m.senderId
+        partnerName = m.senderName
+        break
+      }
+      if (!isUserRecipient(m, userId, userName)) {
+        partnerId = m.recipientId
+        partnerName = m.recipientName
+        break
+      }
+    }
+
+    if (!partnerId) {
+      const isSender = isUserSender(last, userId, userName)
+      partnerId = isSender ? last.recipientId : last.senderId
+      partnerName = isSender ? last.recipientName : last.senderName
+    }
 
     const unreadCount = messages.filter(
       (m) => !m.read && isUserRecipient(m, userId, userName) && !isUserSender(m, userId, userName),

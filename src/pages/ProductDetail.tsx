@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, Flame, MapPin, MessageCircle, ShoppingBag } from 'lucide-react'
+import { ArrowLeft, Flame, MapPin, MessageCircle, ShoppingBag } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { BrandMark } from '../components/BrandMark'
@@ -17,7 +17,6 @@ export function ProductDetailPage() {
   const navigate = useNavigate()
   const [product, setProduct] = useState<Product | null>(null)
   const [qty, setQty] = useState(1)
-  const [notice, setNotice] = useState('')
 
   useEffect(() => {
     if (!id) return
@@ -43,9 +42,9 @@ export function ProductDetailPage() {
       return
     }
     add(product, qty)
-    await updateProduct(product.id, { intent_count: product.intent_count + 1 })
-    await incrementMetric('total_intents')
-    setNotice(`¡${qty} unidad(es) agregadas a tu reserva!`)
+    void updateProduct(product.id, { intent_count: product.intent_count + 1 })
+    void incrementMetric('total_intents')
+    navigate('/carrito')
   }
 
   const handleStartChat = () => {
@@ -184,13 +183,6 @@ export function ProductDetailPage() {
                 </button>
               </div>
             </div>
-
-            {notice && (
-              <div className="flex items-center gap-2 rounded-xl bg-primary/15 px-4 py-2.5 text-xs font-semibold text-primary">
-                <Check size={16} />
-                <span>{notice}</span>
-              </div>
-            )}
 
             <div className="flex flex-col gap-3 sm:flex-row">
               <button
