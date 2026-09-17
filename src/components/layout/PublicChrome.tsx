@@ -1,16 +1,10 @@
-import { type MouseEvent } from 'react'
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { canSell, useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
-import { scrollToSection } from '../../lib/scroll'
 import { BrandMark } from '../BrandMark'
 import { ThemeToggle } from '../ThemeToggle'
 
-const sectionLinks = [
-  { id: 'snacks', label: 'Snacks en Campus' },
-]
-
-function SectionNav({ onGoToSection }: { onGoToSection: (event: MouseEvent<HTMLAnchorElement>, id: string) => void }) {
+function SectionNav() {
   return (
     <>
       <NavLink
@@ -25,16 +19,6 @@ function SectionNav({ onGoToSection }: { onGoToSection: (event: MouseEvent<HTMLA
       >
         Vitrina 24/7
       </NavLink>
-      {sectionLinks.map((link) => (
-        <a
-          key={link.id}
-          href={`/#${link.id}`}
-          onClick={(event) => onGoToSection(event, link.id)}
-          className="hover:text-foreground font-medium transition-colors"
-        >
-          {link.label}
-        </a>
-      ))}
     </>
   )
 }
@@ -42,18 +26,6 @@ function SectionNav({ onGoToSection }: { onGoToSection: (event: MouseEvent<HTMLA
 export function PublicHeader() {
   const { user } = useAuth()
   const { count } = useCart()
-  const navigate = useNavigate()
-  const location = useLocation()
-
-  const goToSection = (event: MouseEvent<HTMLAnchorElement>, id: string) => {
-    event.preventDefault()
-    if (location.pathname === '/') {
-      scrollToSection(id)
-      window.history.replaceState(null, '', `/#${id}`)
-      return
-    }
-    navigate({ pathname: '/', hash: `#${id}` })
-  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
@@ -63,7 +35,7 @@ export function PublicHeader() {
           Bocado
         </Link>
         <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
-          <SectionNav onGoToSection={goToSection} />
+          <SectionNav />
         </nav>
         <div className="flex items-center gap-2">
           <ThemeToggle />
@@ -104,7 +76,7 @@ export function PublicHeader() {
         </div>
       </div>
       <nav className="flex gap-4 overflow-x-auto border-t border-border px-4 py-2 text-sm text-muted-foreground no-scrollbar md:hidden">
-        <SectionNav onGoToSection={goToSection} />
+        <SectionNav />
       </nav>
     </header>
   )

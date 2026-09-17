@@ -1,10 +1,17 @@
-import { Boxes, Flame, MessageCircle, ShoppingBag } from 'lucide-react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import {
+  Flame,
+  Lock,
+  LockOpen,
+  MessageCircle,
+  ShoppingBag,
+  Sparkles,
+} from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { displaySeller, money, ownsListing, parseTags, sellerUserId } from '../lib/format'
-import { playKeyBeep } from '../lib/sounds'
+import { playKeyBeep, playLockerUnlock } from '../lib/sounds'
 import type { Product } from '../types'
-import { BrandMark } from './BrandMark'
 import { TagList } from './TagList'
 
 type Props = {
@@ -15,6 +22,8 @@ type Props = {
 export function ProductCard({ product, onAdd }: Props) {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const [doorOpen, setDoorOpen] = useState(false)
+
   const sellerId = sellerUserId(product.seller)
   const sellerName = displaySeller(product.seller)
   const isMyProduct = user ? ownsListing(product.seller, user.id, user.name) : false
@@ -38,55 +47,135 @@ export function ProductCard({ product, onAdd }: Props) {
     )
   }
 
+  const handleToggleDoor = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!doorOpen) {
+      playLockerUnlock()
+      setDoorOpen(true)
+    } else {
+      playKeyBeep(450)
+      setDoorOpen(false)
+    }
+  }
+
   const isLowStock = product.stock > 0 && product.stock <= 3
   const lockerSlot = product.lockerNumber || '01'
 
+  // Map product image to anime stylized assets if it's default or placeholder
+  const displayImage = (() => {
+    if (!product.image_url) return '/images/snack_anime_brownie.jpg'
+    const nameLower = product.name.toLowerCase()
+    if (nameLower.includes('brownie')) return '/images/snack_anime_brownie.jpg'
+    if (nameLower.includes('parfait') || nameLower.includes('yogur') || nameLower.includes('chia')) {
+      return '/images/snack_anime_parfait.jpg'
+    }
+    if (nameLower.includes('empanada')) return '/images/snack_anime_empanadas.jpg'
+    if (nameLower.includes('galleta') || nameLower.includes('cookie') || nameLower.includes('avena')) {
+      return '/images/snack_anime_cookies.jpg'
+    }
+    return product.image_url
+  })()
+
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-card/80 backdrop-blur-md transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/60 hover:shadow-[0_0_25px_rgba(249,115,22,0.2)]">
-      {/* Top Media Container */}
-      <Link to={`/producto/${product.id}`} className="relative block overflow-hidden bg-zinc-950">
-        {product.image_url ? (
+    <article
+      onMouseEnter={() => {
+        if (!doorOpen) {
+          playKeyBeep(520)
+          setDoorOpen(true)
+        }
+      }}
+      onMouseLeave={() => {
+        if (doorOpen) setDoorOpen(false)
+      }}
+      className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900/95 to-black p-4 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-primary/60 hover:shadow-[0_0_30px_rgba(249,115,22,0.25)]"
+    >
+      {/* Top Locker Status Bar with LED */}
+      <div className="flex items-center justify-between border-b border-white/10 pb-2.5 mb-3 text-xs font-mono">
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+          <span className="font-bold text-emerald-400">SLOT #{lockerSlot}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="rounded-md bg-white/5 px-2 py-0.5 text-[10px] text-zinc-400 border border-white/5">
+            Campus 24/7
+          </span>
+          <button
+            type="button"
+            onClick={handleStartChat}
+            className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/5 text-zinc-400 hover:text-primary hover:bg-primary/20 transition-colors"
+            title={`Chat con ${sellerName}`}
+          >
+            <MessageCircle size={13} />
+          </button>
+        </div>
+      </div>
+
+      {/* 3D Smart Locker Vault with Opening Glass Window Door */}
+      <div className="locker-vault-perspective relative h-56 w-full overflow-hidden rounded-2xl bg-zinc-950 border border-white/10">
+        {/* Interior Chamber (Inside the locker) */}
+        <div className="absolute inset-0 flex items-center justify-center p-2 bg-gradient-to-t from-black via-zinc-950 to-zinc-900">
+          {/* Spotlight light ray */}
+          <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 h-20 w-32 bg-primary/20 blur-xl" />
+
           <img
-            src={product.image_url}
+            src={displayImage}
             alt={product.name}
-            className="h-52 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full object-cover rounded-xl transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
-        ) : (
-          <div className="flex h-52 items-center justify-center bg-secondary/60 text-primary">
-            <BrandMark size={48} />
-          </div>
-        )}
 
-        {/* Floating Badges */}
-        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-          <span className="rounded-xl bg-black/75 px-2.5 py-1 text-[10px] font-mono font-bold text-emerald-400 backdrop-blur-md border border-white/10 flex items-center gap-1">
-            <Boxes size={11} /> Casillero #{lockerSlot}
-          </span>
           {isLowStock && (
-            <span className="flex items-center gap-1 rounded-xl bg-rose-500/90 px-2.5 py-1 text-[10px] font-bold text-white shadow-md backdrop-blur-sm animate-pulse">
-              <Flame size={11} /> ¡Quedan {product.stock}!
+            <span className="absolute bottom-2 left-2 rounded-lg bg-rose-500/90 px-2 py-0.5 text-[10px] font-bold text-white shadow-md backdrop-blur-sm animate-pulse flex items-center gap-1">
+              <Flame size={11} /> ¡Solo {product.stock}!
             </span>
           )}
         </div>
 
-        {/* Quick Chat Shortcut Icon */}
-        <button
-          type="button"
-          onClick={handleStartChat}
-          className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-xl bg-black/70 text-zinc-300 hover:text-primary backdrop-blur-md border border-white/10 transition-colors"
-          title={`Chatear con ${sellerName}`}
+        {/* 3D Smart Glass Window Door (Swings open on left hinge) */}
+        <div
+          onClick={handleToggleDoor}
+          className={`locker-door absolute inset-0 cursor-pointer rounded-2xl border-2 transition-all duration-700 ${
+            doorOpen
+              ? 'is-open border-emerald-500/80 bg-emerald-950/20'
+              : 'border-cyan-500/40 bg-slate-900/60 backdrop-blur-[2px] shadow-inner hover:border-cyan-400'
+          }`}
         >
-          <MessageCircle size={14} />
-        </button>
-      </Link>
+          {/* Glass Window Tint & Grid Reflection Overlay */}
+          {!doorOpen ? (
+            <div className="flex h-full w-full flex-col justify-between p-3 bg-gradient-to-tr from-cyan-950/40 via-transparent to-white/10">
+              <div className="flex items-center justify-between text-[10px] font-mono text-cyan-300">
+                <span className="flex items-center gap-1">
+                  <Lock size={12} className="text-cyan-400" /> VENTANA SEGURA
+                </span>
+                <span className="text-[9px] opacity-75">NFC / PIN</span>
+              </div>
 
-      {/* Card Details */}
-      <div className="flex flex-1 flex-col p-4 justify-between space-y-3">
+              {/* Center Touch To Open Badge */}
+              <div className="mx-auto rounded-xl bg-black/75 px-3 py-1.5 text-center backdrop-blur-md border border-cyan-400/30 shadow-lg">
+                <p className="text-[10px] font-mono font-bold text-cyan-300 flex items-center gap-1.5">
+                  <Sparkles size={11} className="text-primary animate-spin" />
+                  <span>Pasa el cursor para abrir</span>
+                </p>
+              </div>
+
+              <div className="text-[9px] font-mono text-zinc-400 flex justify-between">
+                <span>SENSOR ACTIVO</span>
+                <span>DESBLOQUEO AUTOMÁTICO</span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex h-full w-full items-center justify-center p-2 text-center font-mono text-[10px] font-bold text-emerald-400">
+              <LockOpen size={18} className="animate-bounce" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Card Details & Instant Cart Action */}
+      <div className="mt-4 flex flex-1 flex-col justify-between space-y-3">
         <div>
           <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-            <span className="truncate">Por {sellerName}</span>
-            <span className="text-[10px] font-mono text-emerald-400">Campus 24/7</span>
+            <span className="truncate">Cocinero: {sellerName}</span>
           </div>
 
           <Link to={`/producto/${product.id}`} className="hover:text-primary transition-colors">
@@ -100,7 +189,7 @@ export function ProductCard({ product, onAdd }: Props) {
           </div>
         </div>
 
-        {/* Price and Instant Cart Action */}
+        {/* Price and Cart Button */}
         <div className="pt-3 flex items-center justify-between border-t border-white/10">
           <div>
             <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono block">
@@ -112,14 +201,14 @@ export function ProductCard({ product, onAdd }: Props) {
           <button
             type="button"
             onClick={() => {
-              playKeyBeep(750)
+              playLockerUnlock()
               onAdd(product)
             }}
             disabled={product.sold_out || product.stock <= 0}
-            className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 font-display text-xs font-bold text-primary-foreground shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 disabled:opacity-40 transition-all"
+            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-amber-500 px-4 py-2.5 font-display text-xs font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:brightness-110 active:scale-95 disabled:opacity-40 transition-all"
           >
             <ShoppingBag size={14} />
-            <span>{product.sold_out ? 'Agotado' : 'Apartar'}</span>
+            <span>{product.sold_out ? 'Agotado' : 'Apartar & Retirar'}</span>
           </button>
         </div>
       </div>

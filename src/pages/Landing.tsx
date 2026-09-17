@@ -4,7 +4,9 @@ import {
   ArrowRight,
   Boxes,
   ChevronDown,
+  KeyRound,
   Lock,
+  LockOpen,
   MapPin,
   Sparkles,
 } from 'lucide-react'
@@ -24,6 +26,7 @@ export function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [demoLockerOpen, setDemoLockerOpen] = useState(false)
   const [selectedHubId, setSelectedHubId] = useState('hub_edificio_d')
+  const [heroLockerUnlocked, setHeroLockerUnlocked] = useState(false)
   const sectionRefs = useRef<(HTMLElement | null)[]>([])
 
   const scrollToSlide = (index: number) => {
@@ -44,6 +47,16 @@ export function LandingPage() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [currentSlide])
+
+  const handleHeroLockerToggle = () => {
+    if (!heroLockerUnlocked) {
+      playLockerUnlock()
+      setHeroLockerUnlocked(true)
+    } else {
+      playKeyBeep(400)
+      setHeroLockerUnlocked(false)
+    }
+  }
 
   const handleDemoUnlock = () => {
     playKeyBeep(700)
@@ -88,57 +101,88 @@ export function LandingPage() {
       </nav>
 
       {/* ========================================================= */}
-      {/* SLIDE 1: HERO CINEMÁTICO                                  */}
+      {/* SLIDE 1: HERO CINEMÁTICO CON ILUSTRACIÓN ANIMADA          */}
       {/* ========================================================= */}
       <section
         ref={(el) => {
           sectionRefs.current[0] = el
         }}
-        className="relative z-10 flex min-h-[90vh] flex-col items-center justify-center px-4 py-12 text-center sm:px-6"
+        className="relative z-10 flex min-h-[92vh] flex-col items-center justify-center px-4 py-8 sm:px-6"
       >
-        {/* Floating Glowing Pill */}
-        <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-1.5 text-xs font-mono font-bold uppercase tracking-widest text-primary backdrop-blur-md mb-6 animate-pulse">
-          <Sparkles size={14} className="text-primary" />
-          <span>Vitrina Inteligente Campus Icesi</span>
-        </div>
+        <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          {/* Left Text Column */}
+          <div className="lg:col-span-6 text-center lg:text-left space-y-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-1.5 text-xs font-mono font-bold uppercase tracking-widest text-primary backdrop-blur-md animate-pulse">
+              <Sparkles size={14} className="text-primary" />
+              <span>Vitrina Inteligente Campus Icesi</span>
+            </div>
 
-        {/* Big Stylized Typography */}
-        <h1 className="font-display text-4xl font-black tracking-tight sm:text-6xl lg:text-7xl text-foreground max-w-4xl leading-tight">
-          Tus snacks favoritos.{' '}
-          <span className="bg-gradient-to-r from-primary via-amber-400 to-emerald-400 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(249,115,22,0.25)]">
-            En casilleros 24/7.
-          </span>
-        </h1>
+            <h1 className="font-display text-4xl font-black tracking-tight sm:text-6xl text-foreground leading-[1.1]">
+              Tus snacks favoritos.{' '}
+              <span className="bg-gradient-to-r from-primary via-amber-400 to-emerald-400 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(249,115,22,0.25)]">
+                En casilleros 24/7.
+              </span>
+            </h1>
 
-        <p className="mx-auto mt-6 max-w-xl text-base text-muted-foreground sm:text-lg leading-relaxed">
-          Paga digital, recibe tu PIN de 4 dígitos y retira sin esperas ni encuentros personales en el Edificio D, Samán o Biblioteca.
-        </p>
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-lg mx-auto lg:mx-0">
+              Paga digital, recibe tu PIN de 4 dígitos y retira al instante sin esperas ni encuentros personales en el Edificio D, Samán o Biblioteca.
+            </p>
 
-        {/* CTA Buttons */}
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link
-            to="/vitrina"
-            className="flex items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 font-display text-sm font-bold text-primary-foreground shadow-2xl shadow-primary/30 hover:brightness-110 active:scale-95 transition-all"
-          >
-            <Boxes size={18} />
-            <span>Abrir Vitrina de Casilleros</span>
-          </Link>
-          <Link
-            to="/catalogo"
-            className="flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-secondary/80 px-8 py-4 font-display text-sm font-semibold text-foreground hover:bg-secondary active:scale-95 transition-all backdrop-blur-md"
-          >
-            <span>Ver Snacks Disponibles</span>
-            <ArrowRight size={16} />
-          </Link>
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+              <Link
+                to="/vitrina"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 font-display text-sm font-bold text-primary-foreground shadow-2xl shadow-primary/30 hover:brightness-110 active:scale-95 transition-all"
+              >
+                <Boxes size={18} />
+                <span>Abrir Vitrina de Casilleros</span>
+              </Link>
+              <Link
+                to="/catalogo"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-secondary/80 px-8 py-4 font-display text-sm font-semibold text-foreground hover:bg-secondary active:scale-95 transition-all backdrop-blur-md"
+              >
+                <span>Ver Snacks Disponibles</span>
+                <ArrowRight size={16} />
+              </Link>
+            </div>
+          </div>
+
+          {/* Right Column: Stylized Animated Anime Locker Artwork */}
+          <div className="lg:col-span-6 flex justify-center">
+            <div
+              onClick={handleHeroLockerToggle}
+              className="group relative cursor-pointer overflow-hidden rounded-3xl border-2 border-primary/40 bg-zinc-950/80 p-2 shadow-[0_0_40px_rgba(249,115,22,0.25)] backdrop-blur-2xl transition-all duration-500 hover:scale-[1.02] hover:border-emerald-400"
+            >
+              {/* Anime Artwork Image */}
+              <div className="relative overflow-hidden rounded-2xl">
+                <img
+                  src="/images/hero_anime_locker.jpg"
+                  alt="Estudiante sacando snack del casillero inteligente Bocado"
+                  className="h-64 sm:h-80 w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+
+                {/* Floating UI Badges on Image */}
+                <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-black/80 px-3 py-1 text-[11px] font-mono font-bold text-emerald-400 backdrop-blur-md border border-white/10">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                  <span>SLOT #042 DESBLOQUEADO</span>
+                </div>
+
+                <div className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-[11px] font-display font-bold text-primary-foreground shadow-lg animate-bounce">
+                  {heroLockerUnlocked ? <LockOpen size={13} /> : <KeyRound size={13} />}
+                  <span>{heroLockerUnlocked ? '¡Compuerta Abierta!' : 'Toca para simular retiro'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Scroll Down Cue */}
         <button
           type="button"
           onClick={() => scrollToSlide(1)}
-          className="mt-12 flex flex-col items-center gap-1 text-xs font-mono text-muted-foreground hover:text-primary transition-colors animate-bounce"
+          className="mt-8 flex flex-col items-center gap-1 text-xs font-mono text-muted-foreground hover:text-primary transition-colors animate-bounce"
         >
-          <span>Desliza para ver la vitrina 3D</span>
+          <span>Desliza para ver los snacks en 3D</span>
           <ChevronDown size={18} />
         </button>
       </section>
@@ -160,7 +204,7 @@ export function LandingPage() {
             Snacks frescos en casillero
           </h2>
           <p className="mt-2 text-xs sm:text-sm text-muted-foreground">
-            Toca o desliza cualquier carta para girarla en 3D, ver ingredientes y apartar al instante.
+            Toca o pasa el cursor sobre la compuerta para verla abrirse en 3D y apartar tu snack.
           </p>
         </div>
 
@@ -169,7 +213,7 @@ export function LandingPage() {
       </section>
 
       {/* ========================================================= */}
-      {/* SLIDE 3: FLUJO VISUAL EN 3 PASOS (Split Layout Inmersivo)  */}
+      {/* SLIDE 3: FLUJO VISUAL EN 3 PASOS                          */}
       {/* ========================================================= */}
       <section
         ref={(el) => {
@@ -184,7 +228,7 @@ export function LandingPage() {
               <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-6 font-mono text-xs">
                 <span className="text-emerald-400 font-bold flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-                  SIMULADOR DE HARDWARE
+                  SIMULADOR DE CASILLERO
                 </span>
                 <span className="text-zinc-400">SLOT #101</span>
               </div>
@@ -203,7 +247,7 @@ export function LandingPage() {
                     <div className="space-y-2 animate-fadeIn">
                       <span className="text-4xl">🍪</span>
                       <p className="text-xs font-bold text-emerald-300">¡Compuerta Abierta!</p>
-                      <p className="text-[10px] text-zinc-400">Retira tu preparación</p>
+                      <p className="text-[10px] text-zinc-400">Retira tu brownie melcochudo</p>
                       <span className="text-[9px] font-mono text-emerald-400 underline">
                         Clic para cerrar
                       </span>
