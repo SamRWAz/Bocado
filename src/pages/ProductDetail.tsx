@@ -100,6 +100,25 @@ export function ProductDetailPage() {
         {/* Right Column: Info & Actions */}
         <div className="flex flex-col justify-between">
           <div className="space-y-4">
+            {/* Smart Locker Showcase Indicator */}
+            <div className="flex items-center justify-between rounded-xl border border-primary/30 bg-primary/10 p-3 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/20 text-primary font-bold">
+                  🔒
+                </span>
+                <div>
+                  <p className="font-bold text-foreground">Retiro Contactless en Vitrina</p>
+                  <p className="text-[11px] text-muted-foreground">Desbloquea con PIN de 4 dígitos en Edificio D o Samán</p>
+                </div>
+              </div>
+              <Link
+                to="/vitrina"
+                className="rounded-lg bg-primary/20 px-2.5 py-1 text-[11px] font-mono font-bold text-primary hover:bg-primary/30 transition-colors"
+              >
+                Ver Vitrina →
+              </Link>
+            </div>
+
             {/* Seller Live Presence Box */}
             <div className="flex items-center justify-between rounded-xl border border-border bg-secondary/50 p-3.5">
               <div className="flex items-center gap-3">

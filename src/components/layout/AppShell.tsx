@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  Boxes,
   ClipboardList,
   LogOut,
   MessageSquare,
@@ -36,9 +37,10 @@ export function AppShell() {
 
   const links = [
     { to: '/catalogo', label: 'Snacks', icon: ShoppingBag },
+    { to: '/vitrina', label: 'Vitrina 24/7', icon: Boxes },
     { to: '/mensajes', label: 'Mensajes', icon: MessageSquare, badge: unreadChat },
     ...(seller ? [{ to: '/vender', label: 'Mi Puesto / Vender', icon: Store }] : []),
-    { to: '/pedidos', label: 'Pedidos', icon: ClipboardList },
+    { to: '/pedidos', label: 'Pedidos / Casilleros', icon: ClipboardList },
     ...(admin ? [{ to: '/metricas', label: 'Métricas', icon: BarChart3 }] : []),
   ]
 

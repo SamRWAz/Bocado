@@ -1,40 +1,55 @@
-import { MapPin, ShieldCheck } from 'lucide-react'
+import {
+  Boxes,
+  CreditCard,
+  Lock,
+  MapPin,
+  QrCode,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { fetchProduct, incrementMetric, updateProduct } from '../lib/api'
 import { sendMessage } from '../lib/chat'
-import { GUARANTEED_RESERVE_FEE, inputClass, labelClass, PICKUP_POINTS } from '../lib/constants'
+import { GUARANTEED_RESERVE_FEE, inputClass, labelClass } from '../lib/constants'
 import { displaySeller, money, sellerUserId } from '../lib/format'
+import { LOCKER_HUBS, assignLocker, generatePin, getLockersByHub } from '../lib/lockers'
+import { playPaymentSuccess } from '../lib/sounds'
 import { saveOrder } from '../lib/storage-db'
-import type { Order } from '../types'
+import type { Order, PaymentMethod } from '../types'
 
 export function CheckoutPage() {
   const { user } = useAuth()
   const { items, total, clear } = useCart()
   const navigate = useNavigate()
-  const [pickup, setPickup] = useState<(typeof PICKUP_POINTS)[number]>(PICKUP_POINTS[0])
-  const [note, setNote] = useState('')
+
+  const [selectedHubId, setSelectedHubId] = useState('hub_edificio_d')
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('tarjeta')
+  const [cardNumber, setCardNumber] = useState('4532 •••• •••• 9012')
+  const [cardHolder] = useState(user?.name || 'Estudiante Icesi')
+  const [cardExp, setCardExp] = useState('08/28')
+  const [cardCvv, setCardCvv] = useState('834')
+  const [note] = useState('')
   const [guaranteedReserve, setGuaranteedReserve] = useState(true)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const activeHub = LOCKER_HUBS.find((h) => h.id === selectedHubId) ?? LOCKER_HUBS[0]
+  const hubLockers = getLockersByHub(selectedHubId)
   const finalTotal = total + (guaranteedReserve ? GUARANTEED_RESERVE_FEE : 0)
+
+  const targetLocker = hubLockers[0]
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault()
     if (!user || items.length === 0) return
     setLoading(true)
     setError('')
-    try {
-      const groups = new Map<string, typeof items>()
-      items.forEach((item) => {
-        const current = groups.get(item.seller) ?? []
-        groups.set(item.seller, [...current, item])
-      })
 
-      // Check and update stock
+    try {
+      // 1. Verify stock
       for (const item of items) {
         const product = await fetchProduct(item.productId)
         if (!product || product.sold_out || product.stock < item.qty) {
@@ -48,17 +63,23 @@ export function CheckoutPage() {
         })
       }
 
-      let lastOrderId = ''
-      let lastSellerId = ''
-      let lastSellerName = ''
+      // 2. Group by seller
+      const groups = new Map<string, typeof items>()
+      items.forEach((item) => {
+        const current = groups.get(item.seller) ?? []
+        groups.set(item.seller, [...current, item])
+      })
+
+      const generatedClaimPin = generatePin(4)
 
       for (const [sellerKey, group] of groups) {
         const orderId = crypto.randomUUID()
-        lastOrderId = orderId
         const sId = sellerUserId(sellerKey)
         const sName = displaySeller(sellerKey)
-        lastSellerId = sId
-        lastSellerName = sName
+
+        const orderTotal =
+          group.reduce((sum, item) => sum + item.price * item.qty, 0) +
+          (guaranteedReserve ? GUARANTEED_RESERVE_FEE : 0)
 
         const order: Order = {
           id: orderId,
@@ -74,17 +95,45 @@ export function CheckoutPage() {
             qty: item.qty,
             image_url: item.image_url,
           })),
-          total: group.reduce((sum, item) => sum + item.price * item.qty, 0) + (guaranteedReserve ? GUARANTEED_RESERVE_FEE : 0),
-          pickup,
+          total: orderTotal,
+          pickup: activeHub.name,
           note,
-          status: 'reservado',
+          status: 'listo',
           createdAt: new Date().toISOString(),
           isGuaranteed: guaranteedReserve,
           reserveFee: guaranteedReserve ? GUARANTEED_RESERVE_FEE : 0,
+          lockerId: targetLocker?.id || 'lck_d_01',
+          lockerHubId: activeHub.id,
+          lockerHubName: activeHub.name,
+          lockerNumber: targetLocker?.code || 'D-01',
+          claimPin: generatedClaimPin,
+          paymentMethod,
+          paymentStatus: 'pagado',
         }
+
         await saveOrder(order)
 
-        // Automatically create a coordination chat between buyer and seller
+        // Assign and prime locker in simulator
+        const primaryProduct = group[0]
+        try {
+          assignLocker({
+            hubId: activeHub.id,
+            productId: primaryProduct.productId,
+            productName: primaryProduct.name,
+            productPrice: primaryProduct.price,
+            productImage: primaryProduct.image_url,
+            sellerId: sId,
+            sellerName: sName,
+            buyerId: user.id,
+            buyerName: user.name,
+            orderId,
+            preferredLockerId: targetLocker?.id,
+          })
+        } catch {
+          // Continue if already assigned
+        }
+
+        // Send confirmation chat message with digital PIN pass
         const itemsSummary = group.map((i) => `${i.qty}x ${i.name}`).join(', ')
         await sendMessage({
           conversationId: `order_${orderId}`,
@@ -94,28 +143,19 @@ export function CheckoutPage() {
           recipientName: sName,
           orderId,
           productName: itemsSummary,
-          text: `👋 ¡Hola ${sName}! Acabo de reservar: ${itemsSummary}. Punto de recogida: 📍 ${pickup}.${
-            note ? ` Nota: "${note}"` : ''
-          }`,
+          text: `🎉 ¡Pago Exitoso! He comprado ${itemsSummary} en la vitrina inteligente (${activeHub.name} - Casillero #${targetLocker?.code || 'D-01'}). PIN de retiro: ${generatedClaimPin}.`,
           messageType: 'text',
         })
       }
 
       await incrementMetric('inventory_updates')
+      playPaymentSuccess()
       clear()
 
-      // Redirect directly to the coordination chat for this order
-      if (lastOrderId && lastSellerId) {
-        navigate(
-          `/mensajes?conv=order_${lastOrderId}&partnerId=${encodeURIComponent(
-            lastSellerId,
-          )}&partnerName=${encodeURIComponent(lastSellerName)}&orderId=${lastOrderId}`,
-        )
-      } else {
-        navigate('/pedidos')
-      }
+      // Redirect directly to orders where the Digital Locker Claim Pass is displayed
+      navigate('/pedidos')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo apartar el snack')
+      setError(err instanceof Error ? err.message : 'No se pudo procesar el pago')
     } finally {
       setLoading(false)
     }
@@ -124,42 +164,205 @@ export function CheckoutPage() {
   if (items.length === 0) {
     return (
       <div className="py-24 text-center">
-        <p className="text-sm text-muted-foreground">Tu bolsa de reserva está vacía.</p>
+        <p className="text-sm text-muted-foreground">Tu bolsa de compra está vacía.</p>
       </div>
     )
   }
 
   return (
-    <form onSubmit={(e) => void onSubmit(e)} className="mx-auto max-w-xl space-y-6 px-4 py-6 sm:px-6">
+    <form onSubmit={(e) => void onSubmit(e)} className="mx-auto max-w-2xl space-y-6 px-4 py-6 sm:px-6">
       <div>
-        <h1 className="font-display text-3xl font-bold tracking-tight">Coordinar Reserva</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Aparta tus snacks para asegurar stock y coordina la entrega en el campus. Pagas al momento de recibir.
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-mono font-bold text-primary mb-2">
+          <Sparkles size={13} />
+          <span>Pago Digital & Asignación de Casillero</span>
+        </div>
+        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+          Confirmar y Desbloquear Snack
+        </h1>
+        <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+          Al pagar recibirás tu <strong>PIN de 4 dígitos</strong> para abrir el casillero en el campus sin contacto.
         </p>
       </div>
 
-      {/* Summary Box */}
-      <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
-        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Resumen de snacks ({items.length})
+      {/* 1. Hub & Locker Selector */}
+      <div className="rounded-3xl border border-border/80 bg-card/80 p-5 backdrop-blur-md shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold font-mono uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <MapPin size={14} className="text-primary" />
+            1. Selecciona la Vitrina del Campus
+          </span>
+          <span className="text-xs font-mono text-emerald-400">Casilleros Disponibles</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {LOCKER_HUBS.map((hub) => {
+            const isSel = hub.id === selectedHubId
+            const lks = getLockersByHub(hub.id)
+            return (
+              <button
+                key={hub.id}
+                type="button"
+                onClick={() => setSelectedHubId(hub.id)}
+                className={`rounded-2xl p-3.5 text-left border transition-all ${
+                  isSel
+                    ? 'border-primary bg-primary/15 shadow-md shadow-primary/10 ring-1 ring-primary'
+                    : 'border-border/70 bg-secondary/30 hover:border-primary/40'
+                }`}
+              >
+                <p className="font-brand text-xs font-bold text-foreground">{hub.name}</p>
+                <p className="mt-1 text-[10px] text-muted-foreground">{hub.zone}</p>
+                <div className="mt-2.5 flex items-center gap-1 text-[10px] font-mono text-emerald-400">
+                  <Boxes size={12} />
+                  <span>Casillero #{lks[0]?.code || '01'}</span>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* 2. Payment Method Selector & Interface */}
+      <div className="rounded-3xl border border-border/80 bg-card/80 p-5 backdrop-blur-md shadow-sm space-y-5">
+        <span className="text-xs font-bold font-mono uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+          <CreditCard size={14} className="text-primary" />
+          2. Método de Pago Seguro
+        </span>
+
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setPaymentMethod('tarjeta')}
+            className={`flex items-center justify-center gap-2 rounded-xl py-3 px-4 text-xs font-display font-bold border transition-all ${
+              paymentMethod === 'tarjeta'
+                ? 'border-primary bg-primary/15 text-primary shadow-sm'
+                : 'border-border bg-secondary/30 text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <CreditCard size={16} />
+            Tarjeta Débito / Crédito
+          </button>
+          <button
+            type="button"
+            onClick={() => setPaymentMethod('qr_nequi')}
+            className={`flex items-center justify-center gap-2 rounded-xl py-3 px-4 text-xs font-display font-bold border transition-all ${
+              paymentMethod === 'qr_nequi'
+                ? 'border-primary bg-primary/15 text-primary shadow-sm'
+                : 'border-border bg-secondary/30 text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <QrCode size={16} />
+            QR Nequi / Bancolombia
+          </button>
+        </div>
+
+        {/* Dynamic Payment Interface */}
+        {paymentMethod === 'tarjeta' ? (
+          <div className="space-y-4">
+            {/* Holographic Cyber Card Preview */}
+            <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-tr from-slate-900 via-indigo-950 to-emerald-950 p-5 text-white shadow-2xl">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-xs tracking-widest text-emerald-300 font-bold">BOCADO PASS</span>
+                <span className="font-display text-xs font-bold opacity-80">CAMPUS ICESI</span>
+              </div>
+              <div className="my-5 flex items-center gap-2">
+                <div className="h-6 w-9 rounded-md bg-amber-400/80 border border-amber-300" />
+                <span className="text-[10px] font-mono opacity-70">CONTACTLESS NFC</span>
+              </div>
+              <p className="font-mono text-base tracking-widest sm:text-lg">{cardNumber}</p>
+              <div className="mt-4 flex items-center justify-between text-xs font-mono">
+                <div>
+                  <span className="text-[9px] uppercase text-zinc-400 block">Titular</span>
+                  <span className="font-semibold truncate max-w-[150px] inline-block">{cardHolder}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] uppercase text-zinc-400 block">Expira</span>
+                  <span className="font-semibold">{cardExp}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Inputs */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="col-span-2">
+                <label className={labelClass}>Número de Tarjeta</label>
+                <input
+                  type="text"
+                  value={cardNumber}
+                  onChange={(e) => setCardNumber(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Vencimiento</label>
+                <input
+                  type="text"
+                  value={cardExp}
+                  onChange={(e) => setCardExp(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>CVV</label>
+                <input
+                  type="password"
+                  maxLength={4}
+                  value={cardCvv}
+                  onChange={(e) => setCardCvv(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Dynamic QR Code Simulator */
+          <div className="rounded-2xl border border-border/80 bg-zinc-950/80 p-6 text-center space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Escanea con tu app <strong>Nequi</strong> o <strong>Bancolombia a la Mano</strong>
+            </p>
+            <div className="mx-auto flex h-44 w-44 items-center justify-center rounded-2xl border-2 border-dashed border-emerald-500/50 bg-white p-2 shadow-xl">
+              <div className="h-full w-full bg-slate-900 rounded-lg flex flex-col items-center justify-center text-white p-2">
+                <QrCode size={90} className="text-emerald-400 animate-pulse" />
+                <span className="mt-1 text-[9px] font-mono text-zinc-300">PAGO DIRECTO CAMPUS</span>
+              </div>
+            </div>
+            <p className="font-mono text-xs text-emerald-400 font-bold">
+              Monto a Transferir: {money(finalTotal)}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* 3. Snacks & Order Summary */}
+      <div className="rounded-3xl border border-border/80 bg-card/80 p-5 backdrop-blur-md shadow-sm space-y-3">
+        <span className="text-xs font-bold font-mono uppercase tracking-wider text-muted-foreground">
+          Resumen de tu pedido ({items.length})
         </span>
         <ul className="space-y-2 text-sm divide-y divide-border/40">
           {items.map((item) => (
             <li key={item.productId} className="flex justify-between items-center pt-2 first:pt-0">
-              <div>
-                <span className="font-medium text-foreground">{item.name}</span>
-                <p className="text-xs text-muted-foreground">Vendedor: {displaySeller(item.seller)}</p>
+              <div className="flex items-center gap-3">
+                {item.image_url && (
+                  <img
+                    src={item.image_url}
+                    alt={item.name}
+                    className="h-10 w-10 rounded-xl object-cover border border-border"
+                  />
+                )}
+                <div>
+                  <span className="font-medium text-foreground text-xs sm:text-sm">{item.name}</span>
+                  <p className="text-[11px] text-muted-foreground">Vendedor: {displaySeller(item.seller)}</p>
+                </div>
               </div>
-              <span className="font-display font-bold text-primary">
+              <span className="font-display font-bold text-primary text-xs sm:text-sm">
                 {item.qty} × {money(item.price)}
               </span>
             </li>
           ))}
         </ul>
 
-        {/* Guaranteed Reserve Option */}
-        <div className="pt-3 border-t border-border">
-          <label className="flex items-start gap-3 rounded-xl bg-secondary/50 p-3 cursor-pointer hover:bg-secondary/70 transition-colors">
+        {/* Guaranteed Smart Locker Protection */}
+        <div className="pt-3 border-t border-border/60">
+          <label className="flex items-start gap-3 rounded-2xl bg-secondary/50 p-3.5 cursor-pointer hover:bg-secondary/70 transition-colors">
             <input
               type="checkbox"
               checked={guaranteedReserve}
@@ -169,69 +372,38 @@ export function CheckoutPage() {
             <div className="flex-1 text-xs">
               <div className="flex items-center justify-between font-display font-semibold text-foreground">
                 <span className="flex items-center gap-1">
-                  <ShieldCheck size={14} className="text-primary" /> Tarifa de Reserva Garantizada
+                  <ShieldCheck size={14} className="text-primary" /> Mantenimiento & Sensor de Casillero
                 </span>
                 <span className="text-primary font-bold">+{money(GUARANTEED_RESERVE_FEE)}</span>
               </div>
-              <p className="mt-1 text-muted-foreground leading-relaxed">
-                Congela y aparta tu snack con máxima prioridad mientras te desplazas por el campus.
+              <p className="mt-1 text-muted-foreground leading-relaxed text-[11px]">
+                Garantiza compartimento con ventilación o refrigeración activa para conservar tu snack en perfecto estado.
               </p>
             </div>
           </label>
         </div>
 
-        <div className="pt-2 flex justify-between items-baseline border-t border-border font-display">
-          <span className="text-sm font-semibold">Total a pagar en entrega:</span>
+        <div className="pt-3 flex justify-between items-baseline border-t border-border font-display">
+          <span className="text-sm font-semibold text-foreground">Total a pagar:</span>
           <span className="text-2xl font-bold text-primary">{money(finalTotal)}</span>
         </div>
       </div>
 
-      {/* Pickup Location */}
-      <div className="rounded-2xl border border-border bg-card p-4 space-y-4">
-        <div>
-          <label className={labelClass} htmlFor="pickup">
-            Punto de encuentro en el campus
-          </label>
-          <div className="relative">
-            <select
-              id="pickup"
-              value={pickup}
-              onChange={(e) => setPickup(e.target.value as (typeof PICKUP_POINTS)[number])}
-              className={`${inputClass} pl-10`}
-            >
-              {PICKUP_POINTS.map((point) => (
-                <option key={point} value={point}>
-                  {point}
-                </option>
-              ))}
-            </select>
-            <MapPin size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary pointer-events-none" />
-          </div>
-        </div>
-
-        <div>
-          <label className={labelClass} htmlFor="note">
-            Indicaciones para el vendedor
-          </label>
-          <textarea
-            id="note"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            className={inputClass}
-            rows={2}
-            placeholder="Ej. Salgo de clase a las 11:15 en el salón D204, tengo chompa azul."
-          />
-        </div>
-      </div>
-
-      {error && <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
+      {error && <p className="rounded-xl bg-destructive/10 p-3 text-xs text-destructive">{error}</p>}
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-primary py-4 font-display text-sm font-bold text-primary-foreground shadow-lg transition-transform hover:opacity-90 active:scale-95 disabled:opacity-50"
+        className="w-full rounded-2xl bg-primary py-4 font-display text-sm font-bold text-primary-foreground shadow-xl shadow-primary/25 hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
       >
-        {loading ? 'Apartando snack...' : 'Confirmar reserva y abrir Chat con el vendedor'}
+        {loading ? (
+          'Procesando pago y generando pase...'
+        ) : (
+          <>
+            <Lock size={16} />
+            Pagar {money(finalTotal)} y Generar Pase con PIN
+          </>
+        )}
       </button>
     </form>
   )

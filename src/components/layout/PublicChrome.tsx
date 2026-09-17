@@ -13,6 +13,18 @@ const sectionLinks = [
 function SectionNav({ onGoToSection }: { onGoToSection: (event: MouseEvent<HTMLAnchorElement>, id: string) => void }) {
   return (
     <>
+      <NavLink
+        to="/catalogo"
+        className={({ isActive }) => (isActive ? 'text-primary font-bold' : 'hover:text-foreground font-medium transition-colors')}
+      >
+        Catálogo en Vivo
+      </NavLink>
+      <NavLink
+        to="/vitrina"
+        className={({ isActive }) => (isActive ? 'text-primary font-bold' : 'hover:text-foreground font-medium transition-colors')}
+      >
+        Vitrina 24/7
+      </NavLink>
       {sectionLinks.map((link) => (
         <a
           key={link.id}
@@ -23,12 +35,6 @@ function SectionNav({ onGoToSection }: { onGoToSection: (event: MouseEvent<HTMLA
           {link.label}
         </a>
       ))}
-      <NavLink
-        to="/catalogo"
-        className={({ isActive }) => (isActive ? 'text-primary font-bold' : 'hover:text-foreground font-medium transition-colors')}
-      >
-        Catálogo en Vivo
-      </NavLink>
     </>
   )
 }

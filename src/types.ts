@@ -35,6 +35,47 @@ export type SellerPresence = {
   updatedAt: string
 }
 
+export type LockerStatus =
+  | 'disponible'
+  | 'esperando_deposito'
+  | 'listo_para_retiro'
+  | 'abierto'
+
+export type LockerTempType = 'ambiente' | 'refrigerado'
+
+export type Locker = {
+  id: string
+  hubId: string
+  hubName: string
+  number: string
+  code: string // e.g. D-01, S-03
+  status: LockerStatus
+  tempType: LockerTempType
+  productId?: string
+  productName?: string
+  productPrice?: number
+  productImage?: string | null
+  sellerId?: string
+  sellerName?: string
+  buyerId?: string
+  buyerName?: string
+  depositPin?: string // 4-6 digit PIN for seller deposit
+  claimPin?: string // 4-6 digit PIN for buyer unlock
+  orderId?: string
+  isLocked: boolean
+  updatedAt: string
+}
+
+export type LockerHub = {
+  id: string
+  name: string
+  zone: string
+  detail: string
+  icon: string
+  totalLockers: number
+  isOnline: boolean
+}
+
 export type Product = {
   id: string
   name: string
@@ -49,6 +90,9 @@ export type Product = {
   description?: string | null
   dietary?: DietaryTag[]
   sellerPresence?: SellerPresence | null
+  lockerId?: string
+  lockerHubId?: string
+  lockerNumber?: string
 }
 
 export type Metrics = {
@@ -71,9 +115,13 @@ export type CartItem = {
   image_url: string | null
   seller: string
   stock: number
+  lockerHubId?: string
+  lockerNumber?: string
 }
 
 export type OrderStatus = 'reservado' | 'listo' | 'entregado' | 'cancelado'
+
+export type PaymentMethod = 'qr_nequi' | 'tarjeta' | 'qr_bancolombia' | 'efectivo_vitrina'
 
 export type OrderItem = {
   productId: string
@@ -98,13 +146,23 @@ export type Order = {
   createdAt: string
   isGuaranteed?: boolean
   reserveFee?: number
+  // Smart Locker properties
+  lockerId?: string
+  lockerHubId?: string
+  lockerHubName?: string
+  lockerNumber?: string
+  depositPin?: string
+  claimPin?: string
+  paymentMethod?: PaymentMethod
+  paymentStatus?: 'pendiente' | 'pagado'
+  claimedAt?: string
 }
 
 export type StoredUser = AuthUser & {
   passwordHash: string
 }
 
-export type ChatMessageType = 'text' | 'quick' | 'location' | 'status'
+export type ChatMessageType = 'text' | 'quick' | 'location' | 'status' | 'locker_drop'
 
 export type ChatMessage = {
   id: string
@@ -119,6 +177,8 @@ export type ChatMessage = {
   text: string
   messageType?: ChatMessageType
   locationZone?: string
+  lockerCode?: string
+  claimPin?: string
   timestamp: string
   read: boolean
 }

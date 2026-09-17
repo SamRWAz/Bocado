@@ -339,6 +339,31 @@ export function SellPage() {
             </div>
           </div>
 
+          {/* Locker Hub Assignment */}
+          <div>
+            <label className={labelClass}>Vitrina / Casillero de Entrega</label>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { id: 'hub_edificio_d', label: 'Edificio D' },
+                { id: 'hub_saman', label: 'Samán' },
+                { id: 'hub_biblioteca', label: 'Biblioteca' },
+              ].map((h) => (
+                <button
+                  key={h.id}
+                  type="button"
+                  onClick={() => setSellerZone(h.label)}
+                  className={`rounded-xl py-2 px-2 text-[11px] font-mono font-bold border transition-all ${
+                    sellerZone === h.label
+                      ? 'border-primary bg-primary/20 text-primary'
+                      : 'border-border bg-secondary/30 text-muted-foreground'
+                  }`}
+                >
+                  {h.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Categories */}
           <div>
             <label className={labelClass}>Categoría principal</label>

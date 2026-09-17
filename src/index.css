@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  /* Light Theme (Clean, modern food marketplace) */
+  /* Light Theme */
   --background: 0 0% 98%;
   --foreground: 240 10% 12%;
   --card: 0 0% 100%;
@@ -27,31 +27,30 @@
 }
 
 .dark {
-  /* Dark Theme (Sleek, obsidian dark mode) */
-  --background: 240 7% 6%;
-  --foreground: 0 0% 95%;
-  --card: 240 5% 11%;
-  --card-foreground: 0 0% 95%;
-  --popover: 240 5% 11%;
-  --popover-foreground: 0 0% 95%;
-  --primary: 21 82% 52%;
-  --primary-foreground: 240 10% 4%; /* Texto negro nítido de alto contraste */
-  --secondary: 240 5% 16%;
-  --secondary-foreground: 0 0% 88%;
-  --muted: 240 4% 16%;
-  --muted-foreground: 240 5% 60%;
-  --accent: 21 82% 52%;
+  /* Dark Theme (Obsidian Cyber-Campus) */
+  --background: 240 10% 4%;
+  --foreground: 0 0% 98%;
+  --card: 240 8% 8%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 8% 8%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 21 95% 53%;
+  --primary-foreground: 240 10% 4%;
+  --secondary: 240 6% 14%;
+  --secondary-foreground: 0 0% 92%;
+  --muted: 240 6% 14%;
+  --muted-foreground: 240 5% 65%;
+  --accent: 21 95% 53%;
   --accent-foreground: 240 10% 4%;
-  --destructive: 0 72% 51%;
+  --destructive: 0 80% 55%;
   --destructive-foreground: 0 0% 98%;
-  --border: 240 4% 20%;
-  --input: 240 4% 20%;
-  --ring: 21 82% 52%;
+  --border: 240 6% 18%;
+  --input: 240 6% 18%;
+  --ring: 21 95% 53%;
 }
 
 .dark .bg-primary {
-  border: 1px solid rgba(0, 0, 0, 0.45);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.35);
 }
 
 html {
@@ -99,6 +98,78 @@ h6 {
   scrollbar-width: none;
 }
 
+/* Futuristic Cyber Grid Background */
+.cyber-grid {
+  background-size: 36px 36px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+}
+
+html:not(.dark) .cyber-grid {
+  background-image: 
+    linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+}
+
+/* Smart Locker 3D Vault Styles */
+.locker-vault-perspective {
+  perspective: 1000px;
+}
+
+.locker-door {
+  transform-origin: left center;
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+  transform-style: preserve-3d;
+}
+
+.locker-door.is-open {
+  transform: rotateY(-82deg);
+  box-shadow: 8px 0 24px rgba(0, 0, 0, 0.4);
+}
+
+/* LED Indicator Glows */
+.led-glow-emerald {
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.8), 0 0 20px rgba(16, 185, 129, 0.4);
+  animation: pulse-glow-emerald 2s infinite ease-in-out;
+}
+
+.led-glow-amber {
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.8), 0 0 20px rgba(245, 158, 11, 0.4);
+  animation: pulse-glow-amber 2s infinite ease-in-out;
+}
+
+.led-glow-cyan {
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.8), 0 0 20px rgba(6, 182, 212, 0.4);
+  animation: pulse-glow-cyan 2s infinite ease-in-out;
+}
+
+.led-glow-primary {
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.9), 0 0 24px rgba(249, 115, 22, 0.5);
+  animation: pulse-glow-primary 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse-glow-emerald {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.65; transform: scale(0.92); }
+}
+
+@keyframes pulse-glow-amber {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.92); }
+}
+
+@keyframes pulse-glow-cyan {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.65; transform: scale(0.92); }
+}
+
+@keyframes pulse-glow-primary {
+  0%, 100% { opacity: 1; transform: scale(1.05); }
+  50% { opacity: 0.7; transform: scale(0.95); }
+}
+
+/* Floating Orb Elements */
 .landing-backdrop {
   pointer-events: none;
   position: absolute;
@@ -116,36 +187,36 @@ h6 {
 .landing-orb-a {
   top: -8rem;
   left: -6rem;
-  height: 22rem;
-  width: 22rem;
-  background: hsl(21 80% 47% / 0.25);
+  height: 24rem;
+  width: 24rem;
+  background: hsl(21 95% 53% / 0.28);
   animation: orb-float 16s ease-in-out infinite;
 }
 
 .landing-orb-b {
   top: 20%;
   right: -8rem;
-  height: 26rem;
-  width: 26rem;
-  background: hsl(38 95% 52% / 0.22);
+  height: 28rem;
+  width: 28rem;
+  background: hsl(160 84% 39% / 0.22);
   animation: orb-float 20s ease-in-out infinite reverse;
 }
 
 .landing-orb-c {
   bottom: 8%;
   left: 20%;
-  height: 18rem;
-  width: 18rem;
-  background: hsl(15 90% 55% / 0.18);
+  height: 20rem;
+  width: 20rem;
+  background: hsl(190 90% 50% / 0.18);
   animation: orb-float 18s ease-in-out infinite;
 }
 
 .landing-orb-d {
   bottom: -6rem;
   right: 15%;
-  height: 20rem;
-  width: 20rem;
-  background: hsl(280 45% 55% / 0.14);
+  height: 22rem;
+  width: 22rem;
+  background: hsl(38 95% 52% / 0.18);
   animation: orb-float 22s ease-in-out infinite reverse;
 }
 
@@ -195,73 +266,7 @@ html:not(.dark) .landing-orb {
 @media (prefers-reduced-motion: reduce) {
   .landing-orb,
   .stall-track,
-  .page-transition,
-  .page-transition-mark,
-  .page-transition-mark::after {
+  .locker-door {
     animation: none;
-  }
-}
-
-.page-transition {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: hsl(var(--background) / 0.86);
-  backdrop-filter: blur(12px);
-  animation: fade-veil 0.62s ease;
-}
-
-.page-transition-mark {
-  position: relative;
-  animation: bite-in 0.55s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.page-transition-mark::after {
-  content: '';
-  position: absolute;
-  inset: -1.4rem;
-  border-radius: 9999px;
-  border: 2px solid hsl(var(--primary) / 0.45);
-  animation: bite-ring 0.55s ease-out;
-}
-
-@keyframes fade-veil {
-  0% {
-    opacity: 0;
-  }
-  18% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes bite-in {
-  0% {
-    transform: scale(0.55) rotate(-18deg);
-    opacity: 0;
-  }
-  55% {
-    transform: scale(1.12) rotate(4deg);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1) rotate(0deg);
-    opacity: 1;
-  }
-}
-
-@keyframes bite-ring {
-  from {
-    transform: scale(0.45);
-    opacity: 1;
-  }
-  to {
-    transform: scale(1.85);
-    opacity: 0;
   }
 }
