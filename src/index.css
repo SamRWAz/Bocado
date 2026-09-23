@@ -3,50 +3,50 @@
 @tailwind utilities;
 
 :root {
-  /* Light Theme */
-  --background: 0 0% 98%;
-  --foreground: 240 10% 12%;
+  /* Light Theme (Warm Bakery & Artisan Palette) */
+  --background: 38 45% 98%;
+  --foreground: 25 30% 14%;
   --card: 0 0% 100%;
-  --card-foreground: 240 10% 12%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 12%;
-  --primary: 21 80% 47%;
+  --card-foreground: 25 30% 14%;
+  --popover: 38 40% 99%;
+  --popover-foreground: 25 30% 14%;
+  --primary: 14 86% 52%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 240 5% 94%;
-  --secondary-foreground: 240 6% 15%;
-  --muted: 240 5% 94%;
-  --muted-foreground: 240 4% 45%;
-  --accent: 21 80% 47%;
+  --secondary: 36 35% 94%;
+  --secondary-foreground: 25 30% 20%;
+  --muted: 36 25% 94%;
+  --muted-foreground: 25 15% 48%;
+  --accent: 346 80% 56%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --border: 240 6% 90%;
-  --input: 240 6% 90%;
-  --ring: 21 80% 47%;
-  --radius: 0.75rem;
+  --border: 36 25% 88%;
+  --input: 36 25% 88%;
+  --ring: 14 86% 52%;
+  --radius: 1rem;
 }
 
 .dark {
-  /* Dark Theme (Obsidian Cyber-Campus) */
-  --background: 240 10% 4%;
-  --foreground: 0 0% 98%;
-  --card: 240 8% 8%;
-  --card-foreground: 0 0% 98%;
-  --popover: 240 8% 8%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 21 95% 53%;
-  --primary-foreground: 240 10% 4%;
-  --secondary: 240 6% 14%;
-  --secondary-foreground: 0 0% 92%;
-  --muted: 240 6% 14%;
-  --muted-foreground: 240 5% 65%;
-  --accent: 21 95% 53%;
-  --accent-foreground: 240 10% 4%;
+  /* Dark Theme (Deep Roasted Cocoa & Warm Neon) */
+  --background: 25 22% 6%;
+  --foreground: 36 30% 96%;
+  --card: 25 18% 10%;
+  --card-foreground: 36 30% 96%;
+  --popover: 25 18% 10%;
+  --popover-foreground: 36 30% 96%;
+  --primary: 14 92% 56%;
+  --primary-foreground: 25 25% 6%;
+  --secondary: 25 16% 16%;
+  --secondary-foreground: 36 20% 92%;
+  --muted: 25 16% 16%;
+  --muted-foreground: 36 12% 65%;
+  --accent: 346 85% 60%;
+  --accent-foreground: 0 0% 100%;
   --destructive: 0 80% 55%;
   --destructive-foreground: 0 0% 98%;
-  --border: 240 6% 18%;
-  --input: 240 6% 18%;
-  --ring: 21 95% 53%;
+  --border: 25 15% 18%;
+  --input: 25 15% 18%;
+  --ring: 14 92% 56%;
 }
 
 .dark .bg-primary {
@@ -364,3 +364,67 @@ html:not(.dark) .landing-orb {
     animation: none;
   }
 }
+
+/* Warm Bakery & Gourmet UI Badges & Styling */
+.badge-bakery-strawberry {
+  background-color: rgba(244, 63, 94, 0.12);
+  color: #e11d48;
+  border: 1px solid rgba(244, 63, 94, 0.25);
+}
+
+.dark .badge-bakery-strawberry {
+  background-color: rgba(244, 63, 94, 0.2);
+  color: #fda4af;
+  border-color: rgba(244, 63, 94, 0.4);
+}
+
+.badge-bakery-matcha {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.dark .badge-bakery-matcha {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.badge-bakery-honey {
+  background-color: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.dark .badge-bakery-honey {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.badge-bakery-flame {
+  background-color: rgba(234, 88, 12, 0.12);
+  color: #c2410c;
+  border: 1px solid rgba(234, 88, 12, 0.25);
+}
+
+.dark .badge-bakery-flame {
+  background-color: rgba(234, 88, 12, 0.2);
+  color: #fdba74;
+  border-color: rgba(234, 88, 12, 0.4);
+}
+
+/* Warm Card Glow & Hover Elevate */
+.food-card-hover {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.food-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px -8px rgba(234, 88, 12, 0.14), 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.dark .food-card-hover:hover {
+  box-shadow: 0 16px 36px -8px rgba(234, 88, 12, 0.25), 0 0 20px rgba(234, 88, 12, 0.1);
+}
+

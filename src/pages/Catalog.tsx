@@ -209,6 +209,19 @@ export function CatalogPage() {
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
             {FILTERS.map((filter) => {
               const active = category === filter
+              const icons: Record<string, string> = {
+                Todos: '✨',
+                Brownies: '🍫',
+                Galletas: '🍪',
+                Alfajores: '🍯',
+                'Salado & Empanadas': '🥟',
+                'Fit & Proteína': '🥑',
+                'Tortas & Postres': '🍰',
+                'Bebidas & Fruta': '🍓',
+                'Dulces & Gomitas': '🍬',
+                Combos: '🎁',
+              }
+              const icon = icons[filter] || '✨'
               return (
                 <button
                   type="button"
@@ -217,13 +230,14 @@ export function CatalogPage() {
                     playKeyBeep(500)
                     setCategory(filter)
                   }}
-                  className={`whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-display font-semibold transition-all ${
+                  className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-xs font-display font-bold transition-all cursor-pointer ${
                     active
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                      ? 'bg-gradient-to-r from-primary via-orange-500 to-primary text-primary-foreground shadow-sm shadow-primary/25 scale-102'
+                      : 'bg-secondary/90 text-foreground/80 hover:bg-secondary hover:text-foreground border border-border/40'
                   }`}
                 >
-                  {filter}
+                  <span>{icon}</span>
+                  <span>{filter}</span>
                 </button>
               )
             })}
@@ -341,9 +355,9 @@ export function CatalogPage() {
             <div className="rounded-2xl border border-border/80 bg-secondary/40 p-4 space-y-3">
               <div className="flex items-center gap-3">
                 <img
-                  src={selectedProduct.image_url || '/images/snack_anime_brownie.jpg'}
+                  src={selectedProduct.image_url && !selectedProduct.image_url.includes('snack_anime') ? selectedProduct.image_url : '/images/real_brownie.jpg'}
                   alt={selectedProduct.name}
-                  className="h-14 w-14 rounded-xl object-cover border border-border"
+                  className="h-14 w-14 rounded-xl object-cover border border-border/80 shadow-xs"
                 />
                 <div className="flex-1 min-w-0">
                   <h4 className="font-display font-bold text-foreground text-sm truncate">

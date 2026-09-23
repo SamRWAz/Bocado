@@ -344,7 +344,7 @@ export function ProcessConsoleDemo() {
               {step === 'unlocked' ? (
                 <div className="space-y-2 animate-fadeIn">
                   <img
-                    src="/images/snack_anime_brownie.jpg"
+                    src="/images/real_brownie.jpg"
                     alt="Brownie"
                     className="h-24 w-24 object-cover rounded-xl mx-auto shadow-lg border border-emerald-400/40"
                   />

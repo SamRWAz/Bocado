@@ -274,11 +274,12 @@ export function LandingPage() {
         className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-20 sm:px-6 border-t border-white/5"
       >
         <div className="mx-auto max-w-4xl text-center space-y-3 mb-10">
-          <span className="font-mono text-xs uppercase tracking-widest text-primary font-bold">
-            Simulador de Terminal
-          </span>
+          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/25 px-4 py-1.5 text-xs font-mono font-bold uppercase tracking-wider text-primary shadow-sm">
+            <Zap size={13} className="text-primary" />
+            <span>Simulador de Terminal Inteligente</span>
+          </div>
           <h2 className="font-display text-3xl font-black sm:text-5xl text-foreground">
-            Paso a Paso: PIN $\rightarrow$ Pago QR $\rightarrow$ Retiro
+            Paso a Paso: PIN <span className="text-primary font-normal">→</span> Pago QR <span className="text-primary font-normal">→</span> Retiro
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground max-w-xl mx-auto">
             Experimenta en vivo cómo el usuario digita su PIN en la máquina, realiza el pago virtual y la compuerta se abre entregando el producto con comprobante automático.

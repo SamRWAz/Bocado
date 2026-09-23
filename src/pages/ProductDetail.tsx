@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   Flame,
   MessageCircle,
-  ShoppingBag,
   Store,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -142,6 +141,27 @@ export function ProductDetailPage() {
     )
   }
 
+  const displayImage = (() => {
+    const raw = product.image_url
+    if (raw && !raw.includes('snack_anime') && (raw.startsWith('http') || raw.startsWith('/images/real_'))) {
+      return raw
+    }
+    const nameLower = (product.name + ' ' + (product.category || '')).toLowerCase()
+    if (nameLower.includes('brownie') || nameLower.includes('chocolate')) return '/images/real_brownie.jpg'
+    if (nameLower.includes('parfait') || nameLower.includes('yogur') || nameLower.includes('chia') || nameLower.includes('fruta')) {
+      return '/images/real_parfait.jpg'
+    }
+    if (nameLower.includes('empanada') || nameLower.includes('pastel') || nameLower.includes('pollo')) {
+      return '/images/real_empanadas.jpg'
+    }
+    if (nameLower.includes('galleta') || nameLower.includes('cookie') || nameLower.includes('avena')) {
+      return '/images/real_cookies.jpg'
+    }
+    if (nameLower.includes('rollo') || nameLower.includes('canela')) return '/images/real_cinnamon_roll.jpg'
+    if (nameLower.includes('cheesecake') || nameLower.includes('torta')) return '/images/real_cheesecake.jpg'
+    return '/images/real_brownie.jpg'
+  })()
+
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6">
       <Link
@@ -154,18 +174,12 @@ export function ProductDetailPage() {
 
       <div className="grid gap-8 rounded-3xl border border-border/80 bg-card p-6 shadow-xl lg:grid-cols-2 lg:p-8">
         {/* Left Column: Image */}
-        <div className="relative overflow-hidden rounded-2xl bg-secondary">
-          {product.image_url ? (
-            <img
-              src={product.image_url}
-              alt={product.name}
-              className="h-80 w-full object-cover sm:h-96"
-            />
-          ) : (
-            <div className="flex h-80 items-center justify-center sm:h-96 text-muted-foreground/30">
-              <ShoppingBag size={64} />
-            </div>
-          )}
+        <div className="relative overflow-hidden rounded-2xl bg-secondary/50 border border-border/50">
+          <img
+            src={displayImage}
+            alt={product.name}
+            className="h-80 w-full object-cover sm:h-96 rounded-2xl"
+          />
 
           {isLowStock && (
             <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-rose-500 px-3 py-1 text-xs font-bold text-white shadow-lg animate-pulse">

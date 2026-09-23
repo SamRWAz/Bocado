@@ -34,10 +34,12 @@ import { fetchOrders, subscribeToOrderUpdates } from '../lib/storage-db'
 import type { DietaryTag, Order, Product } from '../types'
 
 const SAMPLE_PRESETS = [
-  { name: 'Brownie Melcochudo', price: '4500', cat: 'Brownies', img: '/images/snack_anime_brownie.jpg' },
-  { name: 'Empanada Horneada', price: '3500', cat: 'Salados', img: '/images/snack_anime_empanadas.jpg' },
-  { name: 'Parfait con Frutas', price: '5500', cat: 'Postres', img: '/images/snack_anime_parfait.jpg' },
-  { name: 'Galletas de Avena', price: '2500', cat: 'Galletas', img: '/images/snack_anime_cookies.jpg' },
+  { name: 'Brownie Melcochudo', price: '4500', cat: 'Brownies', img: '/images/real_brownie.jpg' },
+  { name: 'Empanada Horneada', price: '3500', cat: 'Salados', img: '/images/real_empanadas.jpg' },
+  { name: 'Parfait con Frutas', price: '5500', cat: 'Postres', img: '/images/real_parfait.jpg' },
+  { name: 'Galletas de Avena', price: '2500', cat: 'Galletas', img: '/images/real_cookies.jpg' },
+  { name: 'Rollo de Canela', price: '4000', cat: 'Postres', img: '/images/real_cinnamon_roll.jpg' },
+  { name: 'Cheesecake Fresa', price: '6000', cat: 'Postres', img: '/images/real_cheesecake.jpg' },
 ]
 
 export function SellPage() {
@@ -222,11 +224,13 @@ export function SellPage() {
   // Live preview image helper
   const livePreviewImage = preview || selectedPresetImage || (() => {
     const n = name.toLowerCase()
-    if (n.includes('brownie')) return '/images/snack_anime_brownie.jpg'
-    if (n.includes('parfait') || n.includes('yogur') || n.includes('chia')) return '/images/snack_anime_parfait.jpg'
-    if (n.includes('empanada')) return '/images/snack_anime_empanadas.jpg'
-    if (n.includes('galleta') || n.includes('cookie') || n.includes('avena')) return '/images/snack_anime_cookies.jpg'
-    return '/images/snack_anime_brownie.jpg'
+    if (n.includes('brownie') || n.includes('chocolate')) return '/images/real_brownie.jpg'
+    if (n.includes('parfait') || n.includes('yogur') || n.includes('chia') || n.includes('fruta')) return '/images/real_parfait.jpg'
+    if (n.includes('empanada') || n.includes('pastel') || n.includes('pollo')) return '/images/real_empanadas.jpg'
+    if (n.includes('galleta') || n.includes('cookie') || n.includes('avena')) return '/images/real_cookies.jpg'
+    if (n.includes('rollo') || n.includes('canela')) return '/images/real_cinnamon_roll.jpg'
+    if (n.includes('cheesecake') || n.includes('torta')) return '/images/real_cheesecake.jpg'
+    return '/images/real_brownie.jpg'
   })()
 
   return (
