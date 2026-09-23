@@ -165,13 +165,13 @@ export function MessagesPage() {
   )
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-4xl space-y-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
+          <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">
             Centro de Mensajes
           </h1>
-          <p className="text-xs text-muted-foreground sm:text-sm">
+          <p className="text-xs text-muted-foreground">
             Coordinación directa y rápida entre compradores y cocineros universitarios del campus.
           </p>
         </div>
@@ -188,25 +188,25 @@ export function MessagesPage() {
         </button>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[340px_1fr]">
+      <div className="grid gap-4 md:grid-cols-[290px_1fr] min-w-0">
         {/* Conversations List Column */}
         <div
-          className={`flex flex-col rounded-xl border border-border bg-card p-3 shadow-sm ${
-            activeConvId ? 'hidden lg:flex' : 'flex'
+          className={`flex flex-col rounded-3xl border border-border/80 bg-card p-3 shadow-sm h-[620px] ${
+            activeConvId ? 'hidden md:flex' : 'flex'
           }`}
         >
-          <div className="relative mb-3">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <div className="relative mb-2.5">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               placeholder="Buscar en chats..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-border bg-secondary py-2 pl-9 pr-3 text-xs outline-none focus:ring-1 focus:ring-primary"
+              className="w-full rounded-xl border border-border bg-secondary/80 py-2 pl-9 pr-3 text-xs outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
 
-          <div className="flex-1 space-y-1 overflow-y-auto max-h-[600px] no-scrollbar">
+          <div className="flex-1 space-y-1 overflow-y-auto no-scrollbar">
             {filtered.length === 0 ? (
               <div className="py-12 text-center text-xs text-muted-foreground">
                 <MessageSquare size={32} className="mx-auto mb-2 opacity-30" />
@@ -223,13 +223,13 @@ export function MessagesPage() {
                     type="button"
                     key={conv.id}
                     onClick={() => selectConversation(conv)}
-                    className={`flex w-full items-start gap-3 rounded-xl p-3 text-left transition-all ${
+                    className={`flex w-full items-start gap-2.5 rounded-2xl p-2.5 text-left transition-all ${
                       isSelected
-                        ? 'bg-primary/15 border border-primary/30'
+                        ? 'bg-primary/15 border border-primary/30 shadow-sm'
                         : 'border border-transparent hover:bg-secondary/60'
                     }`}
                   >
-                    <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/20 font-display text-xs font-bold text-primary">
+                    <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/20 font-display text-xs font-bold text-primary">
                       {initials(conv.partnerName)}
                       {conv.unreadCount > 0 && (
                         <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground animate-pulse">
@@ -239,20 +239,20 @@ export function MessagesPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1">
-                        <span className="truncate font-display text-sm font-semibold text-foreground">
+                        <span className="truncate font-display text-xs font-bold text-foreground">
                           {conv.partnerName}
                         </span>
-                        <span className="shrink-0 text-[10px] text-muted-foreground">
+                        <span className="shrink-0 text-[9px] text-muted-foreground font-mono">
                           {timeAgo(conv.lastTimestamp)}
                         </span>
                       </div>
                       {conv.productName && (
-                        <p className="flex items-center gap-1 text-[11px] font-medium text-primary truncate">
-                          <ShoppingBag size={11} className="shrink-0" />
+                        <p className="flex items-center gap-1 text-[10px] font-medium text-primary truncate">
+                          <ShoppingBag size={10} className="shrink-0" />
                           {conv.productName}
                         </p>
                       )}
-                      <p className="truncate text-xs text-muted-foreground mt-0.5">{conv.lastMessage}</p>
+                      <p className="truncate text-[11px] text-muted-foreground mt-0.5">{conv.lastMessage}</p>
                     </div>
                   </button>
                 )
@@ -262,7 +262,7 @@ export function MessagesPage() {
         </div>
 
         {/* Chat Area Column */}
-        <div className={activeConvId ? 'block' : 'hidden lg:block'}>
+        <div className={`min-w-0 ${activeConvId ? 'block' : 'hidden md:block'}`}>
           {activeConvId && activePartner ? (
             <ChatBox
               conversationId={activeConvId}
@@ -277,17 +277,17 @@ export function MessagesPage() {
               }}
             />
           ) : (
-            <div className="flex h-[600px] flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/40 p-8 text-center text-muted-foreground">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-primary">
-                <Navigation size={32} />
+            <div className="flex h-[620px] flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card/40 p-8 text-center text-muted-foreground">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-secondary text-primary">
+                <Navigation size={28} />
               </div>
-              <h2 className="font-display text-lg font-bold text-foreground">Selecciona o inicia un chat</h2>
-              <p className="mt-1 max-w-sm text-xs">
-                Coordina puntos de encuentro en el campus, consulta ingredientes o acuerda la entrega con el vendedor.
+              <h2 className="font-display text-base font-bold text-foreground">Selecciona o inicia un chat</h2>
+              <p className="mt-1 max-w-xs text-xs text-muted-foreground">
+                Coordina puntos de encuentro en el campus o acuerda la entrega con el vendedor.
               </p>
               <Link
                 to="/catalogo"
-                className="mt-6 rounded-lg bg-primary px-5 py-2.5 font-display text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90"
+                className="mt-6 rounded-xl bg-primary px-5 py-2.5 font-display text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90"
               >
                 Ver Snacks Disponibles
               </Link>
