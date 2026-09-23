@@ -1,7 +1,6 @@
 import {
   ArrowLeft,
   BookmarkCheck,
-  Building2,
   Lock,
   MessageCircle,
   Trash2,
@@ -79,7 +78,6 @@ export function CartPage() {
 
         <div className="space-y-3">
           {items.map((item) => {
-            const building = item.building || 'D'
             return (
               <div
                 key={item.productId}
@@ -100,9 +98,6 @@ export function CartPage() {
 
                   <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-mono font-bold text-emerald-400">
-                        <Building2 size={11} /> Edificio {building}
-                      </span>
                       <span className="text-[11px] text-muted-foreground">
                         Cocinero: <strong>{displaySeller(item.seller)}</strong>
                       </span>

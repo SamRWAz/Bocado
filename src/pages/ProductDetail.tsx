@@ -1,7 +1,6 @@
 import {
   ArrowLeft,
   BookmarkCheck,
-  Building2,
   CheckCircle2,
   Flame,
   MapPin,
@@ -17,45 +16,57 @@ import { fetchProduct, incrementMetric, updateProduct } from '../lib/api'
 import { getSellerPresence } from '../lib/campus'
 import { displaySeller, initials, money, ownsListing, parseTags, productDescription, sellerUserId } from '../lib/format'
 import { playPaymentSuccess } from '../lib/sounds'
-import type { Product } from '../types'
+import type { Product, SellerPresence } from '../types'
 
 export function ProductDetailPage() {
-  const { id } = useParams()
+  const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
   const { add } = useCart()
   const navigate = useNavigate()
+
   const [product, setProduct] = useState<Product | null>(null)
+  const [loading, setLoading] = useState(true)
   const [qty, setQty] = useState(1)
-  const [selectedBuilding, setSelectedBuilding] = useState<'D' | 'M' | 'L'>('D')
+  const [presence, setPresence] = useState<SellerPresence | null>(null)
   const [apartadoDone, setApartadoDone] = useState(false)
 
   useEffect(() => {
     if (!id) return
     void fetchProduct(id).then((p) => {
       setProduct(p)
-      if (p?.preferredBuilding) {
-        setSelectedBuilding(p.preferredBuilding as 'D' | 'M' | 'L')
+      setLoading(false)
+      if (p) {
+        const sId = sellerUserId(p.seller)
+        const pres = getSellerPresence(sId)
+        if (pres) setPresence(pres)
       }
     })
   }, [id])
 
+  if (loading) {
+    return <p className="py-20 text-center text-sm text-muted-foreground animate-pulse">Cargando snack...</p>
+  }
+
   if (!product) {
     return (
-      <div className="py-24 text-center">
-        <p className="text-sm text-muted-foreground animate-pulse">Cargando información del snack...</p>
+      <div className="py-20 text-center space-y-3">
+        <p className="font-display text-lg font-bold">Snack no encontrado</p>
+        <Link to="/catalogo" className="inline-block rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground">
+          Volver al catálogo
+        </Link>
       </div>
     )
   }
 
   const sellerId = sellerUserId(product.seller)
   const sellerName = displaySeller(product.seller)
-  const presence = getSellerPresence(sellerId)
   const isMyProduct = user ? ownsListing(product.seller, user.id, user.name) : false
+  const isLowStock = product.stock > 0 && product.stock <= 3
 
-  const handleApartar = async () => {
+  const handleApartar = () => {
     playPaymentSuccess()
-    add({ ...product, preferredBuilding: selectedBuilding }, qty)
-    void updateProduct(product.id, { intent_count: product.intent_count + 1 })
+    add(product, qty)
+    void updateProduct(product.id, { intent_count: product.intent_count + qty })
     void incrementMetric('total_intents')
     setApartadoDone(true)
   }
@@ -75,8 +86,6 @@ export function ProductDetailPage() {
       )}&productId=${encodeURIComponent(product.id)}&productName=${encodeURIComponent(product.name)}`,
     )
   }
-
-  const isLowStock = product.stock > 0 && product.stock <= 3
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6">
@@ -113,25 +122,6 @@ export function ProductDetailPage() {
         {/* Right Column: Info & Actions */}
         <div className="flex flex-col justify-between space-y-5">
           <div className="space-y-4">
-            {/* Smart Locker Showcase Indicator */}
-            <div className="flex items-center justify-between rounded-2xl border border-primary/30 bg-primary/10 p-3.5 text-xs">
-              <div className="flex items-center gap-2.5">
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/20 text-primary font-bold">
-                  <Building2 size={16} />
-                </span>
-                <div>
-                  <p className="font-bold text-foreground">Casilleros en Edificios D, M y L</p>
-                  <p className="text-[11px] text-muted-foreground">Retiro sin contacto con PIN de 4 dígitos en campus Icesi</p>
-                </div>
-              </div>
-              <Link
-                to="/vitrina"
-                className="rounded-xl bg-primary/20 px-3 py-1.5 text-[11px] font-mono font-bold text-primary hover:bg-primary/30 transition-colors"
-              >
-                Ver Casilleros →
-              </Link>
-            </div>
-
             {/* Seller Live Presence Box */}
             <div className="flex items-center justify-between rounded-2xl border border-border bg-secondary/50 p-3.5">
               <div className="flex items-center gap-3">
@@ -184,29 +174,6 @@ export function ProductDetailPage() {
               <TagList tags={parseTags(product.category)} size="md" />
             </div>
 
-            {/* Preferred Building Choice */}
-            <div>
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5 font-mono">
-                Edificio de retiro preferido
-              </span>
-              <div className="grid grid-cols-3 gap-2">
-                {(['D', 'M', 'L'] as const).map((b) => (
-                  <button
-                    key={b}
-                    type="button"
-                    onClick={() => setSelectedBuilding(b)}
-                    className={`rounded-xl py-2 px-2 text-xs font-mono font-bold border transition-all ${
-                      selectedBuilding === b
-                        ? 'border-primary bg-primary text-primary-foreground shadow-md'
-                        : 'border-border bg-secondary text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    Edificio {b}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Price & Stock */}
             <div className="flex items-baseline gap-3 pt-2">
               <span className="font-display text-3xl font-extrabold text-primary">{money(product.price)}</span>
@@ -245,9 +212,12 @@ export function ProductDetailPage() {
               <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-4 space-y-3 animate-fadeIn text-center">
                 <div className="flex items-center justify-center gap-2 text-emerald-400 font-display font-bold text-sm">
                   <CheckCircle2 size={18} />
-                  <span>¡Snack apartado con éxito en Edificio {selectedBuilding}!</span>
+                  <span>¡Snack apartado con éxito!</span>
                 </div>
-                <div className="flex gap-2">
+                <p className="text-xs text-muted-foreground">
+                  Tu producto quedó reservado. El vendedor asignará el casillero para tu retiro.
+                </p>
+                <div className="flex gap-2 pt-1">
                   <button
                     type="button"
                     onClick={handleStartChat}
@@ -269,7 +239,7 @@ export function ProductDetailPage() {
               <div className="flex flex-col gap-3 sm:flex-row">
                 <button
                   type="button"
-                  onClick={() => void handleApartar()}
+                  onClick={handleApartar}
                   disabled={product.sold_out || product.stock <= 0}
                   className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-amber-500 py-4 font-display text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 transition-transform hover:opacity-95 active:scale-95 disabled:opacity-40"
                 >

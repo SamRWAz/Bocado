@@ -1,6 +1,5 @@
 import {
   BookmarkCheck,
-  Building2,
   CheckCircle2,
   Filter,
   MessageCircle,
@@ -29,12 +28,10 @@ export function CatalogPage() {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<(typeof FILTERS)[number]>('Todos')
   const [dietaryFilter, setDietaryFilter] = useState<string | null>(null)
-  const [buildingFilter, setBuildingFilter] = useState<string>('Todos')
   const [loading, setLoading] = useState(true)
 
   // Confirmation Modal State
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [selectedBuilding, setSelectedBuilding] = useState<'D' | 'M' | 'L'>('D')
   const [apartadoSuccess, setApartadoSuccess] = useState<Product | null>(null)
 
   const refresh = useCallback(async () => {
@@ -50,7 +47,6 @@ export function CatalogPage() {
 
   const handleOpenApartarModal = (product: Product) => {
     setSelectedProduct(product)
-    setSelectedBuilding((product.preferredBuilding as 'D' | 'M' | 'L') || 'D')
   }
 
   const handleConfirmApartar = async () => {
@@ -58,13 +54,7 @@ export function CatalogPage() {
     playPaymentSuccess()
 
     // Add to reserved items
-    add(
-      {
-        ...selectedProduct,
-        preferredBuilding: selectedBuilding,
-      },
-      1,
-    )
+    add(selectedProduct, 1)
 
     void updateProduct(selectedProduct.id, { intent_count: selectedProduct.intent_count + 1 })
     void incrementMetric('total_intents')
@@ -106,12 +96,7 @@ export function CatalogPage() {
       hasTag(product.category, dietaryFilter) ||
       (product.dietary && product.dietary.includes(dietaryFilter as never))
 
-    const matchesBuilding =
-      buildingFilter === 'Todos' ||
-      product.preferredBuilding === buildingFilter ||
-      (buildingFilter === 'D' && !product.preferredBuilding)
-
-    return matchesQuery && matchesCategory && matchesDietary && matchesBuilding
+    return matchesQuery && matchesCategory && matchesDietary
   })
 
   return (
@@ -127,7 +112,7 @@ export function CatalogPage() {
             Snacks y Postres Disponibles
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Explora las preparaciones de hoy, aparta tu favorito y retira en los casilleros de los <strong>Edificios D, M y L</strong>.
+            Explora las preparaciones de hoy, aparta tu favorito y recíbelo sin esperas en los casilleros inteligentes.
           </p>
         </div>
 
@@ -174,67 +159,38 @@ export function CatalogPage() {
           </div>
         </div>
 
-        {/* Building selector + Dietary */}
-        <div className="flex flex-col gap-3 pt-3 border-t border-border/60 sm:flex-row sm:items-center sm:justify-between">
-          {/* Edificios Icesi Filters */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1 font-mono">
-              <Building2 size={13} className="text-primary" /> Edificio:
-            </span>
-            <div className="flex gap-1.5">
-              {['Todos', 'D', 'M', 'L'].map((b) => (
-                <button
-                  key={b}
-                  type="button"
-                  onClick={() => {
-                    playKeyBeep(550)
-                    setBuildingFilter(b)
-                  }}
-                  className={`rounded-lg px-2.5 py-1 text-xs font-mono font-bold transition-colors ${
-                    buildingFilter === b
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {b === 'Todos' ? 'Todos' : `Edif. ${b}`}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Dietary filters */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1 mr-1">
-              <Filter size={12} /> Dieta:
-            </span>
-            <button
-              type="button"
-              onClick={() => setDietaryFilter(null)}
-              className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-                dietaryFilter === null ? 'bg-primary/20 text-primary' : 'bg-secondary text-muted-foreground'
-              }`}
-            >
-              Cualquiera
-            </button>
-            {DIETARY_OPTIONS.slice(0, 4).map((opt) => {
-              const active = dietaryFilter === opt.shortLabel || dietaryFilter === opt.id
-              return (
-                <button
-                  type="button"
-                  key={opt.id}
-                  onClick={() => setDietaryFilter(active ? null : opt.shortLabel)}
-                  className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-                    active
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                  }`}
-                >
-                  <span>{opt.icon}</span>
-                  <span>{opt.shortLabel}</span>
-                </button>
-              )
-            })}
-          </div>
+        {/* Dietary Filter */}
+        <div className="flex flex-wrap items-center gap-1.5 pt-3 border-t border-border/60">
+          <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1 mr-1">
+            <Filter size={12} /> Dieta:
+          </span>
+          <button
+            type="button"
+            onClick={() => setDietaryFilter(null)}
+            className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+              dietaryFilter === null ? 'bg-primary/20 text-primary' : 'bg-secondary text-muted-foreground'
+            }`}
+          >
+            Cualquiera
+          </button>
+          {DIETARY_OPTIONS.slice(0, 5).map((opt) => {
+            const active = dietaryFilter === opt.shortLabel || dietaryFilter === opt.id
+            return (
+              <button
+                type="button"
+                key={opt.id}
+                onClick={() => setDietaryFilter(active ? null : opt.shortLabel)}
+                className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                  active
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                }`}
+              >
+                <span>{opt.icon}</span>
+                <span>{opt.shortLabel}</span>
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -248,7 +204,7 @@ export function CatalogPage() {
           <ShoppingBag size={48} className="mx-auto mb-3 text-muted-foreground/40" />
           <h3 className="font-display text-lg font-bold">No se encontraron snacks con estos filtros</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Prueba cambiando la categoría, la dieta o el edificio seleccionado.
+            Prueba cambiando la categoría o la dieta seleccionada.
           </p>
           <button
             type="button"
@@ -256,7 +212,6 @@ export function CatalogPage() {
               setQuery('')
               setCategory('Todos')
               setDietaryFilter(null)
-              setBuildingFilter('Todos')
             }}
             className="mt-4 rounded-xl bg-primary px-4 py-2 font-display text-xs font-bold text-primary-foreground"
           >
@@ -331,33 +286,10 @@ export function CatalogPage() {
                   </p>
                 </div>
               </div>
-
-              {/* Building Choice */}
-              <div className="border-t border-border/60 pt-3">
-                <label className="text-[11px] font-semibold text-muted-foreground block mb-1.5 font-mono">
-                  ¿En qué casillero prefieres retirarlo?
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['D', 'M', 'L'] as const).map((b) => (
-                    <button
-                      key={b}
-                      type="button"
-                      onClick={() => setSelectedBuilding(b)}
-                      className={`rounded-xl py-2 px-2 text-xs font-mono font-bold border transition-all ${
-                        selectedBuilding === b
-                          ? 'border-primary bg-primary text-primary-foreground shadow-md'
-                          : 'border-border bg-card text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      Edificio {b}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
 
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Al apartar, el snack se reserva para ti en la lista de <strong>Productos Apartados</strong> y podrás chatear de inmediato con el vendedor para coordinar el casillero de entrega.
+              Al apartar, el producto se reserva para ti en tu lista de <strong>Apartados</strong>. El vendedor recibirá la solicitud y te asignará el casillero de entrega correspondiente.
             </p>
 
             {/* Action Buttons */}
@@ -400,7 +332,7 @@ export function CatalogPage() {
                 {apartadoSuccess.name}
               </h3>
               <p className="text-xs text-muted-foreground">
-                Asignado a retiro en casilleros del <strong>Edificio {selectedBuilding}</strong>.
+                Tu apartado ha sido registrado. El cocinero asignará el casillero para tu entrega.
               </p>
             </div>
 
@@ -409,7 +341,7 @@ export function CatalogPage() {
                 <Sparkles size={14} className="text-primary" /> ¿Qué deseas hacer ahora?
               </p>
               <p className="text-[11px]">
-                Puedes chatear con <strong>{displaySeller(apartadoSuccess.seller)}</strong> para afinar el punto de entrega o ir a ver tus productos apartados para generar tu PIN de retiro.
+                Puedes chatear directamente con <strong>{displaySeller(apartadoSuccess.seller)}</strong> o revisar tu lista de apartados.
               </p>
             </div>
 
@@ -424,7 +356,7 @@ export function CatalogPage() {
                 className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-amber-500 py-3.5 text-xs font-display font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:brightness-110 active:scale-95 transition-all"
               >
                 <MessageCircle size={16} />
-                <span>Chatear con el Vendedor sobre la Entrega</span>
+                <span>Chatear con el Vendedor</span>
               </button>
 
               <div className="flex gap-2">
@@ -433,7 +365,7 @@ export function CatalogPage() {
                   className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary py-3 text-xs font-display font-semibold text-foreground hover:bg-secondary/80 transition-colors"
                 >
                   <BookmarkCheck size={14} className="text-primary" />
-                  <span>Ver Productos Apartados</span>
+                  <span>Ver Apartados</span>
                 </Link>
                 <button
                   type="button"
