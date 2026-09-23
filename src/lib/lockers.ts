@@ -483,7 +483,7 @@ export async function autoAssignLockerForSellerOrder(params: {
 
   const updatedLocker: Locker = {
     ...allLockers[targetIndex],
-    status: 'esperando_deposito',
+    status: 'listo_para_retiro',
     orderId: params.order.id,
     productId: firstItem?.productId || `prod_${params.order.id}`,
     productName: firstItem?.name || 'Snack Bocado',
@@ -527,7 +527,7 @@ export async function autoAssignLockerForSellerOrder(params: {
       senderName: params.order.sellerName,
       recipientId: params.order.buyerId,
       recipientName: params.order.buyerName,
-      text: `¡Hola ${params.order.buyerName}! He asignado tu pedido al Casillero #${updatedLocker.number} en el ${updatedLocker.hubName}. Tu PIN de retiro es: ${claimPin}. Recuerda que puedes pagar escaneando el código QR en la vitrina de la universidad. ¡Buen provecho!`,
+      text: `¡Hola ${params.order.buyerName}! Tu pedido ya fue depositado en el Casillero #${updatedLocker.number} del ${updatedLocker.hubName}. Tu PIN de retiro es: ${claimPin}. Recuerda escanear el QR en la máquina para pagar y destrabar la compuerta.`,
       orderId: params.order.id,
       productName: firstItem?.name,
       lockerCode: updatedLocker.code,

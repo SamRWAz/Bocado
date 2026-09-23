@@ -21,17 +21,17 @@ import { fetchOrders, saveOrder, subscribeToOrderUpdates } from '../lib/storage-
 import type { Order, OrderStatus } from '../types'
 
 const labels: Record<OrderStatus, { label: string; color: string }> = {
-  reservado: { label: 'Apartado / Pendiente', color: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
-  listo: { label: 'En Casillero 24/7', color: 'bg-primary/15 text-primary border-primary/30' },
-  entregado: { label: 'Retirado de Vitrina', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
-  cancelado: { label: 'Cancelado', color: 'bg-rose-500/15 text-rose-400 border-rose-500/30' },
+  reservado: { label: 'Apartado / Pendiente', color: 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700' },
+  listo: { label: 'Listo en Casillero', color: 'bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700' },
+  entregado: { label: 'Retirado / Completado', color: 'bg-zinc-100 text-zinc-800 border-zinc-300 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700' },
+  cancelado: { label: 'Cancelado', color: 'bg-rose-100 text-rose-900 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-700' },
 }
 
 export function OrdersPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [orders, setOrders] = useState<Order[]>([])
-  const [tab, setTab] = useState<'compras' | 'ventas'>('compras')
+  const [tab, setTab] = useState<'compras' | 'ventas' | 'historial'>('compras')
   const [copiedPin, setCopiedPin] = useState<string | null>(null)
   const [orderToAssign, setOrderToAssign] = useState<Order | null>(null)
 
@@ -49,7 +49,7 @@ export function OrdersPage() {
   }, [refresh])
 
   const mine = orders.filter((order) => order.buyerId === user?.id)
-  const selling = orders.filter((order) => {
+  const allSellerOrders = orders.filter((order) => {
     if (!user) return false
     const sKey = order.sellerKey || ''
     const sName = (order.sellerName || '').trim().toLowerCase()
@@ -64,8 +64,25 @@ export function OrdersPage() {
       ownsListing(order.sellerKey, user.id, user.name)
     )
   })
-  const list = tab === 'compras' ? mine : selling
 
+  // Active sales vs completed sales
+  const activeSelling = allSellerOrders.filter((o) => o.status !== 'entregado' && o.status !== 'cancelado')
+  const historySelling = allSellerOrders.filter((o) => o.status === 'entregado')
+
+  // Financial statistics for seller history
+  const totalGross = historySelling.reduce((sum, o) => sum + o.total, 0)
+  const totalNet = historySelling.reduce(
+    (sum, o) => sum + (o.sellerNetRevenue || o.total - (o.platformCommission || Math.round(o.total * 0.05))),
+    0,
+  )
+  const totalCommission = historySelling.reduce(
+    (sum, o) => sum + (o.platformCommission || Math.round(o.total * 0.05)),
+    0,
+  )
+  const totalItemsSold = historySelling.reduce(
+    (sum, o) => sum + o.items.reduce((s, it) => s + it.qty, 0),
+    0,
+  )
 
   const setStatus = async (order: Order, status: OrderStatus) => {
     await saveOrder({ ...order, status })
@@ -94,10 +111,12 @@ export function OrdersPage() {
     )
   }
 
+  const displayedList = tab === 'compras' ? mine : tab === 'ventas' ? activeSelling : historySelling
+
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-1.5 text-xs font-mono font-bold uppercase tracking-wider text-primary">
             <Sparkles size={13} />
@@ -107,18 +126,18 @@ export function OrdersPage() {
             Tus Pases y Apartados
           </h1>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            Digita tu PIN en el teclado de la vitrina del <strong>Edificio D, M o L</strong> para desbloquear la compuerta.
+            Digita tu PIN en el teclado de la vitrina del <strong>Edificio D, M o L</strong> para retirar tus preparaciones.
           </p>
         </div>
 
         {/* Tab switcher */}
-        <div className="flex rounded-2xl bg-secondary/80 p-1 border border-border/60 self-start sm:self-auto">
+        <div className="flex flex-wrap rounded-2xl bg-secondary p-1 border border-border self-start sm:self-auto gap-1">
           <button
             type="button"
             onClick={() => setTab('compras')}
-            className={`rounded-xl px-4 py-2 text-xs font-display font-bold transition-all ${
+            className={`rounded-xl px-3.5 py-2 text-xs font-display font-bold transition-all cursor-pointer ${
               tab === 'compras'
-                ? 'bg-primary text-primary-foreground shadow-md'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -127,32 +146,88 @@ export function OrdersPage() {
           <button
             type="button"
             onClick={() => setTab('ventas')}
-            className={`rounded-xl px-4 py-2 text-xs font-display font-bold transition-all ${
+            className={`rounded-xl px-3.5 py-2 text-xs font-display font-bold transition-all cursor-pointer ${
               tab === 'ventas'
-                ? 'bg-primary text-primary-foreground shadow-md'
+                ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            Pases de Depósito ({selling.length})
+            Pases de Depósito ({activeSelling.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab('historial')}
+            className={`rounded-xl px-3.5 py-2 text-xs font-display font-bold transition-all cursor-pointer ${
+              tab === 'historial'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Historial de Ventas ({historySelling.length})
           </button>
         </div>
       </div>
 
-      {list.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-border bg-card/40 p-12 text-center text-muted-foreground">
+      {/* Historial de Ventas - Metrics Summary Box */}
+      {tab === 'historial' && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono block">
+              Ventas Totales
+            </span>
+            <p className="mt-1 font-mono text-xl font-black text-foreground">{money(totalGross)}</p>
+            <span className="text-[11px] text-muted-foreground mt-0.5 block">{historySelling.length} pedidos cerrados</span>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono block">
+              Ganancias Netas (95%)
+            </span>
+            <p className="mt-1 font-mono text-xl font-black text-emerald-600 dark:text-emerald-400">
+              {money(totalNet)}
+            </p>
+            <span className="text-[11px] text-muted-foreground mt-0.5 block">Liquidado al cocinero</span>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono block">
+              Snacks Entregados
+            </span>
+            <p className="mt-1 font-mono text-xl font-black text-primary">{totalItemsSold}</p>
+            <span className="text-[11px] text-muted-foreground mt-0.5 block">Unidades retiradas</span>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono block">
+              Comisión Bocado (5%)
+            </span>
+            <p className="mt-1 font-mono text-xl font-black text-zinc-700 dark:text-zinc-300">{money(totalCommission)}</p>
+            <span className="text-[11px] text-muted-foreground mt-0.5 block">Uso de vitrina & app</span>
+          </div>
+        </div>
+      )}
+
+      {displayedList.length === 0 ? (
+        <div className="rounded-3xl border border-dashed border-border bg-card p-12 text-center text-muted-foreground">
           <Boxes size={44} className="mx-auto mb-3 opacity-30 text-primary" />
           <p className="font-display font-bold text-foreground">
-            {tab === 'compras' ? 'No tienes pases de retiro activos' : 'No tienes depósitos pendientes'}
+            {tab === 'compras'
+              ? 'No tienes pases de retiro activos'
+              : tab === 'ventas'
+              ? 'No tienes depósitos pendientes'
+              : 'Aún no tienes ventas completadas en el historial'}
           </p>
           <p className="mt-1 text-xs max-w-sm mx-auto">
             {tab === 'compras'
               ? 'Explora el catálogo, aparta tus snacks y retíralos con PIN en los Edificios D, M o L.'
-              : 'Cuando recibas una solicitud de compra, te aparecerá aquí para asignar automáticamente un casillero.'}
+              : tab === 'ventas'
+              ? 'Cuando recibas una solicitud de compra, te aparecerá aquí para asignar automáticamente un casillero.'
+              : 'Cuando tus compradores retiren sus snacks en los casilleros inteligentes, aparecerán registrados aquí.'}
           </p>
           <div className="mt-4">
             <Link
               to={tab === 'compras' ? '/catalogo' : '/vender'}
-              className="inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground shadow-md hover:opacity-90"
+              className="inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90"
             >
               {tab === 'compras' ? 'Ver Catálogo' : 'Publicar Snack'}
             </Link>
@@ -160,7 +235,7 @@ export function OrdersPage() {
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
-          {list.map((order) => {
+          {displayedList.map((order) => {
             const statusConfig = labels[order.status] ?? labels.reservado
             const claimPin = order.claimPin
             const depositPin = order.depositPin || `DEP-${claimPin || '1234'}`
@@ -173,17 +248,15 @@ export function OrdersPage() {
             return (
               <article
                 key={order.id}
-                className="flex flex-col rounded-3xl border border-border/80 bg-card/90 backdrop-blur-md p-6 shadow-xl transition-all hover:border-primary/50 relative overflow-hidden"
+                className="flex flex-col rounded-3xl border border-border bg-card p-6 shadow-sm transition-all hover:border-primary/40 relative overflow-hidden"
               >
-                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-emerald-400 to-cyan-400" />
-
                 {/* Header */}
-                <div className="flex items-start justify-between gap-3 pb-3 border-b border-border/60">
+                <div className="flex items-start justify-between gap-3 pb-3 border-b border-border">
                   <div>
                     <span className="text-[10px] uppercase tracking-wider font-mono font-bold text-muted-foreground">
                       {tab === 'compras' ? 'Cocinero:' : 'Comprador:'}
                     </span>
-                    <h3 className="font-brand text-base font-bold text-foreground">
+                    <h3 className="font-display text-base font-bold text-foreground">
                       {tab === 'compras' ? order.sellerName : order.buyerName}
                     </h3>
                     <p className="flex items-center gap-1.5 text-xs text-primary font-mono mt-0.5">
@@ -191,7 +264,7 @@ export function OrdersPage() {
                       <span>
                         {hasAssignedLocker
                           ? `${hubName} · Casillero #${slotNum}`
-                          : 'Casillero pendiente por asignar'}
+                          : 'Casillero en proceso de asignación'}
                       </span>
                     </p>
                   </div>
@@ -207,26 +280,26 @@ export function OrdersPage() {
 
                 {/* Buyer Digital Claim Pass */}
                 {tab === 'compras' && (
-                  <div className="my-4 rounded-2xl border border-primary/40 bg-zinc-950/90 p-4 relative overflow-hidden">
-                    <div className="flex items-center justify-between text-xs font-mono text-zinc-400 mb-2">
-                      <span className="flex items-center gap-1 text-emerald-400 font-bold">
-                        <KeyRound size={14} /> PIN DE RETIRO EN MÁQUINA
+                  <div className="my-4 rounded-2xl border border-border bg-secondary/70 p-4 relative overflow-hidden">
+                    <div className="flex items-center justify-between text-xs font-mono text-muted-foreground mb-2">
+                      <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-bold">
+                        <KeyRound size={14} /> PIN DE RETIRO EN VITRINA
                       </span>
-                      <span className="text-[10px]">
-                        {hasAssignedLocker ? `CASILLERO #${slotNum}` : 'EN ESPERA'}
+                      <span className="text-[10px] font-bold text-foreground">
+                        {hasAssignedLocker ? `${hubName} · Casillero #${slotNum}` : 'EN PREPARACIÓN'}
                       </span>
                     </div>
 
                     {claimPin ? (
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-3xl font-black tracking-widest text-primary drop-shadow-[0_0_12px_rgba(249,115,22,0.6)]">
+                          <span className="font-mono text-3xl font-black tracking-widest text-primary">
                             {claimPin}
                           </span>
                           <button
                             type="button"
                             onClick={() => handleCopyPin(claimPin)}
-                            className="rounded-lg bg-secondary/80 p-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                            className="rounded-lg bg-card p-1.5 text-xs text-muted-foreground hover:text-foreground border border-border transition-colors cursor-pointer"
                             title="Copiar PIN"
                           >
                             <Copy size={14} />
@@ -234,74 +307,75 @@ export function OrdersPage() {
                         </div>
 
                         <div className="flex flex-col items-center">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-1">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-1 border border-border">
                             <QrCode size={32} className="text-black" />
                           </div>
-                          <span className="text-[8px] font-mono text-zinc-400 mt-0.5">PAGO QR</span>
+                          <span className="text-[8px] font-mono text-muted-foreground mt-0.5">PAGO QR</span>
                         </div>
                       </div>
                     ) : (
                       <div className="py-2 text-center">
-                        <p className="text-xs text-amber-400 font-mono">
+                        <p className="text-xs text-amber-700 dark:text-amber-400 font-mono">
                           ⏳ El cocinero está preparando tu pedido y asignando el casillero.
                         </p>
                       </div>
                     )}
 
                     {copiedPin === claimPin && (
-                      <p className="mt-2 text-[10px] font-mono text-emerald-400 animate-fadeIn">
+                      <p className="mt-2 text-[10px] font-mono text-emerald-600 dark:text-emerald-400">
                         ✓ PIN copiado al portapapeles
                       </p>
                     )}
                   </div>
                 )}
 
-                {/* Seller Deposit Pass / Action Box */}
+                {/* Seller Active Deposit Pass / Action Box */}
                 {tab === 'ventas' && (
-                  <div className="my-4 rounded-2xl border border-amber-500/40 bg-amber-950/20 p-4 space-y-3">
+                  <div className="my-4 rounded-2xl border border-border bg-secondary/70 p-4">
                     {hasAssignedLocker ? (
                       <>
-                        <div className="flex items-center justify-between text-xs font-mono text-amber-400">
-                          <span className="flex items-center gap-1 font-bold">
-                            <Zap size={14} /> PIN DE DEPÓSITO
+                        <div className="flex items-center justify-between text-xs font-mono text-muted-foreground mb-2">
+                          <span className="text-primary font-bold flex items-center gap-1">
+                            <Zap size={14} /> CASILLERO ASIGNADO
                           </span>
-                          <span className="text-[10px]">CASILLERO #{slotNum}</span>
+                          <span className="font-bold text-foreground">
+                            {hubName} · #{slotNum}
+                          </span>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          Digita <strong>{depositPin}</strong> en la vitrina del {hubName} para abrir la compuerta #{slotNum} y guardar el snack.
-                        </p>
-                        <div className="flex items-center justify-between pt-1 font-mono">
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl font-bold tracking-wider text-amber-400">
+
+                        <div className="flex items-center justify-between rounded-xl bg-card p-3 border border-border">
+                          <div>
+                            <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono block">
+                              PIN de Depósito:
+                            </span>
+                            <span className="font-mono text-xl font-black text-foreground">
                               {depositPin}
                             </span>
-                            <button
-                              type="button"
-                              onClick={() => handleCopyPin(depositPin)}
-                              className="rounded-lg bg-secondary/80 p-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                              title="Copiar PIN"
-                            >
-                              <Copy size={13} />
-                            </button>
                           </div>
-                          <span className="text-[11px] text-emerald-400">
-                            Neto: {money(netRevenue)} <span className="text-zinc-500">(5% com: -{money(commission)})</span>
-                          </span>
+
+                          <div className="text-right">
+                            <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono block">
+                              PIN del Comprador:
+                            </span>
+                            <span className="font-mono text-sm font-bold text-primary">
+                              {claimPin || 'Automático'}
+                            </span>
+                          </div>
                         </div>
                       </>
                     ) : (
                       <div className="space-y-2 text-center sm:text-left">
-                        <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-amber-400">
+                        <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-amber-700 dark:text-amber-400">
                           <Zap size={14} />
                           <span>Solicitud de compra recibida</span>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          El comprador apartó este snack. Asígnale un casillero automático en el <strong>Edificio D, M o L</strong> para generar el PIN de depósito.
+                          El comprador apartó este snack. Asígnale un casillero automático en el <strong>Edificio D, M o L</strong> para generar el PIN.
                         </p>
                         <button
                           type="button"
                           onClick={() => setOrderToAssign(order)}
-                          className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-amber-500 py-2.5 px-3 text-xs font-display font-bold text-white shadow-md hover:brightness-110 active:scale-95 transition-all"
+                          className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 px-3 text-xs font-display font-bold text-primary-foreground shadow-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer"
                         >
                           <Zap size={14} />
                           <span>Asignar Casillero Automático</span>
@@ -312,7 +386,7 @@ export function OrdersPage() {
                 )}
 
                 {/* Items */}
-                <ul className="my-2 space-y-1.5 text-xs divide-y divide-border/30">
+                <ul className="my-2 space-y-1.5 text-xs divide-y divide-border/40">
                   {order.items.map((item) => (
                     <li key={item.productId} className="flex justify-between items-center pt-1.5 first:pt-0">
                       <span className="text-foreground">
@@ -323,16 +397,34 @@ export function OrdersPage() {
                   ))}
                 </ul>
 
+                {/* Seller Financial Breakdown for Historial */}
+                {tab === 'historial' && (
+                  <div className="mt-2 rounded-xl bg-secondary/50 p-2.5 text-[11px] font-mono space-y-1 border border-border/60">
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Total venta cobrada:</span>
+                      <span className="font-bold text-foreground">{money(order.total)}</span>
+                    </div>
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Comisión Bocado (5%):</span>
+                      <span>-{money(commission)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-emerald-700 dark:text-emerald-400 pt-1 border-t border-border/40">
+                      <span>Neto pagado a ti:</span>
+                      <span>{money(netRevenue)}</span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Protection note */}
                 {order.isGuaranteed && (
-                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-400 my-1 font-mono">
+                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 my-1 font-mono">
                     <ShieldCheck size={13} />
                     <span>Control de frescura garantizado</span>
                   </div>
                 )}
 
                 {/* Total & Action Bar */}
-                <div className="mt-auto pt-4 flex flex-col gap-3 border-t border-border/60">
+                <div className="mt-auto pt-4 flex flex-col gap-3 border-t border-border">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">Total:</span>
                     <span className="font-mono text-lg font-bold text-primary">{money(order.total)}</span>
@@ -342,7 +434,7 @@ export function OrdersPage() {
                     {hasAssignedLocker && (
                       <Link
                         to="/vitrina"
-                        className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-xs font-display font-bold text-primary-foreground shadow-md shadow-primary/20 hover:brightness-110 transition-all"
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-xs font-display font-bold text-primary-foreground shadow-sm hover:opacity-90 transition-all"
                       >
                         <Unlock size={14} />
                         <span>{tab === 'compras' ? 'Abrir en Vitrina' : 'Ir a Vitrina'}</span>
@@ -353,7 +445,7 @@ export function OrdersPage() {
                       <button
                         type="button"
                         onClick={() => setOrderToAssign(order)}
-                        className="flex items-center justify-center gap-1 rounded-xl border border-border bg-secondary/80 px-2.5 py-2.5 text-xs font-display font-semibold text-muted-foreground hover:text-foreground transition-all"
+                        className="flex items-center justify-center gap-1 rounded-xl border border-border bg-secondary px-2.5 py-2.5 text-xs font-display font-semibold text-muted-foreground hover:text-foreground transition-all cursor-pointer"
                         title="Reasignar a otro edificio"
                       >
                         <Building2 size={13} />
@@ -364,7 +456,7 @@ export function OrdersPage() {
                     <button
                       type="button"
                       onClick={() => openChatForOrder(order)}
-                      className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary/80 px-3 py-2.5 text-xs font-display font-semibold text-foreground hover:bg-secondary transition-all"
+                      className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary px-3 py-2.5 text-xs font-display font-semibold text-foreground hover:bg-secondary/80 transition-all cursor-pointer"
                     >
                       <MessageSquare size={14} />
                       <span>Chat</span>
@@ -374,7 +466,7 @@ export function OrdersPage() {
                       <button
                         type="button"
                         onClick={() => void setStatus(order, 'entregado')}
-                        className="flex items-center gap-1 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-2 text-xs font-bold hover:bg-emerald-500/30 transition-colors"
+                        className="flex items-center gap-1 rounded-xl bg-emerald-600 text-white px-3 py-2 text-xs font-bold hover:bg-emerald-700 transition-colors cursor-pointer"
                       >
                         <CheckCircle2 size={14} /> Marcar Retirado
                       </button>

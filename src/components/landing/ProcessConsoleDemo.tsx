@@ -5,7 +5,6 @@ import {
   QrCode,
   RotateCcw,
   Sparkles,
-  Zap,
 } from 'lucide-react'
 import { playKeyBeep, playLockerUnlock, playPaymentSuccess } from '../../lib/sounds'
 
@@ -94,19 +93,16 @@ export function ProcessConsoleDemo() {
   }
 
   return (
-    <div className="relative mx-auto w-full max-w-3xl overflow-hidden rounded-3xl border-2 border-primary/40 bg-zinc-950/90 p-6 shadow-2xl backdrop-blur-2xl sm:p-8">
+    <div className="relative mx-auto w-full max-w-3xl overflow-hidden rounded-3xl border-2 border-neutral-800 bg-[#171412] p-6 shadow-xl sm:p-8 text-white">
       {/* Top Header / Kiosk Terminal Bar */}
-      <div className="flex flex-wrap items-center justify-between border-b border-white/10 pb-4 mb-6 gap-3">
+      <div className="flex flex-wrap items-center justify-between border-b border-neutral-800 pb-4 mb-6 gap-3">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-3 w-3 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
-          </span>
+          <span className="h-3 w-3 rounded-full bg-emerald-500 inline-block" />
           <div className="text-left">
             <span className="font-mono text-xs font-bold tracking-widest text-emerald-400">
-              TERMINAL INTERACTIVA BOCADO
+              TERMINAL FÍSICA BOCADO
             </span>
-            <p className="text-[11px] text-zinc-400 font-mono">
+            <p className="text-[11px] text-neutral-400 font-mono">
               Simulador de Casillero #{sampleSnack.slot} · {sampleSnack.building}
             </p>
           </div>
@@ -118,15 +114,15 @@ export function ProcessConsoleDemo() {
             type="button"
             onClick={handleStartAutoDemo}
             disabled={isAutoPlaying}
-            className="flex items-center gap-1.5 rounded-xl bg-primary/20 border border-primary/40 px-3 py-1.5 text-xs font-mono font-bold text-primary hover:bg-primary hover:text-white transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-xl bg-[#8F1414] px-3.5 py-1.5 text-xs font-mono font-bold text-white hover:bg-[#781010] transition-all disabled:opacity-50 cursor-pointer"
           >
             <Sparkles size={13} className={isAutoPlaying ? 'animate-spin' : ''} />
-            <span>{isAutoPlaying ? 'Demostrando...' : 'Animación Automática'}</span>
+            <span>{isAutoPlaying ? 'Demostrando...' : 'Demo Automática'}</span>
           </button>
           <button
             type="button"
             onClick={handleReset}
-            className="flex items-center justify-center rounded-xl bg-white/5 border border-white/10 p-2 text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="flex items-center justify-center rounded-xl bg-neutral-800 border border-neutral-700 p-2 text-neutral-300 hover:text-white transition-colors cursor-pointer"
             title="Reiniciar simulador"
           >
             <RotateCcw size={14} />
@@ -142,13 +138,13 @@ export function ProcessConsoleDemo() {
             setStep('pin')
             setPinInput('')
           }}
-          className={`flex items-center justify-center gap-2 rounded-xl py-2 px-3 text-xs font-mono font-bold border transition-all ${
+          className={`flex items-center justify-center gap-2 rounded-xl py-2 px-3 text-xs font-mono font-bold border transition-all cursor-pointer ${
             step === 'pin'
-              ? 'border-primary bg-primary/20 text-primary shadow-md shadow-primary/20'
-              : 'border-white/10 bg-zinc-900/50 text-zinc-500'
+              ? 'border-white bg-[#8F1414] text-white shadow-xs'
+              : 'border-neutral-800 bg-neutral-900/60 text-neutral-400'
           }`}
         >
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-[10px]">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black/40 text-[10px]">
             1
           </span>
           <span className="hidden sm:inline">Ingresar PIN</span>
@@ -160,16 +156,16 @@ export function ProcessConsoleDemo() {
             setStep('qr')
             setPinInput(sampleSnack.pin)
           }}
-          className={`flex items-center justify-center gap-2 rounded-xl py-2 px-3 text-xs font-mono font-bold border transition-all ${
+          className={`flex items-center justify-center gap-2 rounded-xl py-2 px-3 text-xs font-mono font-bold border transition-all cursor-pointer ${
             step === 'qr'
-              ? 'border-amber-400 bg-amber-500/20 text-amber-300 shadow-md shadow-amber-500/20'
-              : 'border-white/10 bg-zinc-900/50 text-zinc-500'
+              ? 'border-amber-400 bg-amber-700 text-white shadow-xs'
+              : 'border-neutral-800 bg-neutral-900/60 text-neutral-400'
           }`}
         >
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/20 text-[10px]">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black/40 text-[10px]">
             2
           </span>
-          <span className="hidden sm:inline">Pago QR Virtual</span>
+          <span className="hidden sm:inline">Pago QR</span>
         </button>
 
         <button
@@ -178,16 +174,16 @@ export function ProcessConsoleDemo() {
             setStep('unlocked')
             setPinInput(sampleSnack.pin)
           }}
-          className={`flex items-center justify-center gap-2 rounded-xl py-2 px-3 text-xs font-mono font-bold border transition-all ${
+          className={`flex items-center justify-center gap-2 rounded-xl py-2 px-3 text-xs font-mono font-bold border transition-all cursor-pointer ${
             step === 'unlocked'
-              ? 'border-emerald-400 bg-emerald-500/20 text-emerald-300 shadow-md shadow-emerald-500/20'
-              : 'border-white/10 bg-zinc-900/50 text-zinc-500'
+              ? 'border-emerald-500 bg-emerald-800 text-white shadow-xs'
+              : 'border-neutral-800 bg-neutral-900/60 text-neutral-400'
           }`}
         >
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20 text-[10px]">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black/40 text-[10px]">
             3
           </span>
-          <span className="hidden sm:inline">Apertura & Recibo</span>
+          <span className="hidden sm:inline">Apertura</span>
         </button>
       </div>
 
@@ -196,16 +192,16 @@ export function ProcessConsoleDemo() {
         {/* Left Column: Virtual Machine Screen & Inputs */}
         <div className="md:col-span-7 space-y-4">
           {step === 'pin' && (
-            <div className="space-y-4 animate-fadeIn">
-              <div className="rounded-2xl border-2 border-primary/30 bg-black/90 p-4 text-center">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400 block mb-1">
+            <div className="space-y-4">
+              <div className="rounded-2xl border-2 border-neutral-700 bg-black p-4 text-center">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-neutral-400 block mb-1">
                   Digita el PIN de tu pase (Demo: {sampleSnack.pin})
                 </span>
-                <div className="flex h-12 items-center justify-center font-mono text-3xl font-black tracking-widest text-primary">
+                <div className="flex h-12 items-center justify-center font-mono text-3xl font-black tracking-widest text-amber-400">
                   {pinInput ? (
                     <span>{pinInput.padEnd(4, ' • ')}</span>
                   ) : (
-                    <span className="text-zinc-600 animate-pulse">_ _ _ _</span>
+                    <span className="text-neutral-600">_ _ _ _</span>
                   )}
                 </div>
               </div>
@@ -217,7 +213,7 @@ export function ProcessConsoleDemo() {
                     key={digit}
                     type="button"
                     onClick={() => handleDigit(digit)}
-                    className="flex h-12 items-center justify-center rounded-xl border border-white/10 bg-zinc-900 font-display text-lg font-bold text-white transition-all hover:border-primary hover:bg-primary/20 active:scale-95"
+                    className="flex h-12 items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900 font-display text-lg font-bold text-white transition-all hover:bg-neutral-800 active:scale-95 cursor-pointer"
                   >
                     {digit}
                   </button>
@@ -225,102 +221,101 @@ export function ProcessConsoleDemo() {
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="flex h-12 items-center justify-center rounded-xl border border-white/10 bg-zinc-900/60 font-mono text-xs font-bold text-zinc-400 hover:text-white"
+                  className="flex h-12 items-center justify-center rounded-xl border border-rose-900/60 bg-rose-950/40 font-mono text-xs font-bold text-rose-300 hover:bg-rose-900/60 active:scale-95 cursor-pointer"
                 >
                   BORRAR
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDigit('0')}
-                  className="flex h-12 items-center justify-center rounded-xl border border-white/10 bg-zinc-900 font-display text-lg font-bold text-white transition-all hover:border-primary hover:bg-primary/20 active:scale-95"
+                  className="flex h-12 items-center justify-center rounded-xl border border-neutral-800 bg-neutral-900 font-display text-lg font-bold text-white transition-all hover:bg-neutral-800 active:scale-95 cursor-pointer"
                 >
                   0
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    playKeyBeep(800)
-                    setPinInput(sampleSnack.pin)
-                    setTimeout(() => {
-                      playPaymentSuccess()
-                      setStep('qr')
-                    }, 300)
-                  }}
-                  className="flex h-12 items-center justify-center rounded-xl border border-primary/40 bg-primary/20 font-mono text-xs font-bold text-primary hover:bg-primary hover:text-white"
+                  onClick={() => handleDigit('7')}
+                  className="flex h-12 items-center justify-center rounded-xl border border-emerald-900/60 bg-emerald-950/40 font-mono text-xs font-bold text-emerald-300 hover:bg-emerald-900/60 active:scale-95 cursor-pointer"
                 >
-                  AUTO {sampleSnack.pin}
+                  OK
                 </button>
               </div>
             </div>
           )}
 
           {step === 'qr' && (
-            <div className="rounded-2xl border-2 border-amber-500/40 bg-zinc-900/90 p-5 text-center space-y-4 animate-fadeIn">
-              <div className="flex items-center justify-between border-b border-white/10 pb-2 text-xs font-mono">
-                <span className="text-amber-400 font-bold flex items-center gap-1.5">
-                  <QrCode size={15} /> PAGO VIRTUAL EN LÍNEA
-                </span>
-                <span className="text-zinc-400">CASILLERO #{sampleSnack.slot}</span>
-              </div>
-
-              <div className="mx-auto flex h-36 w-36 items-center justify-center rounded-2xl border-2 border-dashed border-amber-400/60 bg-white p-2 shadow-xl">
-                <div className="h-full w-full bg-slate-950 rounded-xl flex flex-col items-center justify-center text-white p-2">
-                  <QrCode size={68} className="text-amber-400 animate-pulse" />
-                  <span className="text-[8px] font-mono text-zinc-300 mt-1">NEQUI / BANCOLOMBIA</span>
+            <div className="space-y-4">
+              <div className="rounded-2xl border-2 border-amber-600 bg-black p-4 text-center space-y-3">
+                <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
+                  <span className="text-xs font-mono text-neutral-400">PAGO VIRTUAL</span>
+                  <span className="font-mono text-xs font-bold text-amber-400">PIN VALIDADO ✓</span>
                 </div>
-              </div>
 
-              <div className="space-y-1">
-                <p className="font-display text-sm font-bold text-white">{sampleSnack.name}</p>
-                <p className="font-mono text-xl font-extrabold text-amber-400">
-                  ${sampleSnack.price.toLocaleString('es-CO')} COP
-                </p>
+                <div className="py-2">
+                  <p className="text-xs text-neutral-300 font-medium">{sampleSnack.name}</p>
+                  <p className="font-mono text-2xl font-black text-white mt-1">
+                    ${sampleSnack.price.toLocaleString('es-CO')} COP
+                  </p>
+                </div>
+
+                <div className="rounded-xl bg-neutral-900 p-3 border border-neutral-800 flex items-center justify-center gap-3">
+                  <div className="h-16 w-16 bg-white p-1 rounded-lg shrink-0 flex items-center justify-center">
+                    <QrCode size={56} className="text-black" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs font-bold text-white">Escanea con Nequi / Bancolombia</p>
+                    <p className="text-[10px] text-neutral-400 font-mono">Comprobante automático</p>
+                  </div>
+                </div>
               </div>
 
               <button
                 type="button"
                 onClick={handlePayAndUnlock}
                 disabled={isPaying}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-primary py-3 font-display text-xs font-bold text-black hover:brightness-110 active:scale-95 shadow-lg shadow-amber-500/25 transition-all"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 font-display text-sm font-bold text-white hover:bg-emerald-700 transition-all cursor-pointer disabled:opacity-50"
               >
-                <Zap size={14} />
-                <span>{isPaying ? 'Procesando Pago Virtual...' : 'Simular Pago Exitoso → Abrir Casillero'}</span>
+                <CheckCircle2 size={16} />
+                <span>{isPaying ? 'Validando pago...' : 'Simular Pago Exitoso & Destrabar'}</span>
               </button>
             </div>
           )}
 
           {step === 'unlocked' && (
-            <div className="rounded-2xl border-2 border-emerald-500/50 bg-emerald-950/20 p-5 text-left space-y-4 animate-fadeIn">
-              <div className="flex items-center justify-between border-b border-emerald-500/20 pb-2 text-xs font-mono">
-                <span className="text-emerald-400 font-bold flex items-center gap-1.5">
-                  <CheckCircle2 size={16} /> ¡CASILLERO DESBLOQUEADO!
-                </span>
-                <span className="text-zinc-400">SLOT #{sampleSnack.slot}</span>
-              </div>
+            <div className="space-y-4">
+              <div className="rounded-2xl border-2 border-emerald-600 bg-black p-4 space-y-3">
+                <div className="flex items-center gap-2 text-emerald-400 text-xs font-mono font-bold">
+                  <CheckCircle2 size={16} />
+                  <span>COMPROBANTE DE RETIRO EMITIDO</span>
+                </div>
 
-              {/* Automatic Platform Receipt */}
-              <div className="rounded-xl border border-white/10 bg-black/60 p-3.5 space-y-2 font-mono text-xs">
-                <div className="flex justify-between text-zinc-300">
-                  <span>Valor del snack:</span>
-                  <span className="font-bold">${sampleSnack.price.toLocaleString('es-CO')} COP</span>
+                <div className="border-t border-neutral-800 pt-2 space-y-1 text-xs font-mono text-neutral-300">
+                  <div className="flex justify-between">
+                    <span>Producto:</span>
+                    <span className="font-bold text-white">{sampleSnack.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Casillero:</span>
+                    <span className="text-emerald-400 font-bold">#{sampleSnack.slot} ({sampleSnack.building})</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Total pagado:</span>
+                    <span className="font-bold text-white">${sampleSnack.price.toLocaleString('es-CO')} COP</span>
+                  </div>
+                  <div className="flex justify-between text-neutral-400">
+                    <span>Comisión Bocado (5%):</span>
+                    <span>-${sampleSnack.commission.toLocaleString('es-CO')} COP</span>
+                  </div>
+                  <div className="border-t border-neutral-800 pt-1.5 flex justify-between font-bold text-white">
+                    <span>Neto al vendedor (95%):</span>
+                    <span className="text-emerald-400">${sampleSnack.net.toLocaleString('es-CO')} COP</span>
+                  </div>
                 </div>
-                <div className="flex justify-between text-emerald-400">
-                  <span className="flex items-center gap-1">
-                    <Sparkles size={11} /> Comisión Bocado (5%):
-                  </span>
-                  <span>-${sampleSnack.commission.toLocaleString('es-CO')} COP</span>
-                </div>
-                <div className="border-t border-white/10 pt-1.5 flex justify-between font-bold text-white">
-                  <span>Transferencia al vendedor (95%):</span>
-                  <span className="text-primary">${sampleSnack.net.toLocaleString('es-CO')} COP</span>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="w-full rounded-xl bg-emerald-500 py-3 text-center font-display text-xs font-bold text-black hover:bg-emerald-400 transition-all shadow-md"
+                  className="w-full rounded-xl bg-white py-3 text-center font-display text-xs font-black text-black hover:bg-neutral-200 transition-all cursor-pointer"
                 >
                   ✓ Retirar Snack & Probar de Nuevo
                 </button>
@@ -335,39 +330,39 @@ export function ProcessConsoleDemo() {
             <div
               className={`relative h-64 w-full rounded-3xl border-2 transition-all duration-700 flex flex-col items-center justify-center p-4 text-center ${
                 step === 'unlocked'
-                  ? 'border-emerald-500 bg-emerald-950/40 locker-door is-open shadow-[0_0_35px_rgba(16,185,129,0.35)]'
+                  ? 'border-emerald-600 bg-emerald-950/60 locker-door is-open'
                   : step === 'qr'
-                  ? 'border-amber-400/80 bg-zinc-900 shadow-[0_0_25px_rgba(245,158,11,0.25)]'
-                  : 'border-white/20 bg-zinc-900/90 shadow-xl'
+                  ? 'border-amber-600 bg-neutral-900'
+                  : 'border-neutral-800 bg-neutral-900'
               }`}
             >
               {step === 'unlocked' ? (
-                <div className="space-y-2 animate-fadeIn">
+                <div className="space-y-2">
                   <img
                     src="/images/real_brownie.jpg"
                     alt="Brownie"
-                    className="h-24 w-24 object-cover rounded-xl mx-auto shadow-lg border border-emerald-400/40"
+                    className="h-24 w-24 object-cover rounded-xl mx-auto shadow-md border border-emerald-500/50"
                   />
-                  <p className="text-xs font-bold text-emerald-300">¡Compuerta Abierta!</p>
-                  <p className="text-[10px] text-zinc-400 font-mono">Slot #{sampleSnack.slot} Destrabado</p>
+                  <p className="text-xs font-bold text-emerald-400">¡Compuerta Abierta!</p>
+                  <p className="text-[10px] text-neutral-400 font-mono">Slot #{sampleSnack.slot} Destrabado</p>
                 </div>
               ) : step === 'qr' ? (
                 <div className="space-y-3">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-400/40 animate-pulse">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-900/40 text-amber-400 border border-amber-600">
                     <QrCode size={28} />
                   </div>
                   <p className="font-mono text-xs font-bold text-amber-300">Esperando Pago QR</p>
-                  <span className="inline-block rounded-lg bg-black/60 px-2.5 py-1 text-[10px] font-mono text-zinc-300 border border-white/10">
+                  <span className="inline-block rounded-lg bg-black px-2.5 py-1 text-[10px] font-mono text-neutral-300 border border-neutral-800">
                     Slot #{sampleSnack.slot}
                   </span>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/20 text-primary border border-primary/30">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#8F1414] text-white">
                     <KeyRound size={26} />
                   </div>
-                  <p className="font-brand text-xs font-bold text-white">Casillero #{sampleSnack.slot}</p>
-                  <span className="inline-block rounded-lg bg-black/60 px-2.5 py-1 text-[10px] font-mono text-zinc-400 border border-white/10">
+                  <p className="font-display text-xs font-bold text-white">Casillero #{sampleSnack.slot}</p>
+                  <span className="inline-block rounded-lg bg-black px-2.5 py-1 text-[10px] font-mono text-neutral-400 border border-neutral-800">
                     Digita PIN 7492
                   </span>
                 </div>

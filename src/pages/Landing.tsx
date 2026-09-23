@@ -10,19 +10,17 @@ import {
   Sparkles,
   Store,
   Users,
-  Zap,
 } from 'lucide-react'
-import { AnimatedBackdrop } from '../components/landing/AnimatedBackdrop'
 import { ProcessConsoleDemo } from '../components/landing/ProcessConsoleDemo'
 import { LOCKER_HUBS, getLockersByHub } from '../lib/lockers'
 import { playKeyBeep } from '../lib/sounds'
 
 const SLIDES = [
-  { id: 'hero', label: 'Inicio Video' },
+  { id: 'hero', label: 'Inicio' },
+  { id: 'metricas', label: 'Cifras Clave' },
   { id: 'negocio', label: 'Cómo Funciona' },
-  { id: 'consola', label: 'Paso a Paso PIN/QR' },
-  { id: 'casilleros', label: 'Casilleros D·M·L' },
-  { id: 'experiencia', label: 'Experiencia Bocado' },
+  { id: 'consola', label: 'Paso a Paso' },
+  { id: 'casilleros', label: 'Casilleros Icesi' },
 ]
 
 export function LandingPage() {
@@ -31,12 +29,12 @@ export function LandingPage() {
   const sectionRefs = useRef<(HTMLElement | null)[]>([])
 
   const scrollToSlide = (index: number) => {
-    playKeyBeep(450 + index * 80)
+    playKeyBeep(450 + index * 60)
     setCurrentSlide(index)
     sectionRefs.current[index]?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  // Active Scroll Observer: dynamically highlight the vertical dots as user scrolls
+  // Active Scroll Observer
   useEffect(() => {
     const observerOptions = {
       root: null,
@@ -62,32 +60,13 @@ export function LandingPage() {
     return () => observer.disconnect()
   }, [])
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowDown' || e.key === 'PageDown') {
-        if (currentSlide < SLIDES.length - 1) scrollToSlide(currentSlide + 1)
-      } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
-        if (currentSlide > 0) scrollToSlide(currentSlide - 1)
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentSlide])
-
   return (
-    <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-primary selection:text-white">
-      <AnimatedBackdrop />
-      <div className="cyber-grid pointer-events-none fixed inset-0 opacity-20" />
-
-      {/* Floating Vertical Slide Indicator (Right Side) - Straight Vertical Rail */}
+    <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden">
+      {/* Floating Vertical Slide Navigation */}
       <nav
         aria-label="Navegación de secciones"
-        className="fixed right-4 sm:right-8 top-1/2 z-40 -translate-y-1/2 hidden md:flex flex-col items-center w-8 py-3.5 rounded-full bg-black/60 backdrop-blur-xl border border-white/15 shadow-[0_0_24px_rgba(0,0,0,0.6)]"
+        className="fixed right-4 sm:right-8 top-1/2 z-40 -translate-y-1/2 hidden md:flex flex-col items-center w-8 py-3.5 rounded-full bg-black/80 border border-white/20 shadow-lg backdrop-blur-md"
       >
-        {/* Subtle center line track */}
-        <div className="absolute top-4 bottom-4 left-1/2 -translate-x-1/2 w-[2px] bg-white/10 -z-10" />
-
         <div className="flex flex-col items-center gap-3">
           {SLIDES.map((slide, idx) => {
             const isActive = currentSlide === idx
@@ -96,19 +75,17 @@ export function LandingPage() {
                 key={slide.id}
                 type="button"
                 onClick={() => scrollToSlide(idx)}
-                className="group relative flex h-7 w-7 items-center justify-center focus:outline-none"
+                className="group relative flex h-7 w-7 items-center justify-center focus:outline-none cursor-pointer"
                 title={slide.label}
               >
-                {/* Tooltip positioned outside the flex axis */}
-                <span className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-lg bg-black/95 px-2.5 py-1 text-[11px] font-mono font-semibold text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 backdrop-blur-md border border-white/15 shadow-xl">
+                <span className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-lg bg-black px-2.5 py-1 text-[11px] font-mono font-semibold text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100 shadow-md">
                   {slide.label}
                 </span>
-                {/* Strictly Centered Dot Indicator */}
                 <span
-                  className={`rounded-full transition-all duration-300 ${
+                  className={`rounded-full transition-all duration-200 ${
                     isActive
-                      ? 'h-3.5 w-3.5 bg-primary ring-4 ring-primary/30 shadow-[0_0_12px_rgba(249,115,22,1)] scale-110'
-                      : 'h-2 w-2 bg-zinc-500 hover:bg-zinc-300 hover:scale-125'
+                      ? 'h-3.5 w-3.5 bg-primary ring-4 ring-primary/30 scale-110'
+                      : 'h-2 w-2 bg-neutral-400 hover:bg-white hover:scale-125'
                   }`}
                 />
               </button>
@@ -118,52 +95,36 @@ export function LandingPage() {
       </nav>
 
       {/* ========================================================= */}
-      {/* SECCIÓN 1: HERO CON VIDEO DE FONDO A PANTALLA COMPLETA    */}
+      {/* SECCIÓN 1: HERO (BLOQUE ROJO CARMESÍ SÓLIDO / PRETZELS)   */}
       {/* ========================================================= */}
       <section
         ref={(el) => {
           sectionRefs.current[0] = el
         }}
-        className="relative z-10 flex min-h-[96vh] flex-col items-center justify-center overflow-hidden px-4 py-16 sm:px-6"
+        className="relative z-10 flex min-h-[92vh] flex-col items-center justify-center bg-[#8F1414] text-white px-4 py-16 sm:px-6 border-b border-black/10"
       >
-        {/* Full-width Video Background */}
-        <div className="absolute inset-0 -z-10 h-full w-full overflow-hidden">
-          <video
-            src="/BocadoVideo.mp4"
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="h-full w-full object-cover object-center scale-105 filter brightness-[0.6] contrast-[1.1]"
-          />
-          {/* Obsidian dark & vibrant glassmorphism gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-black/75 backdrop-blur-[2px]" />
-          <div className="absolute inset-0 bg-radial from-primary/10 via-transparent to-black/80" />
-        </div>
-
-        {/* Hero Content Box */}
         <div className="relative mx-auto max-w-4xl text-center space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-black/60 px-4 py-2 text-xs font-mono font-bold uppercase tracking-widest text-primary backdrop-blur-xl shadow-2xl animate-pulse">
-            <Sparkles size={14} className="text-primary" />
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 border border-white/30 px-4 py-1.5 text-xs font-mono font-bold uppercase tracking-wider text-white">
+            <Sparkles size={14} className="text-amber-300" />
             <span>Campus Universitario Icesi · Micro-Comercio Inteligente</span>
           </div>
 
-          <h1 className="font-display text-4xl font-black tracking-tight sm:text-6xl lg:text-7xl text-white leading-[1.08] drop-shadow-2xl">
+          <h1 className="font-display text-4xl font-black tracking-tight sm:text-6xl lg:text-7xl text-white leading-[1.08]">
             Tus snacks favoritos.{' '}
-            <span className="bg-gradient-to-r from-primary via-amber-400 to-emerald-400 bg-clip-text text-transparent drop-shadow-[0_0_35px_rgba(249,115,22,0.4)]">
+            <span className="text-amber-300">
               En casilleros inteligentes.
             </span>
           </h1>
 
-          <p className="text-sm sm:text-lg text-zinc-200 leading-relaxed max-w-2xl mx-auto drop-shadow-md font-medium">
-            Aparta brownies, galletas y postres artesanales preparados por estudiantes. Retira sin esperas ni contacto en los casilleros climatizados de los <strong>Edificios D, M y L</strong>.
+          <p className="text-base sm:text-lg text-white/90 leading-relaxed max-w-2xl mx-auto font-normal">
+            Aparta brownies, galletas y postres artesanales preparados por estudiantes. Retira sin esperas ni contacto en los casilleros de los <strong>Edificios D, M y L</strong>.
           </p>
 
           {/* Action CTAs */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <Link
               to="/catalogo"
-              className="w-full sm:w-auto flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-primary via-amber-500 to-primary px-8 py-4 font-display text-sm font-extrabold text-primary-foreground shadow-2xl shadow-primary/40 hover:brightness-110 active:scale-95 transition-all"
+              className="w-full sm:w-auto flex items-center justify-center gap-2.5 rounded-2xl bg-white px-8 py-4 font-display text-sm font-black text-[#8F1414] shadow-md hover:bg-[#FAF6F0] active:scale-95 transition-all"
             >
               <Boxes size={18} />
               <span>Ver Catálogo de Snacks</span>
@@ -171,7 +132,7 @@ export function LandingPage() {
             <button
               type="button"
               onClick={() => scrollToSlide(1)}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-black/60 px-8 py-4 font-display text-sm font-bold text-white hover:bg-black/90 active:scale-95 transition-all backdrop-blur-xl shadow-lg"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl border-2 border-white/40 bg-transparent px-8 py-4 font-display text-sm font-bold text-white hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
             >
               <span>Cómo Funciona</span>
               <ChevronDown size={16} />
@@ -183,7 +144,7 @@ export function LandingPage() {
         <button
           type="button"
           onClick={() => scrollToSlide(1)}
-          className="absolute bottom-6 flex flex-col items-center gap-1 text-xs font-mono text-zinc-300 hover:text-primary transition-colors animate-bounce cursor-pointer"
+          className="absolute bottom-6 flex flex-col items-center gap-1 text-xs font-mono text-white/80 hover:text-white transition-colors animate-bounce cursor-pointer"
         >
           <span>Conoce cómo funciona</span>
           <ChevronDown size={18} />
@@ -191,73 +152,116 @@ export function LandingPage() {
       </section>
 
       {/* ========================================================= */}
-      {/* SECCIÓN 2: CÓMO FUNCIONA EL NEGOCIO BOCADO                */}
+      {/* SECCIÓN 2: CIFRAS CLAVE (BANDA CREMA MARFIL DELIMITADA)   */}
       {/* ========================================================= */}
       <section
         ref={(el) => {
           sectionRefs.current[1] = el
         }}
-        className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-20 sm:px-6 border-t border-white/5 bg-background/50 backdrop-blur-sm"
+        className="relative z-10 bg-[#FAF6F0] dark:bg-[#1A1614] border-b border-border py-12 px-4 sm:px-6"
       >
-        <div className="mx-auto max-w-6xl w-full text-center space-y-4 mb-12">
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider text-primary">
-            <Zap size={13} />
-            <span>El Ecosistema Bocado</span>
+        <div className="mx-auto max-w-5xl grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          <div className="p-4 border-r last:border-none border-border/70">
+            <p className="font-display text-4xl sm:text-5xl font-black text-[#8F1414] dark:text-red-400">
+              60+
+            </p>
+            <p className="mt-1 text-xs sm:text-sm font-bold text-foreground">Casilleros Activos</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Edificios D, M y L</p>
           </div>
-          <h2 className="font-display text-3xl font-black sm:text-5xl text-foreground">
+
+          <div className="p-4 border-r last:border-none border-border/70">
+            <p className="font-display text-4xl sm:text-5xl font-black text-[#8F1414] dark:text-red-400">
+              5%
+            </p>
+            <p className="mt-1 text-xs sm:text-sm font-bold text-foreground">Comisión Única</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">El cocinero recibe el 95%</p>
+          </div>
+
+          <div className="p-4 border-r last:border-none border-border/70">
+            <p className="font-display text-4xl sm:text-5xl font-black text-[#8F1414] dark:text-red-400">
+              3
+            </p>
+            <p className="mt-1 text-xs sm:text-sm font-bold text-foreground">Puntos en Campus</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Universidad Icesi</p>
+          </div>
+
+          <div className="p-4">
+            <p className="font-display text-4xl sm:text-5xl font-black text-[#8F1414] dark:text-red-400">
+              100%
+            </p>
+            <p className="mt-1 text-xs sm:text-sm font-bold text-foreground">Casero & Fresco</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Hecho por estudiantes</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================= */}
+      {/* SECCIÓN 3: CÓMO FUNCIONA (BLOQUE BLANCO PURO DELIMITADO)  */}
+      {/* ========================================================= */}
+      <section
+        ref={(el) => {
+          sectionRefs.current[2] = el
+        }}
+        className="relative z-10 bg-white dark:bg-[#151210] py-20 px-4 sm:px-6 border-b border-border"
+      >
+        <div className="mx-auto max-w-5xl text-center space-y-3 mb-12">
+          <span className="inline-block rounded-full bg-red-100 text-[#8F1414] dark:bg-red-950 dark:text-red-300 px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider">
+            El Ecosistema Bocado
+          </span>
+          <h2 className="font-display text-3xl font-black sm:text-4xl text-foreground">
             ¿Cómo funciona el negocio?
           </h2>
           <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-            Conectamos a estudiantes que cocinan con la comunidad universitaria a través de una red física de 60 casilleros inteligentes climatizados en Icesi.
+            Conectamos a estudiantes cocineros con la comunidad universitaria a través de una red física de 60 casilleros inteligentes en Icesi.
           </p>
         </div>
 
         {/* 3 Pillars Grid */}
-        <div className="mx-auto max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+        <div className="mx-auto max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Pillar 1: Compradores */}
-          <div className="rounded-3xl border border-border/80 bg-card/70 p-6 sm:p-8 backdrop-blur-xl shadow-xl hover:border-primary/50 transition-all flex flex-col justify-between">
+          <div className="rounded-3xl border-2 border-border bg-[#FAF6F0] dark:bg-[#1E1917] p-6 sm:p-8 shadow-xs flex flex-col justify-between">
             <div className="space-y-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/15 text-primary">
-                <Users size={28} />
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#8F1414] text-white">
+                <Users size={24} />
               </div>
-              <h3 className="font-display text-xl font-bold text-foreground">Para Estudiantes Compradores</h3>
+              <h3 className="font-display text-xl font-bold text-foreground">Para Compradores</h3>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                Exploras el catálogo en vivo, apartas tu snack favorito y recibes tu <strong>PIN de 4 dígitos</strong>. Puedes chatear directamente con el vendedor para cualquier duda.
+                Exploras el catálogo de hoy, apartas tu snack favorito y recibes tu <strong>PIN de 4 dígitos</strong> para retirar sin esperas en el casillero.
               </p>
             </div>
-            <div className="mt-6 border-t border-border/60 pt-4 text-xs font-mono text-primary font-semibold flex items-center gap-1.5">
-              <Clock size={14} /> Retiro en &lt;10 segundos
+            <div className="mt-6 border-t border-border pt-4 text-xs font-mono text-[#8F1414] dark:text-red-400 font-bold flex items-center gap-1.5">
+              <Clock size={14} /> Retiro en menos de 10 segundos
             </div>
           </div>
 
-          {/* Pillar 2: Estudiantes Cocineros / Vendedores */}
-          <div className="rounded-3xl border border-amber-500/40 bg-gradient-to-b from-amber-500/10 via-card/80 to-card p-6 sm:p-8 backdrop-blur-xl shadow-xl hover:border-amber-400 transition-all flex flex-col justify-between">
+          {/* Pillar 2: Cocineros */}
+          <div className="rounded-3xl border-2 border-border bg-[#FAF6F0] dark:bg-[#1E1917] p-6 sm:p-8 shadow-xs flex flex-col justify-between">
             <div className="space-y-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400">
-                <ChefHat size={28} />
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-700 text-white">
+                <ChefHat size={24} />
               </div>
-              <h3 className="font-display text-xl font-bold text-foreground">Para Estudiantes Cocineros</h3>
+              <h3 className="font-display text-xl font-bold text-foreground">Para Cocineros</h3>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                Cocinas en casa, seleccionas un casillero libre en los Edificios D, M o L desde la app, depositas con tu PIN <code>DEP-XXXX</code> y vendes 24/7 sin perder tiempo de clase.
+                Cocinas en casa, seleccionas un casillero libre en los Edificios D, M o L desde la app, depositas con tu PIN y vendes sin perder horas de clase.
               </p>
             </div>
-            <div className="mt-6 border-t border-amber-500/20 pt-4 text-xs font-mono text-amber-400 font-semibold flex items-center gap-1.5">
+            <div className="mt-6 border-t border-border pt-4 text-xs font-mono text-amber-800 dark:text-amber-400 font-bold flex items-center gap-1.5">
               <ShieldCheck size={14} /> Solo 5% de comisión por venta
             </div>
           </div>
 
-          {/* Pillar 3: Red de Casilleros Icesi */}
-          <div className="rounded-3xl border border-emerald-500/40 bg-gradient-to-b from-emerald-500/10 via-card/80 to-card p-6 sm:p-8 backdrop-blur-xl shadow-xl hover:border-emerald-400 transition-all flex flex-col justify-between">
+          {/* Pillar 3: Infraestructura */}
+          <div className="rounded-3xl border-2 border-border bg-[#FAF6F0] dark:bg-[#1E1917] p-6 sm:p-8 shadow-xs flex flex-col justify-between">
             <div className="space-y-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400">
-                <Store size={28} />
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-800 text-white">
+                <Store size={24} />
               </div>
               <h3 className="font-display text-xl font-bold text-foreground">Infraestructura Icesi</h3>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                60 casilleros climatizados y seguros repartidos en los <strong>Edificios D (20), M (20) y L (20)</strong>. La máquina se desbloquea con PIN y valida el pago virtual al instante.
+                60 casilleros inteligentes distribuidos en los <strong>Edificios D (20), M (20) y L (20)</strong>. La máquina se desbloquea con tu PIN y valida el pago virtual.
               </p>
             </div>
-            <div className="mt-6 border-t border-emerald-500/20 pt-4 text-xs font-mono text-emerald-400 font-semibold flex items-center gap-1.5">
+            <div className="mt-6 border-t border-border pt-4 text-xs font-mono text-emerald-800 dark:text-emerald-400 font-bold flex items-center gap-1.5">
               <MapPin size={14} /> 60 Casilleros en 3 Edificios
             </div>
           </div>
@@ -265,21 +269,20 @@ export function LandingPage() {
       </section>
 
       {/* ========================================================= */}
-      {/* SECCIÓN 3: PASO A PASO & MINI CONSOLA INTERACTIVA          */}
+      {/* SECCIÓN 4: SIMULADOR DE TERMINAL (BLOQUE CREMA MARFIL)    */}
       {/* ========================================================= */}
       <section
         ref={(el) => {
-          sectionRefs.current[2] = el
+          sectionRefs.current[3] = el
         }}
-        className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-20 sm:px-6 border-t border-white/5"
+        className="relative z-10 bg-[#FAF6F0] dark:bg-[#1A1614] py-20 px-4 sm:px-6 border-b border-border"
       >
         <div className="mx-auto max-w-4xl text-center space-y-3 mb-10">
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/25 px-4 py-1.5 text-xs font-mono font-bold uppercase tracking-wider text-primary shadow-sm">
-            <Zap size={13} className="text-primary" />
-            <span>Simulador de Terminal Inteligente</span>
-          </div>
-          <h2 className="font-display text-3xl font-black sm:text-5xl text-foreground">
-            Paso a Paso: PIN <span className="text-primary font-normal">→</span> Pago QR <span className="text-primary font-normal">→</span> Retiro
+          <span className="inline-block rounded-full bg-red-100 text-[#8F1414] dark:bg-red-950 dark:text-red-300 px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider">
+            Simulador de Terminal
+          </span>
+          <h2 className="font-display text-3xl font-black sm:text-4xl text-foreground">
+            Paso a Paso: PIN → Pago QR → Retiro
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground max-w-xl mx-auto">
             Experimenta en vivo cómo el usuario digita su PIN en la máquina, realiza el pago virtual y la compuerta se abre entregando el producto con comprobante automático.
@@ -291,19 +294,19 @@ export function LandingPage() {
       </section>
 
       {/* ========================================================= */}
-      {/* SECCIÓN 4: RED DE CASILLEROS EN EDIFICIOS D, M Y L        */}
+      {/* SECCIÓN 5: RED DE CASILLEROS (BLOQUE ROJO SÓLIDO / BLANCO) */}
       {/* ========================================================= */}
       <section
         ref={(el) => {
-          sectionRefs.current[3] = el
+          sectionRefs.current[4] = el
         }}
-        className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-20 sm:px-6 border-t border-white/5"
+        className="relative z-10 bg-white dark:bg-[#151210] py-20 px-4 sm:px-6 border-b border-border"
       >
-        <div className="max-w-3xl text-center mb-10 space-y-3">
-          <span className="font-mono text-xs uppercase tracking-widest text-emerald-400 font-bold">
+        <div className="max-w-3xl mx-auto text-center mb-10 space-y-3">
+          <span className="inline-block rounded-full bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-300 px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider">
             Red de Casilleros Activos
           </span>
-          <h2 className="font-display text-3xl font-extrabold sm:text-5xl text-foreground">
+          <h2 className="font-display text-3xl font-black sm:text-4xl text-foreground">
             60 Casilleros en Universidad Icesi
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground">
@@ -312,7 +315,7 @@ export function LandingPage() {
         </div>
 
         {/* 3 Buildings Display */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-5xl w-full text-left mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-5xl mx-auto w-full text-left mb-10">
           {LOCKER_HUBS.map((hub) => {
             const isSel = hub.id === selectedHubId
             const hubLockers = getLockersByHub(hub.id)
@@ -327,10 +330,10 @@ export function LandingPage() {
                   setSelectedHubId(hub.id)
                   playKeyBeep(550)
                 }}
-                className={`rounded-3xl border p-6 backdrop-blur-xl transition-all ${
+                className={`rounded-3xl border-2 p-6 transition-all text-left cursor-pointer ${
                   isSel
-                    ? 'border-primary bg-primary/15 shadow-2xl shadow-primary/20 ring-2 ring-primary scale-102'
-                    : 'border-white/10 bg-card/60 hover:border-white/30'
+                    ? 'border-[#8F1414] bg-[#FAF6F0] dark:bg-[#251D1A] shadow-md ring-2 ring-[#8F1414]/20'
+                    : 'border-border bg-card hover:border-border hover:bg-[#FAF6F0]/60'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -338,75 +341,53 @@ export function LandingPage() {
                     <span className="text-xl">{hub.icon}</span>
                     {hub.name}
                   </span>
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-600" />
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">{hub.zone}</p>
-                <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-3 text-xs font-mono">
-                  <span className="text-emerald-400 font-bold">{readyCount} snacks listos</span>
-                  <span className="text-zinc-400">{availableCount}/20 libres</span>
+                <div className="mt-6 flex items-center justify-between border-t border-border pt-3 text-xs font-mono">
+                  <span className="text-emerald-700 dark:text-emerald-400 font-bold">{readyCount} snacks listos</span>
+                  <span className="text-muted-foreground">{availableCount}/20 libres</span>
                 </div>
               </button>
             )
           })}
         </div>
 
-        <Link
-          to="/catalogo"
-          className="flex items-center gap-2 rounded-2xl bg-primary px-8 py-4 font-display text-sm font-bold text-primary-foreground shadow-xl shadow-primary/30 hover:brightness-110 active:scale-95 transition-all"
-        >
-          <Boxes size={18} />
-          <span>Explorar Catálogo de Snacks</span>
-        </Link>
-      </section>
-
-      {/* ========================================================= */}
-      {/* SECCIÓN 5: FRASE DE MARCA CON MOTIVOS TEXTILES Y VISUALES */}
-      {/* ========================================================= */}
-      <section
-        ref={(el) => {
-          sectionRefs.current[4] = el
-        }}
-        className="relative z-10 flex min-h-[75vh] flex-col items-center justify-center px-4 py-20 text-center sm:px-6 border-t border-white/5 overflow-hidden"
-      >
-        {/* Textile / Geometric Accent Glowing Frame */}
-        <div className="relative mx-auto max-w-4xl w-full rounded-3xl border-2 border-primary/30 bg-gradient-to-b from-primary/15 via-zinc-950/90 to-black p-8 sm:p-14 shadow-2xl backdrop-blur-2xl">
-          {/* Top Geometric Artisan Textile Strip */}
-          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-primary via-amber-400 via-emerald-400 to-cyan-400 opacity-90" />
-
-          {/* Decorative Corner Textile Crosses */}
-          <div className="absolute top-4 left-4 text-primary font-mono text-sm opacity-60">❖ ❖ ❖</div>
-          <div className="absolute top-4 right-4 text-emerald-400 font-mono text-sm opacity-60">❖ ❖ ❖</div>
-          <div className="absolute bottom-4 left-4 text-amber-400 font-mono text-sm opacity-60">❖ ❖ ❖</div>
-          <div className="absolute bottom-4 right-4 text-cyan-400 font-mono text-sm opacity-60">❖ ❖ ❖</div>
-
-          <div className="my-6 space-y-6">
-            <span className="font-mono text-xs uppercase tracking-widest text-primary font-bold">
-              Cultura Universitaria · Sabor & Innovación
-            </span>
-
-            <h3 className="font-display text-3xl font-black sm:text-5xl text-white leading-tight">
-              Listo para vivir la experiencia{' '}
-              <span className="bg-gradient-to-r from-primary via-amber-400 to-emerald-400 bg-clip-text text-transparent">
-                Bocado
-              </span>
-              .
-            </h3>
-
-            <p className="text-sm sm:text-base text-zinc-300 max-w-2xl mx-auto leading-relaxed">
-              El sabor artesanal hecho por tus compañeros de universidad, con la comodidad de la tecnología que se adapta a tu día entre clases.
-            </p>
-
-            {/* Subtle textile geometric weave line */}
-            <div className="mx-auto flex items-center justify-center gap-3 pt-4 text-zinc-500 text-xs font-mono">
-              <span>━━━</span>
-              <span className="text-primary">✦</span>
-              <span className="text-amber-400">✦</span>
-              <span className="text-emerald-400">✦</span>
-              <span>━━━</span>
-            </div>
-          </div>
+        <div className="text-center">
+          <Link
+            to="/catalogo"
+            className="inline-flex items-center gap-2 rounded-2xl bg-[#8F1414] text-white px-8 py-4 font-display text-sm font-bold shadow-md hover:bg-[#781010] active:scale-95 transition-all"
+          >
+            <Boxes size={18} />
+            <span>Explorar Catálogo de Snacks</span>
+          </Link>
         </div>
       </section>
+
+      {/* ========================================================= */}
+      {/* SECCIÓN 6: CIERRE DE MARCA & FOOTER (BLOQUE OSCURO SÓLIDO) */}
+      {/* ========================================================= */}
+      <footer className="relative z-10 bg-[#1C1917] text-white py-16 px-4 sm:px-6">
+        <div className="mx-auto max-w-4xl text-center space-y-6">
+          <h3 className="font-display text-3xl font-black sm:text-4xl text-white">
+            Listo para vivir la experiencia <span className="text-amber-300">Bocado</span>.
+          </h3>
+          <p className="text-sm text-neutral-300 max-w-xl mx-auto leading-relaxed">
+            El sabor artesanal hecho por tus compañeros de universidad, con la comodidad de los casilleros inteligentes entre clases.
+          </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-6 pt-4 text-xs font-semibold text-neutral-400">
+            <Link to="/catalogo" className="hover:text-white transition-colors">Catálogo de Snacks</Link>
+            <Link to="/vender" className="hover:text-white transition-colors">Vender Comida</Link>
+            <Link to="/pedidos" className="hover:text-white transition-colors">Mis Apartados</Link>
+            <Link to="/vitrina" className="hover:text-white transition-colors">Vitrina Virtual</Link>
+          </div>
+
+          <p className="text-[11px] text-neutral-500 font-mono pt-6 border-t border-white/10">
+            © 2026 Bocado · Universidad Icesi · Cali, Colombia
+          </p>
+        </div>
+      </footer>
     </div>
   )
 }

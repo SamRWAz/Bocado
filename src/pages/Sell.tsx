@@ -3,7 +3,6 @@ import {
   CheckCircle2,
   Eye,
   Image as ImageIcon,
-  MessageSquare,
   Minus,
   Plus,
   ShoppingBag,
@@ -26,7 +25,6 @@ import {
   uploadProductImage,
 } from '../lib/api'
 import { DIETARY_OPTIONS } from '../lib/campus'
-import { getUnreadCount, subscribeToChatUpdates } from '../lib/chat'
 import { CATEGORIES, inputClass, labelClass } from '../lib/constants'
 import { encodeSeller, formatTime, joinTags, money, ownsListing, parseTags } from '../lib/format'
 import { playKeyBeep, playPaymentSuccess } from '../lib/sounds'
@@ -46,7 +44,6 @@ export function SellPage() {
   const { user } = useAuth()
   const [products, setProducts] = useState<Product[]>([])
   const [orders, setOrders] = useState<Order[]>([])
-  const [unreadMessages, setUnreadMessages] = useState(0)
 
   // New product form
   const [name, setName] = useState('')
@@ -76,18 +73,8 @@ export function SellPage() {
     const unsubOrders = subscribeToOrderUpdates(() => {
       void refresh()
     })
-
-    if (user) {
-      const updateUnread = () => setUnreadMessages(getUnreadCount(user.id, true, user.name))
-      updateUnread()
-      const unsubscribeChat = subscribeToChatUpdates(updateUnread)
-      return () => {
-        unsubscribeChat()
-        unsubOrders()
-      }
-    }
     return () => unsubOrders()
-  }, [refresh, user])
+  }, [refresh])
 
   if (!user || !canSell(user.role)) {
     return <Navigate to="/catalogo" replace />
@@ -246,30 +233,8 @@ export function SellPage() {
             Estudio de Creación & Gestión de Snacks
           </h1>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            Publica tus preparaciones caseras, controla inventario en tiempo real y gestiona apartados recibidos.
+            Publica tus preparaciones caseras y controla tu inventario disponible en tiempo real.
           </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Link
-            to="/mensajes"
-            className="flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-2.5 text-xs font-display font-semibold hover:border-primary/50 transition-colors"
-          >
-            <MessageSquare size={16} className="text-primary" />
-            <span>Mensajes</span>
-            {unreadMessages > 0 && (
-              <span className="rounded-full bg-primary px-1.5 py-0.2 text-[10px] font-bold text-primary-foreground animate-pulse">
-                {unreadMessages}
-              </span>
-            )}
-          </Link>
-          <Link
-            to="/pedidos"
-            className="rounded-2xl bg-primary px-4 py-2.5 text-xs font-display font-bold text-primary-foreground shadow-sm hover:opacity-90 flex items-center gap-1.5"
-          >
-            <BookmarkCheck size={14} />
-            <span>Ver Pedidos ({mySellingOrders.length})</span>
-          </Link>
         </div>
       </div>
 
