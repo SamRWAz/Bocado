@@ -3,7 +3,6 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from './components/layout/AppShell'
 import { PublicLayout } from './components/layout/PublicLayout'
 import { StoreLayout } from './components/layout/StoreLayout'
-import { PageTransition } from './components/PageTransition'
 import { AdminRoute, ProtectedRoute } from './components/ProtectedRoute'
 import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
@@ -31,7 +30,6 @@ export default function App() {
     <AuthProvider>
       <CartProvider>
         <BrowserRouter>
-          <PageTransition />
           <Routes>
             {/* Public landing & auth */}
             <Route element={<PublicLayout />}>

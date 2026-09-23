@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { AssignLockerModal } from '../components/lockers/AssignLockerModal'
 import { useAuth } from '../context/AuthContext'
 import { formatTime, money, sellerUserId } from '../lib/format'
 import { playKeyBeep } from '../lib/sounds'
@@ -20,7 +21,7 @@ import { fetchOrders, saveOrder } from '../lib/storage-db'
 import type { Order, OrderStatus } from '../types'
 
 const labels: Record<OrderStatus, { label: string; color: string }> = {
-  reservado: { label: 'Apartado', color: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
+  reservado: { label: 'Apartado / Pendiente', color: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
   listo: { label: 'En Casillero 24/7', color: 'bg-primary/15 text-primary border-primary/30' },
   entregado: { label: 'Retirado de Vitrina', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
   cancelado: { label: 'Cancelado', color: 'bg-rose-500/15 text-rose-400 border-rose-500/30' },
@@ -32,6 +33,7 @@ export function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [tab, setTab] = useState<'compras' | 'ventas'>('compras')
   const [copiedPin, setCopiedPin] = useState<string | null>(null)
+  const [orderToAssign, setOrderToAssign] = useState<Order | null>(null)
 
   const refresh = useCallback(async () => {
     const all = await fetchOrders()
@@ -131,7 +133,7 @@ export function OrdersPage() {
           <p className="mt-1 text-xs max-w-sm mx-auto">
             {tab === 'compras'
               ? 'Explora el catálogo, aparta tus snacks y retíralos con PIN en los Edificios D, M o L.'
-              : 'Publica y asigna tus preparaciones a un casillero inteligente para empezar a vender.'}
+              : 'Cuando recibas una solicitud de compra, te aparecerá aquí para asignar automáticamente un casillero.'}
           </p>
           <div className="mt-4">
             <Link
@@ -146,9 +148,11 @@ export function OrdersPage() {
         <div className="grid gap-6 md:grid-cols-2">
           {list.map((order) => {
             const statusConfig = labels[order.status] ?? labels.reservado
-            const claimPin = order.claimPin || '7492'
+            const claimPin = order.claimPin
+            const depositPin = order.depositPin || `DEP-${claimPin || '1234'}`
             const hubName = order.lockerHubName || order.pickup || 'Edificio D'
-            const slotNum = order.lockerNumber || '02'
+            const slotNum = order.lockerNumber
+            const hasAssignedLocker = Boolean(slotNum)
             const commission = order.platformCommission || Math.round(order.total * 0.05)
             const netRevenue = order.sellerNetRevenue || order.total - commission
 
@@ -170,7 +174,11 @@ export function OrdersPage() {
                     </h3>
                     <p className="flex items-center gap-1.5 text-xs text-primary font-mono mt-0.5">
                       <Building2 size={13} className="shrink-0" />
-                      <span>{hubName} · Casillero #{slotNum}</span>
+                      <span>
+                        {hasAssignedLocker
+                          ? `${hubName} · Casillero #${slotNum}`
+                          : 'Casillero pendiente por asignar'}
+                      </span>
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
@@ -183,38 +191,48 @@ export function OrdersPage() {
                   </div>
                 </div>
 
-                {/* Digital Claim Pass Hologram Card */}
+                {/* Buyer Digital Claim Pass */}
                 {tab === 'compras' && (
                   <div className="my-4 rounded-2xl border border-primary/40 bg-zinc-950/90 p-4 relative overflow-hidden">
                     <div className="flex items-center justify-between text-xs font-mono text-zinc-400 mb-2">
                       <span className="flex items-center gap-1 text-emerald-400 font-bold">
                         <KeyRound size={14} /> PIN DE RETIRO EN MÁQUINA
                       </span>
-                      <span className="text-[10px]">CASILLERO #{slotNum}</span>
+                      <span className="text-[10px]">
+                        {hasAssignedLocker ? `CASILLERO #${slotNum}` : 'EN ESPERA'}
+                      </span>
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-3xl font-black tracking-widest text-primary drop-shadow-[0_0_12px_rgba(249,115,22,0.6)]">
-                          {claimPin}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyPin(claimPin)}
-                          className="rounded-lg bg-secondary/80 p-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                          title="Copiar PIN"
-                        >
-                          <Copy size={14} />
-                        </button>
-                      </div>
-
-                      <div className="flex flex-col items-center">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-1">
-                          <QrCode size={32} className="text-black" />
+                    {claimPin ? (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-3xl font-black tracking-widest text-primary drop-shadow-[0_0_12px_rgba(249,115,22,0.6)]">
+                            {claimPin}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyPin(claimPin)}
+                            className="rounded-lg bg-secondary/80 p-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                            title="Copiar PIN"
+                          >
+                            <Copy size={14} />
+                          </button>
                         </div>
-                        <span className="text-[8px] font-mono text-zinc-400 mt-0.5">PAGO QR</span>
+
+                        <div className="flex flex-col items-center">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-1">
+                            <QrCode size={32} className="text-black" />
+                          </div>
+                          <span className="text-[8px] font-mono text-zinc-400 mt-0.5">PAGO QR</span>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="py-2 text-center">
+                        <p className="text-xs text-amber-400 font-mono">
+                          ⏳ El cocinero está preparando tu pedido y asignando el casillero.
+                        </p>
+                      </div>
+                    )}
 
                     {copiedPin === claimPin && (
                       <p className="mt-2 text-[10px] font-mono text-emerald-400 animate-fadeIn">
@@ -224,24 +242,58 @@ export function OrdersPage() {
                   </div>
                 )}
 
-                {/* Seller Deposit Pass */}
+                {/* Seller Deposit Pass / Action Box */}
                 {tab === 'ventas' && (
-                  <div className="my-4 rounded-2xl border border-amber-500/40 bg-amber-950/20 p-4 space-y-2">
-                    <div className="flex items-center justify-between text-xs font-mono text-amber-400">
-                      <span className="flex items-center gap-1 font-bold">
-                        <Zap size={14} /> PIN DE DEPÓSITO
-                      </span>
-                      <span className="text-[10px]">CASILLERO #{slotNum}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Digita <strong>DEP-{claimPin}</strong> en la vitrina del {hubName} para abrir la compuerta y guardar la comida.
-                    </p>
-                    <div className="flex items-center justify-between pt-1 font-mono">
-                      <span className="text-2xl font-bold tracking-wider text-amber-400">
-                        DEP-{claimPin}
-                      </span>
-                      <span className="text-[11px] text-emerald-400">Neto: {money(netRevenue)} (Comisión 5%: -{money(commission)})</span>
-                    </div>
+                  <div className="my-4 rounded-2xl border border-amber-500/40 bg-amber-950/20 p-4 space-y-3">
+                    {hasAssignedLocker ? (
+                      <>
+                        <div className="flex items-center justify-between text-xs font-mono text-amber-400">
+                          <span className="flex items-center gap-1 font-bold">
+                            <Zap size={14} /> PIN DE DEPÓSITO
+                          </span>
+                          <span className="text-[10px]">CASILLERO #{slotNum}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Digita <strong>{depositPin}</strong> en la vitrina del {hubName} para abrir la compuerta #{slotNum} y guardar el snack.
+                        </p>
+                        <div className="flex items-center justify-between pt-1 font-mono">
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl font-bold tracking-wider text-amber-400">
+                              {depositPin}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyPin(depositPin)}
+                              className="rounded-lg bg-secondary/80 p-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                              title="Copiar PIN"
+                            >
+                              <Copy size={13} />
+                            </button>
+                          </div>
+                          <span className="text-[11px] text-emerald-400">
+                            Neto: {money(netRevenue)} <span className="text-zinc-500">(5% com: -{money(commission)})</span>
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="space-y-2 text-center sm:text-left">
+                        <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-amber-400">
+                          <Zap size={14} />
+                          <span>Solicitud de compra recibida</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          El comprador apartó este snack. Asígnale un casillero automático en el <strong>Edificio D, M o L</strong> para generar el PIN de depósito.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setOrderToAssign(order)}
+                          className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-amber-500 py-2.5 px-3 text-xs font-display font-bold text-white shadow-md hover:brightness-110 active:scale-95 transition-all"
+                        >
+                          <Zap size={14} />
+                          <span>Asignar Casillero Automático</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -273,13 +325,27 @@ export function OrdersPage() {
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <Link
-                      to="/vitrina"
-                      className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-xs font-display font-bold text-primary-foreground shadow-md shadow-primary/20 hover:brightness-110 transition-all"
-                    >
-                      <Unlock size={14} />
-                      <span>{tab === 'compras' ? 'Abrir en Vitrina' : 'Ir a Vitrina'}</span>
-                    </Link>
+                    {hasAssignedLocker && (
+                      <Link
+                        to="/vitrina"
+                        className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-xs font-display font-bold text-primary-foreground shadow-md shadow-primary/20 hover:brightness-110 transition-all"
+                      >
+                        <Unlock size={14} />
+                        <span>{tab === 'compras' ? 'Abrir en Vitrina' : 'Ir a Vitrina'}</span>
+                      </Link>
+                    )}
+
+                    {tab === 'ventas' && hasAssignedLocker && (
+                      <button
+                        type="button"
+                        onClick={() => setOrderToAssign(order)}
+                        className="flex items-center justify-center gap-1 rounded-xl border border-border bg-secondary/80 px-2.5 py-2.5 text-xs font-display font-semibold text-muted-foreground hover:text-foreground transition-all"
+                        title="Reasignar a otro edificio"
+                      >
+                        <Building2 size={13} />
+                        <span>Reasignar</span>
+                      </button>
+                    )}
 
                     <button
                       type="button"
@@ -305,6 +371,18 @@ export function OrdersPage() {
             )
           })}
         </div>
+      )}
+
+      {/* Assignment Modal for Seller */}
+      {orderToAssign && (
+        <AssignLockerModal
+          order={orderToAssign}
+          isOpen={Boolean(orderToAssign)}
+          onClose={() => setOrderToAssign(null)}
+          onSuccess={() => {
+            void refresh()
+          }}
+        />
       )}
     </div>
   )

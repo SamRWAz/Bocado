@@ -1,5 +1,6 @@
-import type { Locker, LockerHub, PaymentMethod } from '../types'
+import type { Locker, LockerHub, Order, PaymentMethod } from '../types'
 import { sendMessage } from './chat'
+import { saveOrder } from './storage-db'
 import { supabase } from './supabase'
 
 const LOCKER_STORAGE_KEY = 'bocado.smart_lockers_v2'
@@ -436,6 +437,113 @@ export function assignLocker(params: {
   void uploadLockerRemote(updated)
 
   return { locker: updated, depositPin, claimPin }
+}
+
+/**
+ * Auto-assign an available locker for a seller upon receiving a purchase request/order.
+ * Prompts for building (D, M, or L) and automatically claims the first available locker.
+ */
+export async function autoAssignLockerForSellerOrder(params: {
+  order: Order
+  building: 'D' | 'M' | 'L' | string
+}): Promise<{
+  success: boolean
+  updatedOrder: Order
+  locker: Locker
+  depositPin: string
+  claimPin: string
+  message: string
+}> {
+  const buildingNorm = params.building.toUpperCase()
+  const allLockers = readLocalLockers()
+
+  // Find first available in that building
+  let targetIndex = allLockers.findIndex(
+    (l) => l.buildingCode === buildingNorm && l.status === 'disponible',
+  )
+
+  // Fallback to any building if full
+  if (targetIndex === -1) {
+    targetIndex = allLockers.findIndex((l) => l.status === 'disponible')
+  }
+
+  if (targetIndex === -1) {
+    throw new Error(
+      `Todos los casilleros del Edificio ${buildingNorm} están ocupados en este momento. Por favor selecciona otro edificio.`,
+    )
+  }
+
+  const depositPin = `DEP-${Math.floor(1000 + Math.random() * 9000)}`
+  const claimPin = `${Math.floor(1000 + Math.random() * 9000)}`
+  const firstItem = params.order.items[0]
+
+  const commission =
+    params.order.platformCommission || Math.round(params.order.total * PLATFORM_COMMISSION_RATE)
+  const netRevenue = params.order.sellerNetRevenue || params.order.total - commission
+
+  const updatedLocker: Locker = {
+    ...allLockers[targetIndex],
+    status: 'esperando_deposito',
+    orderId: params.order.id,
+    productId: firstItem?.productId || `prod_${params.order.id}`,
+    productName: firstItem?.name || 'Snack Bocado',
+    productPrice: params.order.total,
+    sellerId: params.order.sellerKey,
+    sellerName: params.order.sellerName,
+    buyerId: params.order.buyerId,
+    buyerName: params.order.buyerName,
+    depositPin,
+    claimPin,
+    isLocked: true,
+    platformCommission: commission,
+    sellerNetRevenue: netRevenue,
+    updatedAt: new Date().toISOString(),
+  }
+
+  allLockers[targetIndex] = updatedLocker
+  saveLocalLockers(allLockers)
+  void uploadLockerRemote(updatedLocker)
+
+  const updatedOrder: Order = {
+    ...params.order,
+    lockerId: updatedLocker.id,
+    lockerHubName: updatedLocker.hubName,
+    lockerNumber: updatedLocker.number,
+    claimPin: claimPin,
+    depositPin: depositPin,
+    platformCommission: commission,
+    sellerNetRevenue: netRevenue,
+    status: 'listo',
+  }
+
+  await saveOrder(updatedOrder)
+
+  // Dispatch automated chat notification from seller to buyer
+  try {
+    const conversationId = `order_${params.order.id}`
+    await sendMessage({
+      conversationId,
+      senderId: params.order.sellerKey,
+      senderName: params.order.sellerName,
+      recipientId: params.order.buyerId,
+      recipientName: params.order.buyerName,
+      text: `¡Hola ${params.order.buyerName}! He asignado tu pedido al Casillero #${updatedLocker.number} en el ${updatedLocker.hubName}. Tu PIN de retiro es: ${claimPin}. Recuerda que puedes pagar escaneando el código QR en la vitrina de la universidad. ¡Buen provecho!`,
+      orderId: params.order.id,
+      productName: firstItem?.name,
+      lockerCode: updatedLocker.code,
+    })
+  } catch {
+    // Continue even if chat broadcast fails
+  }
+
+  return {
+    success: true,
+    updatedOrder,
+    locker: updatedLocker,
+    depositPin,
+    claimPin,
+    message: `¡Asignado con éxito al Casillero #${updatedLocker.number} (${updatedLocker.hubName})!`,
+  }
 }
 
 /**

@@ -18,16 +18,6 @@ function SectionNav() {
       >
         Catálogo de Snacks
       </NavLink>
-      <NavLink
-        to="/vitrina"
-        className={({ isActive }) =>
-          isActive
-            ? 'text-primary font-bold'
-            : 'hover:text-foreground font-medium transition-colors'
-        }
-      >
-        Casilleros D · M · L
-      </NavLink>
     </>
   )
 }
@@ -100,7 +90,7 @@ export function PublicFooter() {
           <BrandMark size={22} className="text-primary" />
           Bocado · Micro-comercio universitario
         </p>
-        <p>Universidad Icesi · Casilleros Inteligentes en Edificios D, M y L.</p>
+        <p>Universidad Icesi · Snacks frescos y casilleros inteligentes.</p>
         <p className="text-xs">Validación de concepto · 2026</p>
       </div>
     </footer>

@@ -1,7 +1,6 @@
 import {
   BarChart3,
   BookmarkCheck,
-  Boxes,
   ClipboardList,
   LogOut,
   MessageSquare,
@@ -37,11 +36,10 @@ export function AppShell() {
   }, [user, seller])
 
   const links = [
-    { to: '/catalogo', label: 'Snacks', icon: ShoppingBag },
-    { to: '/vitrina', label: 'Casilleros D·M·L', icon: Boxes },
+    { to: '/catalogo', label: 'Catálogo', icon: ShoppingBag },
     { to: '/mensajes', label: 'Mensajes', icon: MessageSquare, badge: unreadChat },
-    ...(seller ? [{ to: '/vender', label: 'Panel Vendedor & Casilleros', icon: Store }] : []),
-    { to: '/pedidos', label: 'Mis Pases / Pedidos', icon: ClipboardList },
+    ...(seller ? [{ to: '/vender', label: 'Panel Vendedor', icon: Store }] : []),
+    { to: '/pedidos', label: 'Mis Pedidos', icon: ClipboardList },
     ...(admin ? [{ to: '/metricas', label: 'Métricas', icon: BarChart3 }] : []),
   ]
 

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  ArrowRight,
   Boxes,
   ChefHat,
   ChevronDown,
@@ -81,34 +80,41 @@ export function LandingPage() {
       <AnimatedBackdrop />
       <div className="cyber-grid pointer-events-none fixed inset-0 opacity-20" />
 
-      {/* Floating Vertical Slide Indicator (Right Side) */}
+      {/* Floating Vertical Slide Indicator (Right Side) - Straight Vertical Rail */}
       <nav
         aria-label="Navegación de secciones"
-        className="fixed right-4 sm:right-8 top-1/2 z-40 -translate-y-1/2 hidden md:flex flex-col items-center gap-3"
+        className="fixed right-4 sm:right-8 top-1/2 z-40 -translate-y-1/2 hidden md:flex flex-col items-center w-8 py-3.5 rounded-full bg-black/60 backdrop-blur-xl border border-white/15 shadow-[0_0_24px_rgba(0,0,0,0.6)]"
       >
-        {SLIDES.map((slide, idx) => {
-          const isActive = currentSlide === idx
-          return (
-            <button
-              key={slide.id}
-              type="button"
-              onClick={() => scrollToSlide(idx)}
-              className="group relative flex items-center justify-end py-1"
-              title={slide.label}
-            >
-              <span className="mr-3 rounded-md bg-black/85 px-2.5 py-0.5 text-[11px] font-mono font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100 backdrop-blur-md border border-white/10 shadow-lg">
-                {slide.label}
-              </span>
-              <span
-                className={`block rounded-full transition-all duration-300 ${
-                  isActive
-                    ? 'h-8 w-2.5 bg-primary shadow-[0_0_16px_rgba(249,115,22,1)] ring-2 ring-primary/40'
-                    : 'h-2.5 w-2.5 bg-zinc-600 hover:bg-zinc-400'
-                }`}
-              />
-            </button>
-          )
-        })}
+        {/* Subtle center line track */}
+        <div className="absolute top-4 bottom-4 left-1/2 -translate-x-1/2 w-[2px] bg-white/10 -z-10" />
+
+        <div className="flex flex-col items-center gap-3">
+          {SLIDES.map((slide, idx) => {
+            const isActive = currentSlide === idx
+            return (
+              <button
+                key={slide.id}
+                type="button"
+                onClick={() => scrollToSlide(idx)}
+                className="group relative flex h-7 w-7 items-center justify-center focus:outline-none"
+                title={slide.label}
+              >
+                {/* Tooltip positioned outside the flex axis */}
+                <span className="pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-lg bg-black/95 px-2.5 py-1 text-[11px] font-mono font-semibold text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 backdrop-blur-md border border-white/15 shadow-xl">
+                  {slide.label}
+                </span>
+                {/* Strictly Centered Dot Indicator */}
+                <span
+                  className={`rounded-full transition-all duration-300 ${
+                    isActive
+                      ? 'h-3.5 w-3.5 bg-primary ring-4 ring-primary/30 shadow-[0_0_12px_rgba(249,115,22,1)] scale-110'
+                      : 'h-2 w-2 bg-zinc-500 hover:bg-zinc-300 hover:scale-125'
+                  }`}
+                />
+              </button>
+            )
+          })}
+        </div>
       </nav>
 
       {/* ========================================================= */}
@@ -162,13 +168,14 @@ export function LandingPage() {
               <Boxes size={18} />
               <span>Ver Catálogo de Snacks</span>
             </Link>
-            <Link
-              to="/vitrina"
+            <button
+              type="button"
+              onClick={() => scrollToSlide(1)}
               className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-black/60 px-8 py-4 font-display text-sm font-bold text-white hover:bg-black/90 active:scale-95 transition-all backdrop-blur-xl shadow-lg"
             >
-              <span>Abrir Vitrina 24/7</span>
-              <ArrowRight size={16} />
-            </Link>
+              <span>Cómo Funciona</span>
+              <ChevronDown size={16} />
+            </button>
           </div>
         </div>
 
@@ -343,11 +350,11 @@ export function LandingPage() {
         </div>
 
         <Link
-          to="/vitrina"
+          to="/catalogo"
           className="flex items-center gap-2 rounded-2xl bg-primary px-8 py-4 font-display text-sm font-bold text-primary-foreground shadow-xl shadow-primary/30 hover:brightness-110 active:scale-95 transition-all"
         >
           <Boxes size={18} />
-          <span>Ver Vitrina de Casilleros D · M · L</span>
+          <span>Explorar Catálogo de Snacks</span>
         </Link>
       </section>
 
