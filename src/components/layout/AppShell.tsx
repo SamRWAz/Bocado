@@ -48,9 +48,9 @@ export function AppShell() {
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
           <Link
             to="/"
-            className="font-display text-2xl font-medium tracking-tight text-foreground hover:text-primary transition-colors lowercase"
+            className="font-display text-2xl font-medium tracking-tight text-foreground hover:text-primary transition-colors"
           >
-            bocado
+            Bocado
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
             {links.map((link) => (
