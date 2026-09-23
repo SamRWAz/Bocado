@@ -4,11 +4,11 @@ import {
   CheckCircle2,
   Flame,
   MessageCircle,
+  ShoppingBag,
   Store,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { BrandMark } from '../components/BrandMark'
 import { TagList } from '../components/TagList'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
@@ -162,8 +162,8 @@ export function ProductDetailPage() {
               className="h-80 w-full object-cover sm:h-96"
             />
           ) : (
-            <div className="flex h-80 items-center justify-center sm:h-96 text-primary">
-              <BrandMark size={80} />
+            <div className="flex h-80 items-center justify-center sm:h-96 text-muted-foreground/30">
+              <ShoppingBag size={64} />
             </div>
           )}
 

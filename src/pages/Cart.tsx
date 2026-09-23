@@ -6,7 +6,6 @@ import {
   Trash2,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
-import { BrandMark } from '../components/BrandMark'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { displaySeller, money, sellerUserId } from '../lib/format'
@@ -91,8 +90,8 @@ export function CartPage() {
                       className="h-20 w-20 shrink-0 rounded-2xl object-cover border border-border"
                     />
                   ) : (
-                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-secondary text-primary">
-                      <BrandMark size={28} />
+                    <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-secondary text-muted-foreground/50 border border-border/60">
+                      <BookmarkCheck size={26} className="text-primary" />
                     </div>
                   )}
 

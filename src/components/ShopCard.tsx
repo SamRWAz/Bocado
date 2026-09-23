@@ -2,7 +2,6 @@ import { Store } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { shopPath } from '../lib/format'
 import type { Shop } from '../lib/shops'
-import { BrandMark } from './BrandMark'
 import { TagList } from './TagList'
 
 export function ShopCard({ shop }: { shop: Shop }) {
@@ -14,8 +13,8 @@ export function ShopCard({ shop }: { shop: Shop }) {
         {shop.cover ? (
           <img src={shop.cover} alt={shop.name} className="h-44 w-full object-cover" />
         ) : (
-          <div className="flex h-44 items-center justify-center bg-secondary text-primary">
-            <BrandMark size={40} />
+          <div className="flex h-44 items-center justify-center bg-secondary text-muted-foreground/40">
+            <Store size={40} />
           </div>
         )}
       </Link>

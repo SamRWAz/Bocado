@@ -2,7 +2,6 @@ import { BookmarkCheck } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { canSell, useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
-import { BrandMark } from '../BrandMark'
 import { ThemeToggle } from '../ThemeToggle'
 
 function SectionNav() {
@@ -29,9 +28,11 @@ export function PublicHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link to="/" className="flex items-center gap-2 font-brand text-xl font-bold text-foreground">
-          <BrandMark size={32} className="text-primary" />
-          Bocado
+        <Link
+          to="/"
+          className="font-display text-2xl font-medium tracking-tight text-foreground hover:text-primary transition-colors lowercase"
+        >
+          bocado
         </Link>
         <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
           <SectionNav />
@@ -86,9 +87,8 @@ export function PublicFooter() {
   return (
     <footer className="border-t border-border py-10 text-sm text-muted-foreground">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <p className="flex items-center gap-2 font-brand font-semibold text-foreground text-base">
-          <BrandMark size={22} className="text-primary" />
-          Bocado · Micro-comercio universitario
+        <p className="font-display font-medium text-foreground text-sm tracking-tight">
+          bocado · Micro-comercio universitario
         </p>
         <p>Universidad Icesi · Snacks frescos y casilleros inteligentes.</p>
         <p className="text-xs">Validación de concepto · 2026</p>
@@ -96,3 +96,4 @@ export function PublicFooter() {
     </footer>
   )
 }
+

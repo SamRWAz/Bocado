@@ -14,7 +14,6 @@ import { canSell, isAdmin, useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
 import { getUnreadCount, subscribeToChatUpdates } from '../../lib/chat'
 import { initials } from '../../lib/format'
-import { BrandMark } from '../BrandMark'
 import { ThemeToggle } from '../ThemeToggle'
 
 export function AppShell() {
@@ -47,9 +46,11 @@ export function AppShell() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-2 font-brand text-xl font-bold">
-            <BrandMark size={28} className="text-primary" />
-            Bocado
+          <Link
+            to="/"
+            className="font-display text-2xl font-medium tracking-tight text-foreground hover:text-primary transition-colors lowercase"
+          >
+            bocado
           </Link>
           <nav className="hidden items-center gap-1 md:flex">
             {links.map((link) => (
