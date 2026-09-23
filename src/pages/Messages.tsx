@@ -168,9 +168,11 @@ export function MessagesPage() {
     <div className="space-y-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Centro de Mensajes</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
+            Centro de Mensajes
+          </h1>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            Coordinación rápida y ubicación en tiempo real entre compradores y vendedores del campus.
+            Coordinación directa y rápida entre compradores y cocineros universitarios del campus.
           </p>
         </div>
 

@@ -15,10 +15,12 @@ import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { fetchProducts, incrementMetric, updateProduct } from '../lib/api'
 import { DIETARY_OPTIONS } from '../lib/campus'
+import { sendMessage } from '../lib/chat'
 import { FILTERS } from '../lib/constants'
 import { displaySeller, hasTag, money, sellerUserId } from '../lib/format'
 import { playKeyBeep, playPaymentSuccess } from '../lib/sounds'
-import type { Product } from '../types'
+import { saveOrder } from '../lib/storage-db'
+import type { Order, Product } from '../types'
 
 export function CatalogPage() {
   const { user } = useAuth()
@@ -29,10 +31,11 @@ export function CatalogPage() {
   const [category, setCategory] = useState<(typeof FILTERS)[number]>('Todos')
   const [dietaryFilter, setDietaryFilter] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isProcessing, setIsProcessing] = useState(false)
 
   // Confirmation Modal State
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [apartadoSuccess, setApartadoSuccess] = useState<Product | null>(null)
+  const [apartadoSuccess, setApartadoSuccess] = useState<{ product: Product; orderId: string } | null>(null)
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -46,37 +49,105 @@ export function CatalogPage() {
   }, [refresh])
 
   const handleOpenApartarModal = (product: Product) => {
+    if (!user) {
+      navigate('/login', { state: { from: `/catalogo` } })
+      return
+    }
     setSelectedProduct(product)
   }
 
   const handleConfirmApartar = async () => {
     if (!selectedProduct) return
-    playPaymentSuccess()
+    if (!user) {
+      navigate('/login', { state: { from: `/catalogo` } })
+      return
+    }
 
-    // Add to reserved items
-    add(selectedProduct, 1)
+    setIsProcessing(true)
+    try {
+      playPaymentSuccess()
 
-    void updateProduct(selectedProduct.id, { intent_count: selectedProduct.intent_count + 1 })
-    void incrementMetric('total_intents')
+      const sId = sellerUserId(selectedProduct.seller)
+      const sName = displaySeller(selectedProduct.seller)
+      const orderId = crypto.randomUUID()
+      const orderTotal = selectedProduct.price
+      const commission = Math.round(orderTotal * 0.05)
+      const netRevenue = orderTotal - commission
 
-    const confirmed = selectedProduct
-    setSelectedProduct(null)
-    setApartadoSuccess(confirmed)
+      const order: Order = {
+        id: orderId,
+        buyerId: user.id,
+        buyerName: user.name,
+        buyerEmail: user.email,
+        sellerKey: selectedProduct.seller,
+        sellerName: sName,
+        items: [
+          {
+            productId: selectedProduct.id,
+            name: selectedProduct.name,
+            price: selectedProduct.price,
+            qty: 1,
+            image_url: selectedProduct.image_url,
+          },
+        ],
+        total: orderTotal,
+        pickup: `Edificio ${selectedProduct.preferredBuilding || 'D'}`,
+        note: '',
+        status: 'reservado',
+        createdAt: new Date().toISOString(),
+        isGuaranteed: false,
+        platformCommission: commission,
+        sellerNetRevenue: netRevenue,
+      }
+
+      // 1. Save order in storage DB for the seller
+      await saveOrder(order)
+
+      // 2. Notify seller via live chat message
+      await sendMessage({
+        conversationId: `order_${orderId}`,
+        senderId: user.id,
+        senderName: user.name,
+        recipientId: sId,
+        recipientName: sName,
+        orderId,
+        productId: selectedProduct.id,
+        productName: selectedProduct.name,
+        text: `👋 ¡Hola ${sName}! Acabo de apartar 1x ${selectedProduct.name} (${money(selectedProduct.price)}). ¿En qué punto o casillero nos vemos / coordinamos la entrega?`,
+        messageType: 'text',
+      })
+
+      // 3. Add to cart & increment metrics
+      add(selectedProduct, 1)
+      void updateProduct(selectedProduct.id, {
+        intent_count: (selectedProduct.intent_count || 0) + 1,
+      })
+      void incrementMetric('total_intents')
+
+      const confirmed = selectedProduct
+      setSelectedProduct(null)
+      setApartadoSuccess({ product: confirmed, orderId })
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
-  const handleGoToChat = (product: Product) => {
-    const sId = sellerUserId(product.seller)
-    const sName = displaySeller(product.seller)
+  const handleGoToChat = (item: { product: Product; orderId: string }) => {
+    const sId = sellerUserId(item.product.seller)
+    const sName = displaySeller(item.product.seller)
     if (!user) {
       navigate('/login', { state: { from: `/catalogo` } })
       return
     }
     navigate(
-      `/mensajes?partnerId=${encodeURIComponent(sId)}&partnerName=${encodeURIComponent(
-        sName,
-      )}&productId=${encodeURIComponent(product.id)}&productName=${encodeURIComponent(product.name)}`,
+      `/mensajes?conv=order_${item.orderId}&partnerId=${encodeURIComponent(
+        sId,
+      )}&partnerName=${encodeURIComponent(sName)}&orderId=${item.orderId}&productName=${encodeURIComponent(
+        item.product.name,
+      )}&productId=${encodeURIComponent(item.product.id)}`,
     )
   }
+
 
   // Filter products
   const availableProducts = products.filter((p) => !p.sold_out && p.stock > 0)
@@ -296,6 +367,7 @@ export function CatalogPage() {
             <div className="flex gap-3 pt-2">
               <button
                 type="button"
+                disabled={isProcessing}
                 onClick={() => setSelectedProduct(null)}
                 className="flex-1 rounded-xl border border-border bg-secondary py-3 text-xs font-display font-semibold text-foreground hover:bg-secondary/80 transition-colors"
               >
@@ -303,11 +375,12 @@ export function CatalogPage() {
               </button>
               <button
                 type="button"
+                disabled={isProcessing}
                 onClick={handleConfirmApartar}
-                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-amber-500 py-3 text-xs font-display font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:brightness-110 active:scale-95 transition-all"
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-amber-500 py-3 text-xs font-display font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50"
               >
                 <BookmarkCheck size={15} />
-                <span>Confirmar Apartado</span>
+                <span>{isProcessing ? 'Apartando...' : 'Confirmar Apartado'}</span>
               </button>
             </div>
           </div>
@@ -329,10 +402,10 @@ export function CatalogPage() {
                 ¡Producto Apartado con Éxito!
               </span>
               <h3 className="font-display text-xl font-bold text-foreground">
-                {apartadoSuccess.name}
+                {apartadoSuccess.product.name}
               </h3>
               <p className="text-xs text-muted-foreground">
-                Tu apartado ha sido registrado. El cocinero asignará el casillero para tu entrega.
+                Tu apartado ha sido enviado al vendedor. Puedes chatear para coordinar o ver tus pases en <strong>Mis Apartados</strong>.
               </p>
             </div>
 
@@ -341,7 +414,7 @@ export function CatalogPage() {
                 <Sparkles size={14} className="text-primary" /> ¿Qué deseas hacer ahora?
               </p>
               <p className="text-[11px]">
-                Puedes chatear directamente con <strong>{displaySeller(apartadoSuccess.seller)}</strong> o revisar tu lista de apartados.
+                Puedes chatear directamente con <strong>{displaySeller(apartadoSuccess.product.seller)}</strong> o revisar tu pase de retiro.
               </p>
             </div>
 
@@ -361,11 +434,11 @@ export function CatalogPage() {
 
               <div className="flex gap-2">
                 <Link
-                  to="/carrito"
+                  to="/pedidos"
                   className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary py-3 text-xs font-display font-semibold text-foreground hover:bg-secondary/80 transition-colors"
                 >
                   <BookmarkCheck size={14} className="text-primary" />
-                  <span>Ver Apartados</span>
+                  <span>Ver Mis Apartados</span>
                 </Link>
                 <button
                   type="button"

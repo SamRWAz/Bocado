@@ -3,8 +3,8 @@ import {
   BookmarkCheck,
   CheckCircle2,
   Flame,
-  MapPin,
   MessageCircle,
+  Store,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -13,10 +13,11 @@ import { TagList } from '../components/TagList'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { fetchProduct, incrementMetric, updateProduct } from '../lib/api'
-import { getSellerPresence } from '../lib/campus'
+import { sendMessage } from '../lib/chat'
 import { displaySeller, initials, money, ownsListing, parseTags, productDescription, sellerUserId } from '../lib/format'
 import { playPaymentSuccess } from '../lib/sounds'
-import type { Product, SellerPresence } from '../types'
+import { saveOrder } from '../lib/storage-db'
+import type { Order, Product } from '../types'
 
 export function ProductDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -27,19 +28,15 @@ export function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [qty, setQty] = useState(1)
-  const [presence, setPresence] = useState<SellerPresence | null>(null)
   const [apartadoDone, setApartadoDone] = useState(false)
+  const [apartadoOrderId, setApartadoOrderId] = useState<string | null>(null)
+  const [isApartando, setIsApartando] = useState(false)
 
   useEffect(() => {
     if (!id) return
     void fetchProduct(id).then((p) => {
       setProduct(p)
       setLoading(false)
-      if (p) {
-        const sId = sellerUserId(p.seller)
-        const pres = getSellerPresence(sId)
-        if (pres) setPresence(pres)
-      }
     })
   }, [id])
 
@@ -63,12 +60,69 @@ export function ProductDetailPage() {
   const isMyProduct = user ? ownsListing(product.seller, user.id, user.name) : false
   const isLowStock = product.stock > 0 && product.stock <= 3
 
-  const handleApartar = () => {
-    playPaymentSuccess()
-    add(product, qty)
-    void updateProduct(product.id, { intent_count: product.intent_count + qty })
-    void incrementMetric('total_intents')
-    setApartadoDone(true)
+  const handleApartar = async () => {
+    if (!user) {
+      navigate('/login', { state: { from: `/producto/${product.id}` } })
+      return
+    }
+
+    setIsApartando(true)
+    try {
+      playPaymentSuccess()
+      const orderId = crypto.randomUUID()
+      const orderTotal = product.price * qty
+      const commission = Math.round(orderTotal * 0.05)
+      const netRevenue = orderTotal - commission
+
+      const order: Order = {
+        id: orderId,
+        buyerId: user.id,
+        buyerName: user.name,
+        buyerEmail: user.email,
+        sellerKey: product.seller,
+        sellerName,
+        items: [
+          {
+            productId: product.id,
+            name: product.name,
+            price: product.price,
+            qty,
+            image_url: product.image_url,
+          },
+        ],
+        total: orderTotal,
+        pickup: `Edificio ${product.preferredBuilding || 'D'}`,
+        note: '',
+        status: 'reservado',
+        createdAt: new Date().toISOString(),
+        isGuaranteed: false,
+        platformCommission: commission,
+        sellerNetRevenue: netRevenue,
+      }
+
+      await saveOrder(order)
+
+      await sendMessage({
+        conversationId: `order_${orderId}`,
+        senderId: user.id,
+        senderName: user.name,
+        recipientId: sellerId,
+        recipientName: sellerName,
+        orderId,
+        productId: product.id,
+        productName: product.name,
+        text: `👋 ¡Hola ${sellerName}! He apartado ${qty}x ${product.name} (${money(orderTotal)}). ¿En qué punto o casillero coordinamos la entrega?`,
+        messageType: 'text',
+      })
+
+      add(product, qty)
+      void updateProduct(product.id, { intent_count: product.intent_count + qty })
+      void incrementMetric('total_intents')
+      setApartadoOrderId(orderId)
+      setApartadoDone(true)
+    } finally {
+      setIsApartando(false)
+    }
   }
 
   const handleStartChat = () => {
@@ -80,8 +134,9 @@ export function ProductDetailPage() {
       navigate('/vender')
       return
     }
+    const convQuery = apartadoOrderId ? `conv=order_${apartadoOrderId}&orderId=${apartadoOrderId}&` : ''
     navigate(
-      `/mensajes?partnerId=${encodeURIComponent(sellerId)}&partnerName=${encodeURIComponent(
+      `/mensajes?${convQuery}partnerId=${encodeURIComponent(sellerId)}&partnerName=${encodeURIComponent(
         sellerName,
       )}&productId=${encodeURIComponent(product.id)}&productName=${encodeURIComponent(product.name)}`,
     )
@@ -122,7 +177,7 @@ export function ProductDetailPage() {
         {/* Right Column: Info & Actions */}
         <div className="flex flex-col justify-between space-y-5">
           <div className="space-y-4">
-            {/* Seller Live Presence Box */}
+            {/* Seller Header Box */}
             <div className="flex items-center justify-between rounded-2xl border border-border bg-secondary/50 p-3.5">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 font-display text-sm font-bold text-primary">
@@ -132,17 +187,13 @@ export function ProductDetailPage() {
                   <div className="flex items-center gap-2">
                     <span className="font-display text-sm font-bold">{sellerName}</span>
                     <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                      Estudiante Cocinero
+                      Cocinero Universitario
                     </span>
                   </div>
-                  {presence ? (
-                    <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                      <MapPin size={12} className="text-primary" />
-                      <span>{presence.zone} · {presence.detail} ({presence.activeUntil})</span>
-                    </p>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">Disponible en el campus</p>
-                  )}
+                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                    <Store size={12} className="text-primary" />
+                    <span>Emprendedor del Campus Icesi</span>
+                  </p>
                 </div>
               </div>
 
@@ -215,7 +266,7 @@ export function ProductDetailPage() {
                   <span>¡Snack apartado con éxito!</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Tu producto quedó reservado. El vendedor asignará el casillero para tu retiro.
+                  Tu producto quedó reservado y el vendedor ha recibido la solicitud de apartado.
                 </p>
                 <div className="flex gap-2 pt-1">
                   <button
@@ -227,11 +278,11 @@ export function ProductDetailPage() {
                     <span>Chatear con el Vendedor</span>
                   </button>
                   <Link
-                    to="/carrito"
+                    to="/pedidos"
                     className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary py-2.5 text-xs font-display font-semibold text-foreground hover:bg-secondary/80"
                   >
                     <BookmarkCheck size={14} className="text-primary" />
-                    <span>Ver Apartados</span>
+                    <span>Ver Mis Apartados</span>
                   </Link>
                 </div>
               </div>
@@ -239,12 +290,12 @@ export function ProductDetailPage() {
               <div className="flex flex-col gap-3 sm:flex-row">
                 <button
                   type="button"
-                  onClick={handleApartar}
-                  disabled={product.sold_out || product.stock <= 0}
+                  disabled={isApartando || product.sold_out || product.stock <= 0}
+                  onClick={() => void handleApartar()}
                   className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-amber-500 py-4 font-display text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 transition-transform hover:opacity-95 active:scale-95 disabled:opacity-40"
                 >
                   <BookmarkCheck size={18} />
-                  Apartar Snack para Retiro
+                  {isApartando ? 'Apartando snack...' : 'Apartar Snack para Retiro'}
                 </button>
                 <button
                   type="button"
@@ -262,3 +313,4 @@ export function ProductDetailPage() {
     </div>
   )
 }
+

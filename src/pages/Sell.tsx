@@ -1,18 +1,18 @@
 import {
-  Building2,
-  Camera,
+  BookmarkCheck,
   CheckCircle2,
-  KeyRound,
-  MapPin,
+  Eye,
+  Image as ImageIcon,
   MessageSquare,
   Minus,
   Plus,
-  Radio,
+  ShoppingBag,
   Sparkles,
   Store,
+  Trash2,
   TrendingUp,
+  UploadCloud,
   Users,
-  Zap,
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { Link, Navigate } from 'react-router-dom'
@@ -25,154 +25,168 @@ import {
   updateProduct,
   uploadProductImage,
 } from '../lib/api'
-import {
-  DIETARY_OPTIONS,
-  getAllSellerPresences,
-  ICESI_ZONES,
-  PRESENCE_DURATIONS,
-  saveSellerPresence,
-} from '../lib/campus'
+import { DIETARY_OPTIONS } from '../lib/campus'
 import { getUnreadCount, subscribeToChatUpdates } from '../lib/chat'
 import { CATEGORIES, inputClass, labelClass } from '../lib/constants'
-import { encodeSeller, joinTags, money, ownsListing, parseTags } from '../lib/format'
-import {
-  getLockersByBuilding,
-  reserveLockerForSellerDeposit,
-  subscribeToLockerUpdates,
-} from '../lib/lockers'
+import { encodeSeller, formatTime, joinTags, money, ownsListing, parseTags } from '../lib/format'
 import { playKeyBeep, playPaymentSuccess } from '../lib/sounds'
-import type { DietaryTag, Locker, Product, SellerPresence } from '../types'
+import { fetchOrders, subscribeToOrderUpdates } from '../lib/storage-db'
+import type { DietaryTag, Order, Product } from '../types'
+
+const SAMPLE_PRESETS = [
+  { name: 'Brownie Melcochudo', price: '4500', cat: 'Brownies', img: '/images/snack_anime_brownie.jpg' },
+  { name: 'Empanada Horneada', price: '3500', cat: 'Salados', img: '/images/snack_anime_empanadas.jpg' },
+  { name: 'Parfait con Frutas', price: '5500', cat: 'Postres', img: '/images/snack_anime_parfait.jpg' },
+  { name: 'Galletas de Avena', price: '2500', cat: 'Galletas', img: '/images/snack_anime_cookies.jpg' },
+]
 
 export function SellPage() {
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState<'inventory' | 'lockers'>('inventory')
   const [products, setProducts] = useState<Product[]>([])
+  const [orders, setOrders] = useState<Order[]>([])
   const [unreadMessages, setUnreadMessages] = useState(0)
 
   // New product form
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
-  const [stock, setStock] = useState('')
+  const [stock, setStock] = useState('8')
   const [description, setDescription] = useState('')
-  const [tags, setTags] = useState<string[]>([])
+  const [tags, setTags] = useState<string[]>(['Brownies'])
   const [dietary, setDietary] = useState<DietaryTag[]>([])
   const [preferredBuilding, setPreferredBuilding] = useState<'D' | 'M' | 'L'>('D')
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
+  const [selectedPresetImage, setSelectedPresetImage] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [publishSuccess, setPublishSuccess] = useState(false)
   const [error, setError] = useState('')
   const fileInput = useRef<HTMLInputElement>(null)
 
-  // Seller presence state
-  const [sellerZone, setSellerZone] = useState<string>(ICESI_ZONES[0])
-  const [zoneDetail, setZoneDetail] = useState('')
-  const [presenceDuration, setPresenceDuration] = useState<string>(PRESENCE_DURATIONS[1].value)
-  const [isOnline, setIsOnline] = useState(true)
-  const [presenceSaved, setPresenceSaved] = useState(false)
-
-  // Locker storage panel state
-  const [selectedLockerBuilding, setSelectedLockerBuilding] = useState<'D' | 'M' | 'L'>('D')
-  const [buildingLockers, setBuildingLockers] = useState<Locker[]>([])
-  const [selectedLockerToReserve, setSelectedLockerToReserve] = useState<Locker | null>(null)
-  const [selectedProductToStoreId, setSelectedProductToStoreId] = useState<string>('')
-  const [depositSuccessResult, setDepositSuccessResult] = useState<{
-    locker: Locker
-    depositPin: string
-    message: string
-  } | null>(null)
-
   const refresh = useCallback(async () => {
-    setProducts(await fetchProducts())
+    const prods = await fetchProducts()
+    setProducts(prods)
+    const ords = await fetchOrders()
+    setOrders(ords.sort((a, b) => b.createdAt.localeCompare(a.createdAt)))
   }, [])
-
-  const loadBuildingLockers = useCallback(() => {
-    setBuildingLockers(getLockersByBuilding(selectedLockerBuilding))
-  }, [selectedLockerBuilding])
 
   useEffect(() => {
     void refresh()
-    loadBuildingLockers()
-    const unsubLockers = subscribeToLockerUpdates(loadBuildingLockers)
+    const unsubOrders = subscribeToOrderUpdates(() => {
+      void refresh()
+    })
 
     if (user) {
-      const current = getAllSellerPresences()[user.id]
-      if (current) {
-        setSellerZone(current.zone)
-        setZoneDetail(current.detail)
-        setPresenceDuration(current.activeUntil)
-        setIsOnline(current.isOnline)
-      }
       const updateUnread = () => setUnreadMessages(getUnreadCount(user.id, true, user.name))
       updateUnread()
-      const unsubscribe = subscribeToChatUpdates(updateUnread)
+      const unsubscribeChat = subscribeToChatUpdates(updateUnread)
       return () => {
-        unsubscribe()
-        unsubLockers()
+        unsubscribeChat()
+        unsubOrders()
       }
     }
-    return () => unsubLockers()
-  }, [refresh, loadBuildingLockers, user])
+    return () => unsubOrders()
+  }, [refresh, user])
 
   if (!user || !canSell(user.role)) {
     return <Navigate to="/catalogo" replace />
   }
 
   const mine = products.filter((p) => ownsListing(p.seller, user.id, user.name))
+  const mySellingOrders = orders.filter((order) => {
+    if (!user) return false
+    const sKey = order.sellerKey || ''
+    const sName = (order.sellerName || '').trim().toLowerCase()
+    const uName = (user.name || '').trim().toLowerCase()
+    const uId = user.id.toLowerCase()
+
+    return (
+      sKey.toLowerCase().endsWith(`::${uId}`) ||
+      sKey.toLowerCase() === uId ||
+      sKey.toLowerCase() === uName ||
+      sName === uName ||
+      ownsListing(order.sellerKey, user.id, user.name)
+    )
+  })
+
+  const pendingApartados = mySellingOrders.filter((o) => o.status === 'reservado')
 
   const onFile = (event: ChangeEvent<HTMLInputElement>) => {
     const next = event.target.files?.[0]
     if (!next) return
     setFile(next)
+    setSelectedPresetImage(null)
     setPreview(URL.createObjectURL(next))
   }
 
-  const handleSavePresence = () => {
-    if (!user) return
-    const presence: SellerPresence = {
-      sellerId: user.id,
-      sellerName: user.name,
-      zone: sellerZone,
-      detail: zoneDetail.trim() || 'Cerca de las bancas / mesas de estudio',
-      activeUntil: presenceDuration,
-      isOnline,
-      updatedAt: new Date().toISOString(),
-    }
-    saveSellerPresence(user.id, presence)
-    setPresenceSaved(true)
-    setTimeout(() => setPresenceSaved(false), 3000)
+  const handleApplyPreset = (preset: typeof SAMPLE_PRESETS[0]) => {
+    playKeyBeep(600)
+    setName(preset.name)
+    setPrice(preset.price)
+    setTags([preset.cat])
+    setSelectedPresetImage(preset.img)
+    setFile(null)
+    setPreview(null)
   }
 
   const publish = async () => {
-    if (!name.trim() || !price || !stock || (tags.length === 0 && dietary.length === 0)) return
+    if (!name.trim()) {
+      setError('Escribe el nombre del snack')
+      return
+    }
+    const numPrice = parseInt(price, 10)
+    if (isNaN(numPrice) || numPrice <= 0) {
+      setError('Ingresa un precio válido en pesos colombianos')
+      return
+    }
+    const numStock = parseInt(stock, 10)
+    if (isNaN(numStock) || numStock <= 0) {
+      setError('Ingresa una cantidad de stock inicial')
+      return
+    }
+    if (tags.length === 0 && dietary.length === 0) {
+      setError('Selecciona al menos una categoría o etiqueta')
+      return
+    }
+
     setUploading(true)
     setError('')
     try {
-      let imageUrl: string | null = null
-      if (file) imageUrl = await uploadProductImage(file)
+      let imageUrl: string | null = selectedPresetImage
+      if (file) {
+        imageUrl = await uploadProductImage(file)
+      }
 
       const allCategoryTags = [...tags, ...dietary]
 
       const created = await insertProduct({
         name: name.trim(),
-        price: parseInt(price, 10),
-        stock: parseInt(stock, 10),
+        price: numPrice,
+        stock: numStock,
         sold_out: false,
         seller: encodeSeller(user.name, user.id),
         intent_count: 0,
         image_url: imageUrl,
         category: joinTags(allCategoryTags),
         description: description.trim() || undefined,
+        preferredBuilding,
       })
 
-      if (!created) throw new Error('No se pudo publicar el snack')
+      if (!created) throw new Error('No se pudo publicar el snack. Intenta de nuevo.')
+
+      playPaymentSuccess()
+      setPublishSuccess(true)
+      setTimeout(() => setPublishSuccess(false), 3500)
+
+      // Reset form
       setName('')
       setPrice('')
-      setStock('')
-      setTags([])
+      setStock('8')
+      setTags(['Brownies'])
       setDietary([])
       setDescription('')
       setFile(null)
       setPreview(null)
+      setSelectedPresetImage(null)
       await refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al publicar snack')
@@ -200,40 +214,23 @@ export function SellPage() {
     await refresh()
   }
 
-  // Handle seller reserving a locker to deposit a snack
-  const handleReserveLockerDeposit = () => {
-    if (!selectedLockerToReserve || !selectedProductToStoreId) return
-    const prod = mine.find((p) => p.id === selectedProductToStoreId)
-    if (!prod) return
-
-    try {
-      const res = reserveLockerForSellerDeposit({
-        building: selectedLockerBuilding,
-        lockerId: selectedLockerToReserve.id,
-        productId: prod.id,
-        productName: prod.name,
-        productPrice: prod.price,
-        productImage: prod.image_url,
-        sellerId: user.id,
-        sellerName: user.name,
-      })
-
-      playPaymentSuccess()
-      setDepositSuccessResult(res)
-      setSelectedLockerToReserve(null)
-      loadBuildingLockers()
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error al reservar casillero')
-    }
-  }
-
   // Quick stats
   const totalItemsInStock = mine.reduce((sum, p) => sum + (p.sold_out ? 0 : p.stock), 0)
   const totalValue = mine.reduce((sum, p) => sum + p.price * (p.sold_out ? 0 : p.stock), 0)
-  const estimatedCommission = Math.round(totalValue * 0.05) // 5% fee
+
+
+  // Live preview image helper
+  const livePreviewImage = preview || selectedPresetImage || (() => {
+    const n = name.toLowerCase()
+    if (n.includes('brownie')) return '/images/snack_anime_brownie.jpg'
+    if (n.includes('parfait') || n.includes('yogur') || n.includes('chia')) return '/images/snack_anime_parfait.jpg'
+    if (n.includes('empanada')) return '/images/snack_anime_empanadas.jpg'
+    if (n.includes('galleta') || n.includes('cookie') || n.includes('avena')) return '/images/snack_anime_cookies.jpg'
+    return '/images/snack_anime_brownie.jpg'
+  })()
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
       {/* Header with quick stats */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -242,10 +239,10 @@ export function SellPage() {
             <span>Panel de Cocinero Universitario</span>
           </div>
           <h1 className="mt-1 font-display text-2xl font-black tracking-tight sm:text-3xl text-foreground">
-            Gestión de Snacks & Casilleros
+            Estudio de Creación & Gestión de Snacks
           </h1>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            Publica tus preparaciones, controla stock en vivo y reserva casilleros en los Edificios D, M y L para entrega 24/7.
+            Publica tus preparaciones caseras, controla inventario en tiempo real y gestiona apartados recibidos.
           </p>
         </div>
 
@@ -264,677 +261,538 @@ export function SellPage() {
           </Link>
           <Link
             to="/pedidos"
-            className="rounded-2xl bg-primary px-4 py-2.5 text-xs font-display font-bold text-primary-foreground shadow-sm hover:opacity-90"
+            className="rounded-2xl bg-primary px-4 py-2.5 text-xs font-display font-bold text-primary-foreground shadow-sm hover:opacity-90 flex items-center gap-1.5"
           >
-            Pases de Depósito
+            <BookmarkCheck size={14} />
+            <span>Ver Pedidos ({mySellingOrders.length})</span>
           </Link>
         </div>
       </div>
 
       {/* Metrics Bar */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-2xl border border-border bg-card p-3.5">
+        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-sm">
           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">
             Snacks publicados
           </span>
           <p className="mt-1 font-display text-xl font-black text-foreground">{mine.length}</p>
         </div>
-        <div className="rounded-2xl border border-border bg-card p-3.5">
+        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-sm">
           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">
             Unidades en stock
           </span>
           <p className="mt-1 font-display text-xl font-black text-primary">{totalItemsInStock}</p>
         </div>
-        <div className="rounded-2xl border border-border bg-card p-3.5">
+        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-sm">
           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">
-            Valor de inventario
+            Apartados pendientes
           </span>
-          <p className="mt-1 font-display text-xl font-black text-foreground">{money(totalValue)}</p>
+          <p className="mt-1 font-display text-xl font-black text-amber-400">
+            {pendingApartados.length}
+          </p>
         </div>
-        <div className="rounded-2xl border border-border bg-card p-3.5">
+        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-sm">
           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1 font-mono">
-            <TrendingUp size={12} className="text-emerald-400" /> Comisión Bocado (5%)
+            <TrendingUp size={12} className="text-emerald-400" /> Valor Total
           </span>
-          <p className="mt-1 font-display text-xl font-black text-emerald-400">{money(estimatedCommission)}</p>
+          <p className="mt-1 font-display text-xl font-black text-emerald-400">{money(totalValue)}</p>
         </div>
       </div>
 
-      {/* Main Mode Tabs */}
-      <div className="flex rounded-2xl bg-secondary/80 p-1 border border-border/60 max-w-md">
-        <button
-          type="button"
-          onClick={() => {
-            playKeyBeep(500)
-            setActiveTab('inventory')
-          }}
-          className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-display font-bold transition-all ${
-            activeTab === 'inventory'
-              ? 'bg-primary text-primary-foreground shadow-md'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <Sparkles size={14} />
-          <span>1. Publicar & Stock</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            playKeyBeep(500)
-            setActiveTab('lockers')
-          }}
-          className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-display font-bold transition-all ${
-            activeTab === 'lockers'
-              ? 'bg-gradient-to-r from-primary to-amber-500 text-primary-foreground shadow-md'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <Building2 size={14} />
-          <span>2. Guardar en Casillero</span>
-        </button>
-      </div>
-
-      {/* ========================================================= */}
-      {/* TAB 1: PUBLICAR Y GESTIONAR SNACKS                        */}
-      {/* ========================================================= */}
-      {activeTab === 'inventory' && (
-        <div className="space-y-6">
-          {/* Live Campus Presence Banner */}
-          <div className="rounded-3xl border border-primary/30 bg-gradient-to-r from-primary/10 via-card to-card p-5 shadow-sm">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 font-display text-sm font-bold text-foreground">
-                  <span className="relative flex h-3 w-3">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
-                  </span>
-                  <Radio size={16} className="text-primary" />
-                  <span>Mi Ubicación en el Campus en Tiempo Real</span>
-                </div>
+      {/* Pending Apartados Alert Banner */}
+      {pendingApartados.length > 0 && (
+        <div className="rounded-3xl border-2 border-amber-500/50 bg-gradient-to-r from-amber-950/40 via-card to-card p-5 shadow-lg space-y-3 animate-fadeIn">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400 font-bold">
+                <BookmarkCheck size={20} />
+              </div>
+              <div>
+                <h3 className="font-display font-bold text-foreground text-sm sm:text-base">
+                  ¡Tienes {pendingApartados.length} apartado(s) nuevo(s) de compradores!
+                </h3>
                 <p className="text-xs text-muted-foreground">
-                  Los compradores verán este punto en tus snacks para saber dónde encontrarte entre clases.
+                  Los estudiantes han apartado tus snacks. Revisa los detalles y coordina la entrega.
                 </p>
               </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <select
-                  value={sellerZone}
-                  onChange={(e) => setSellerZone(e.target.value)}
-                  className="rounded-xl border border-border bg-secondary px-3 py-2 text-xs font-semibold outline-none focus:ring-1 focus:ring-primary"
-                >
-                  {ICESI_ZONES.map((zone) => (
-                    <option key={zone} value={zone}>
-                      {zone}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  value={presenceDuration}
-                  onChange={(e) => setPresenceDuration(e.target.value)}
-                  className="rounded-xl border border-border bg-secondary px-3 py-2 text-xs font-semibold outline-none focus:ring-1 focus:ring-primary"
-                >
-                  {PRESENCE_DURATIONS.map((dur) => (
-                    <option key={dur.value} value={dur.value}>
-                      {dur.label}
-                    </option>
-                  ))}
-                </select>
-
-                <input
-                  type="text"
-                  placeholder="Detalle (ej. Piso 2 frente a aulas)"
-                  value={zoneDetail}
-                  onChange={(e) => setZoneDetail(e.target.value)}
-                  className="rounded-xl border border-border bg-secondary px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-primary min-w-[180px]"
-                />
-
-                <button
-                  type="button"
-                  onClick={handleSavePresence}
-                  className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 font-display text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90 active:scale-95"
-                >
-                  {presenceSaved ? <CheckCircle2 size={14} /> : <MapPin size={14} />}
-                  <span>{presenceSaved ? '¡Ubicación Fijada!' : 'Fijar Ubicación'}</span>
-                </button>
-              </div>
             </div>
+
+            <Link
+              to="/pedidos"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-display font-bold text-black shadow-md hover:bg-amber-400 transition-colors self-start sm:self-auto"
+            >
+              <span>Gestionar Apartados</span>
+              <span>→</span>
+            </Link>
           </div>
 
-          {/* Grid: Form + Snacks List */}
-          <div className="grid gap-8 lg:grid-cols-[380px_1fr]">
-            {/* Publish Snack Form */}
-            <div className="space-y-4 rounded-3xl border border-border bg-card p-6 shadow-sm">
-              <div className="flex items-center gap-2 font-display text-base font-bold">
-                <Sparkles size={18} className="text-primary" />
-                <h2>Publicar nuevo snack</h2>
-              </div>
-
-              <div>
-                <label className={labelClass}>Nombre del snack *</label>
-                <input
-                  placeholder="Ej. Brownie con Arequipe y Nueces"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className={inputClass}
-                />
-              </div>
-
-              <div>
-                <label className={labelClass}>Descripción / Ingredientes</label>
-                <textarea
-                  placeholder="Ej. Hecho hoy en la mañana, chocolate 70% y nueces picadas."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className={inputClass}
-                  rows={2}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 pt-1">
+            {pendingApartados.slice(0, 3).map((ord) => (
+              <div
+                key={ord.id}
+                className="flex items-center justify-between rounded-2xl border border-amber-500/30 bg-secondary/40 p-3 text-xs"
+              >
                 <div>
-                  <label className={labelClass}>Precio ($ COP) *</label>
+                  <span className="font-bold text-foreground block">
+                    {ord.buyerName || 'Estudiante'}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {ord.items.map((i) => `${i.qty}× ${i.name}`).join(', ')}
+                  </span>
+                </div>
+                <div className="text-right font-mono">
+                  <span className="font-bold text-amber-400 block">{money(ord.total)}</span>
+                  <span className="text-[10px] text-muted-foreground">{formatTime(ord.createdAt)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* CREATOR STUDIO: FORM & LIVE PREVIEW                       */}
+      {/* ========================================================= */}
+      <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-border/60 pb-4 gap-2">
+          <div>
+            <div className="inline-flex items-center gap-1.5 font-mono text-xs font-bold text-primary uppercase">
+              <Sparkles size={14} />
+              <span>Estudio de Publicación</span>
+            </div>
+            <h2 className="font-display text-xl font-bold text-foreground">
+              Crear Nuevo Snack para el Campus
+            </h2>
+          </div>
+
+          {/* Preset Quick Fill */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[11px] font-mono text-muted-foreground">Plantillas rápidas:</span>
+            {SAMPLE_PRESETS.map((p) => (
+              <button
+                key={p.name}
+                type="button"
+                onClick={() => handleApplyPreset(p)}
+                className="rounded-lg border border-border/80 bg-secondary/60 px-2.5 py-1 text-[11px] font-semibold text-foreground hover:bg-secondary hover:border-primary/50 transition-colors"
+              >
+                {p.name.split(' ')[0]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {publishSuccess && (
+          <div className="rounded-2xl border-2 border-emerald-500/40 bg-emerald-500/10 p-4 flex items-center gap-3 text-emerald-400 animate-fadeIn">
+            <CheckCircle2 size={20} className="shrink-0" />
+            <div className="text-xs">
+              <p className="font-bold font-display text-sm">¡Snack publicado con éxito en el catálogo!</p>
+              <p className="text-muted-foreground">Los estudiantes ya pueden verlo y apartarlo en campus.</p>
+            </div>
+          </div>
+        )}
+
+        {/* 2 Column Layout: Form + Live Preview */}
+        <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+          {/* Left Form */}
+          <div className="space-y-4">
+            {/* Name */}
+            <div>
+              <label className={labelClass}>Nombre de la preparación o snack *</label>
+              <input
+                placeholder="Ej. Brownie con Arequipe y Nueces Tostadas"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={inputClass}
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className={labelClass}>Descripción e ingredientes caseros</label>
+              <textarea
+                placeholder="Ej. Horneado hoy en la mañana con cacao al 70%, centro melcochudo y arequipe artesanal."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className={inputClass}
+                rows={2}
+              />
+            </div>
+
+            {/* Price and Stock */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Precio de venta ($ COP) *</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono font-bold text-muted-foreground text-sm">
+                    $
+                  </span>
                   <input
-                    placeholder="Ej. 3500"
+                    placeholder="4500"
                     type="number"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className={inputClass}
+                    className={`${inputClass} pl-8 font-mono font-bold text-foreground`}
                   />
+                  {price && !isNaN(parseInt(price, 10)) && (
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md bg-primary/20 px-2 py-0.5 text-[10px] font-mono font-bold text-primary">
+                      {money(parseInt(price, 10))} COP
+                    </span>
+                  )}
                 </div>
-                <div>
-                  <label className={labelClass}>Cantidad / Stock *</label>
+              </div>
+
+              <div>
+                <label className={labelClass}>Cantidad / Stock disponible *</label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const cur = parseInt(stock, 10) || 1
+                      setStock(String(Math.max(1, cur - 1)))
+                    }}
+                    className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground hover:bg-secondary/80 active:scale-95 border border-border"
+                  >
+                    <Minus size={16} />
+                  </button>
                   <input
-                    placeholder="Ej. 8"
+                    placeholder="8"
                     type="number"
                     value={stock}
                     onChange={(e) => setStock(e.target.value)}
-                    className={inputClass}
+                    className={`${inputClass} text-center font-mono font-bold text-base`}
                   />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const cur = parseInt(stock, 10) || 0
+                      setStock(String(cur + 1))
+                    }}
+                    className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground hover:bg-secondary/80 active:scale-95 border border-border"
+                  >
+                    <Plus size={16} />
+                  </button>
                 </div>
               </div>
+            </div>
 
-              {/* Preferred Building */}
-              <div>
-                <label className={labelClass}>Edificio de entrega preferido</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(['D', 'M', 'L'] as const).map((b) => (
+            {/* Preferred Building */}
+            <div>
+              <label className={labelClass}>Edificio de entrega preferido en Campus Icesi</label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: 'D' as const, name: 'Edificio D', note: 'Plazoleta Central' },
+                  { id: 'M' as const, name: 'Edificio M', note: 'Aulas Principales' },
+                  { id: 'L' as const, name: 'Edificio L', note: 'Zona de Estudios' },
+                ].map((b) => (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => setPreferredBuilding(b.id)}
+                    className={`rounded-2xl p-3 text-left border transition-all ${
+                      preferredBuilding === b.id
+                        ? 'border-primary bg-primary/15 text-primary shadow-sm ring-1 ring-primary'
+                        : 'border-border bg-secondary/30 text-muted-foreground hover:border-primary/40'
+                    }`}
+                  >
+                    <p className="font-display text-xs font-bold text-foreground">
+                      {b.name}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">{b.note}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Categories */}
+            <div>
+              <label className={labelClass}>Categoría principal del snack</label>
+              <div className="flex flex-wrap gap-2">
+                {CATEGORIES.map((item) => {
+                  const selected = tags.includes(item)
+                  return (
                     <button
-                      key={b}
                       type="button"
-                      onClick={() => setPreferredBuilding(b)}
-                      className={`rounded-xl py-2 px-2 text-xs font-mono font-bold border transition-all ${
-                        preferredBuilding === b
-                          ? 'border-primary bg-primary/20 text-primary'
-                          : 'border-border bg-secondary/40 text-muted-foreground'
+                      key={item}
+                      onClick={() =>
+                        setTags((current) =>
+                          current.includes(item) ? current.filter((tag) => tag !== item) : [...current, item],
+                        )
+                      }
+                      className={`rounded-xl px-3.5 py-1.5 text-xs font-display font-semibold transition-all ${
+                        selected
+                          ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-102'
+                          : 'bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground'
                       }`}
                     >
-                      Edificio {b}
+                      {item}
                     </button>
-                  ))}
-                </div>
+                  )
+                })}
               </div>
+            </div>
 
-              {/* Categories */}
-              <div>
-                <label className={labelClass}>Categoría principal</label>
-                <div className="flex flex-wrap gap-1.5">
-                  {CATEGORIES.map((item) => {
-                    const selected = tags.includes(item)
-                    return (
-                      <button
-                        type="button"
-                        key={item}
-                        onClick={() =>
-                          setTags((current) =>
-                            current.includes(item) ? current.filter((tag) => tag !== item) : [...current, item],
-                          )
-                        }
-                        className={`rounded-lg px-2.5 py-1 text-xs font-display font-semibold transition-colors ${
-                          selected ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
-                        }`}
-                      >
-                        {item}
-                      </button>
-                    )
-                  })}
-                </div>
+            {/* Dietary Options */}
+            <div>
+              <label className={labelClass}>Etiquetas dietéticas e ingredientes especiales</label>
+              <div className="flex flex-wrap gap-2">
+                {DIETARY_OPTIONS.map((opt) => {
+                  const selected = dietary.includes(opt.id)
+                  return (
+                    <button
+                      type="button"
+                      key={opt.id}
+                      onClick={() =>
+                        setDietary((current) =>
+                          current.includes(opt.id) ? current.filter((d) => d !== opt.id) : [...current, opt.id],
+                        )
+                      }
+                      className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-display font-semibold transition-all ${
+                        selected
+                          ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
+                          : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
+                      }`}
+                    >
+                      <span>{opt.icon}</span>
+                      <span>{opt.shortLabel}</span>
+                    </button>
+                  )
+                })}
               </div>
+            </div>
 
-              {/* Dietary Options */}
-              <div>
-                <label className={labelClass}>Etiquetas dietéticas y alérgenos</label>
-                <div className="flex flex-wrap gap-1.5">
-                  {DIETARY_OPTIONS.map((opt) => {
-                    const selected = dietary.includes(opt.id)
-                    return (
-                      <button
-                        type="button"
-                        key={opt.id}
-                        onClick={() =>
-                          setDietary((current) =>
-                            current.includes(opt.id) ? current.filter((d) => d !== opt.id) : [...current, opt.id],
-                          )
-                        }
-                        className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-display font-semibold transition-colors ${
-                          selected ? 'bg-emerald-500 text-white' : 'bg-secondary text-muted-foreground'
-                        }`}
-                      >
-                        <span>{opt.icon}</span>
-                        <span>{opt.shortLabel}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
+            {/* Photo Uploader */}
+            <div>
+              <label className={labelClass}>Fotografía del producto</label>
+              <input ref={fileInput} type="file" accept="image/*" className="hidden" onChange={onFile} />
 
-              {/* Photo */}
-              <div>
-                <input ref={fileInput} type="file" accept="image/*" className="hidden" onChange={onFile} />
-                {preview ? (
-                  <div className="relative">
-                    <img src={preview} alt="Preview" className="h-32 w-full rounded-2xl object-cover" />
+              {preview || selectedPresetImage ? (
+                <div className="relative overflow-hidden rounded-2xl border border-border bg-secondary">
+                  <img
+                    src={preview || selectedPresetImage || ''}
+                    alt="Preview"
+                    className="h-44 w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-between p-3">
+                    <span className="text-xs text-white font-medium flex items-center gap-1">
+                      <ImageIcon size={14} /> Imagen seleccionada
+                    </span>
                     <button
                       type="button"
                       onClick={() => {
                         setFile(null)
                         setPreview(null)
+                        setSelectedPresetImage(null)
                       }}
-                      className="absolute top-2 right-2 rounded-full bg-background/80 px-2.5 py-1 text-xs font-bold text-foreground"
+                      className="rounded-xl bg-destructive/90 px-3 py-1.5 text-xs font-bold text-destructive-foreground hover:bg-destructive shadow-md flex items-center gap-1"
                     >
-                      ✕ Cambiar
+                      <Trash2 size={12} /> Quitar
                     </button>
                   </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => fileInput.current?.click()}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border py-3 text-xs font-semibold text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
-                  >
-                    <Camera size={16} /> Subir foto del snack (opcional)
-                  </button>
-                )}
-              </div>
-
-              {error && <p className="text-xs text-destructive">{error}</p>}
-
-              <button
-                type="button"
-                onClick={() => void publish()}
-                disabled={uploading || !name.trim() || !price || !stock}
-                className="w-full rounded-2xl bg-primary py-3.5 font-display text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:brightness-110 active:scale-95 disabled:opacity-40"
-              >
-                {uploading ? 'Publicando en campus...' : '+ Publicar Snack'}
-              </button>
-            </div>
-
-            {/* Existing Snacks List */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-display text-lg font-bold">Mis Snacks Publicados ({mine.length})</h2>
-                <span className="text-xs text-muted-foreground">Control instantáneo de stock</span>
-              </div>
-
-              {mine.length === 0 ? (
-                <div className="rounded-3xl border border-dashed border-border bg-card/40 p-12 text-center text-muted-foreground">
-                  <p className="font-display font-medium text-foreground">Aún no has publicado snacks.</p>
-                  <p className="mt-1 text-xs">Usa el formulario para anunciar tus brownies o snacks de hoy.</p>
                 </div>
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {mine.map((product) => (
-                    <article
-                      key={product.id}
-                      className="overflow-hidden rounded-3xl border border-border/80 bg-card p-4 shadow-sm space-y-3"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <h3 className="font-display font-bold text-foreground truncate">{product.name}</h3>
-                          <p className="font-display font-extrabold text-primary text-base">{money(product.price)}</p>
-                          <div className="mt-1">
-                            <TagList tags={parseTags(product.category)} size="sm" />
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => void toggleSoldOut(product)}
-                          className={`rounded-full px-3 py-1 text-xs font-display font-bold transition-colors ${
-                            product.sold_out
-                              ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                              : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                          }`}
-                        >
-                          {product.sold_out ? 'Agotado' : 'Disponible'}
-                        </button>
-                      </div>
-
-                      {/* Stock Quick Controls */}
-                      <div className="flex items-center justify-between rounded-xl bg-secondary/60 p-2.5">
-                        <span className="text-xs font-semibold text-muted-foreground">Stock en campus:</span>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => void changeStock(product.id, -1)}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg bg-card text-foreground hover:bg-card/80 active:scale-95"
-                          >
-                            <Minus size={14} />
-                          </button>
-                          <span className="min-w-6 text-center font-display font-bold text-base text-foreground">
-                            {product.stock}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => void changeStock(product.id, 1)}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg bg-card text-foreground hover:bg-card/80 active:scale-95"
-                          >
-                            <Plus size={14} />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
-                        <span className="flex items-center gap-1">
-                          <Users size={13} className="text-primary" /> {product.intent_count} interesados
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedProductToStoreId(product.id)
-                            setActiveTab('lockers')
-                          }}
-                          className="font-display font-bold text-primary hover:underline text-xs flex items-center gap-1"
-                        >
-                          <Building2 size={12} /> Guardar en Casillero →
-                        </button>
-                      </div>
-                    </article>
-                  ))}
+                <div
+                  onClick={() => fileInput.current?.click()}
+                  className="cursor-pointer rounded-2xl border-2 border-dashed border-border p-6 text-center hover:border-primary/60 hover:bg-primary/5 transition-all group"
+                >
+                  <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 transition-colors">
+                    <UploadCloud size={24} />
+                  </div>
+                  <p className="font-display font-bold text-foreground text-xs sm:text-sm">
+                    Haz clic para subir una foto desde tu dispositivo
+                  </p>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Formatos JPG o PNG. Si no tienes foto, se usará una ilustración sugerida automáticamente.
+                  </p>
                 </div>
               )}
             </div>
+
+            {error && (
+              <p className="rounded-xl bg-destructive/10 border border-destructive/30 p-3 text-xs text-destructive font-medium">
+                {error}
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={() => void publish()}
+              disabled={uploading || !name.trim() || !price}
+              className="w-full rounded-2xl bg-gradient-to-r from-primary to-amber-500 py-4 font-display text-sm font-extrabold text-primary-foreground shadow-xl shadow-primary/25 hover:brightness-110 active:scale-95 disabled:opacity-40 transition-all flex items-center justify-center gap-2"
+            >
+              {uploading ? (
+                'Publicando snack en el campus...'
+              ) : (
+                <>
+                  <Sparkles size={16} />
+                  <span>Publicar Snack en el Catálogo</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Right Live Preview Column */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-muted-foreground uppercase">
+              <Eye size={14} className="text-primary" />
+              <span>Vista Previa en Vivo</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Así verán los estudiantes tu publicación en el catálogo de Bocado:
+            </p>
+
+            {/* Simulated Product Card */}
+            <article className="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900/95 to-black p-4 shadow-2xl backdrop-blur-xl transition-all">
+              {/* Top Bar: Seller info */}
+              <div className="flex items-center justify-between border-b border-white/10 pb-2.5 mb-3 text-xs">
+                <div className="flex items-center gap-2 truncate">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-[10px] font-bold text-primary font-mono">
+                    {(user.name || 'V').charAt(0).toUpperCase()}
+                  </span>
+                  <span className="font-medium text-zinc-300 text-xs truncate">
+                    {user.name || 'Mi Tienda'}
+                  </span>
+                </div>
+                <span className="rounded-md bg-white/5 px-2 py-0.5 text-[10px] text-zinc-400 font-mono">
+                  Edif. {preferredBuilding}
+                </span>
+              </div>
+
+              {/* Product Image */}
+              <div className="relative h-48 w-full overflow-hidden rounded-2xl bg-zinc-950 border border-white/10 block">
+                <img
+                  src={livePreviewImage}
+                  alt={name || 'Preview'}
+                  className="h-full w-full object-cover rounded-xl"
+                />
+                <span className="absolute bottom-2 left-2 rounded-lg bg-emerald-500/90 px-2.5 py-1 text-[10px] font-bold text-white shadow-md">
+                  Stock: {stock || '0'}
+                </span>
+              </div>
+
+              {/* Card Details */}
+              <div className="mt-3 space-y-2">
+                <h3 className="font-brand text-base font-bold text-foreground line-clamp-1">
+                  {name.trim() || 'Nombre de tu delicioso snack'}
+                </h3>
+
+                <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
+                  {description.trim() || 'Aquí aparecerá la descripción e ingredientes de tu preparación...'}
+                </p>
+
+                <div className="pt-1">
+                  <TagList tags={[...tags, ...dietary]} size="sm" />
+                </div>
+
+                <div className="pt-3 flex items-center justify-between border-t border-white/10">
+                  <div>
+                    <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono block">
+                      Precio
+                    </span>
+                    <p className="font-mono text-lg font-black text-primary">
+                      {price && !isNaN(parseInt(price, 10)) ? money(parseInt(price, 10)) : '$0'}
+                    </p>
+                  </div>
+
+                  <span className="rounded-xl bg-gradient-to-r from-primary to-amber-500 px-3.5 py-2 font-display text-xs font-bold text-primary-foreground shadow-md">
+                    Apartar
+                  </span>
+                </div>
+              </div>
+            </article>
           </div>
         </div>
-      )}
+      </div>
 
       {/* ========================================================= */}
-      {/* TAB 2: PANEL DE GUARDADO EN CASILLERO (DEPÓSITO D, M, L)   */}
+      {/* SECTION: MIS SNACKS PUBLICADOS                            */}
       {/* ========================================================= */}
-      {activeTab === 'lockers' && (
-        <div className="space-y-6 animate-fadeIn">
-          {/* Instructions Box */}
-          <div className="rounded-3xl border border-primary/30 bg-gradient-to-r from-primary/15 via-card to-card p-6 shadow-xl backdrop-blur-md">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="space-y-1">
-                <div className="inline-flex items-center gap-1.5 font-mono text-xs font-bold text-primary uppercase">
-                  <KeyRound size={14} />
-                  <span>Flujo de Depósito para Vendedores</span>
-                </div>
-                <h2 className="font-display text-xl font-bold text-foreground">
-                  Elige un Casillero Libre en Edificio D, M o L
-                </h2>
-                <p className="text-xs text-muted-foreground max-w-2xl">
-                  Selecciona el edificio del campus, elige un casillero vacío, asigna tu snack y te daremos un <strong>PIN de depósito (ej. DEP-4891)</strong> para abrir la compuerta física en la máquina.
-                </p>
-              </div>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-lg font-bold text-foreground">
+              Mis Snacks Publicados ({mine.length})
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Ajusta el stock o marca agotado en cualquier momento.
+            </p>
+          </div>
+        </div>
 
-              <Link
-                to="/vitrina"
-                className="flex items-center gap-2 rounded-2xl bg-secondary px-4 py-2.5 font-display text-xs font-bold text-foreground hover:bg-secondary/80 self-start lg:self-auto"
+        {mine.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-border bg-card/40 p-12 text-center text-muted-foreground">
+            <ShoppingBag size={40} className="mx-auto mb-2 text-primary opacity-30" />
+            <p className="font-display font-medium text-foreground">Aún no has publicado snacks.</p>
+            <p className="mt-1 text-xs">Usa el formulario de arriba para anunciar tus preparaciones de hoy.</p>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {mine.map((product) => (
+              <article
+                key={product.id}
+                className="overflow-hidden rounded-3xl border border-border/80 bg-card p-4 shadow-sm space-y-3"
               >
-                <Zap size={14} className="text-primary" />
-                <span>Abrir Terminal Kiosk</span>
-              </Link>
-            </div>
-          </div>
-
-          {/* Building Selector */}
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { id: 'D' as const, name: 'Edificio D', icon: '⚡', zone: 'Plazoleta Central' },
-              { id: 'M' as const, name: 'Edificio M', icon: '🏛️', zone: 'Hall de Aulas' },
-              { id: 'L' as const, name: 'Edificio L', icon: '🌿', zone: 'Acceso a Estudios' },
-            ].map((b) => {
-              const isSel = selectedLockerBuilding === b.id
-              const lks = getLockersByBuilding(b.id)
-              const freeCount = lks.filter((l) => l.status === 'disponible').length
-
-              return (
-                <button
-                  key={b.id}
-                  type="button"
-                  onClick={() => {
-                    playKeyBeep(550)
-                    setSelectedLockerBuilding(b.id)
-                    setSelectedLockerToReserve(null)
-                  }}
-                  className={`rounded-3xl border p-4 text-left transition-all ${
-                    isSel
-                      ? 'border-primary bg-primary/15 shadow-xl shadow-primary/15 ring-2 ring-primary scale-102'
-                      : 'border-border bg-card/60 hover:border-primary/40'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-display text-sm font-bold text-foreground flex items-center gap-1.5">
-                      <span>{b.icon}</span>
-                      {b.name}
-                    </span>
-                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="font-display font-bold text-foreground truncate">{product.name}</h3>
+                    <p className="font-display font-extrabold text-primary text-base">{money(product.price)}</p>
+                    <div className="mt-1">
+                      <TagList tags={parseTags(product.category)} size="sm" />
+                    </div>
                   </div>
-                  <p className="mt-1 text-[11px] text-muted-foreground">{b.zone}</p>
-                  <p className="mt-3 text-xs font-mono font-bold text-emerald-400">
-                    {freeCount} de 20 casilleros libres
-                  </p>
-                </button>
-              )
-            })}
-          </div>
 
-          {/* 20 Locker Grid for Selected Building */}
-          <div className="rounded-3xl border border-border bg-card p-6 shadow-xl space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-border/60 pb-3 gap-2">
-              <div>
-                <h3 className="font-display text-base font-bold text-foreground flex items-center gap-2">
-                  <Building2 size={18} className="text-primary" />
-                  Casilleros en Edificio {selectedLockerBuilding} (20 Unidades)
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  Haz clic en cualquier casillero libre (verde) para seleccionarlo y guardar tu snack.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3 text-xs font-mono">
-                <span className="flex items-center gap-1 text-emerald-400">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400" /> Disponible
-                </span>
-                <span className="flex items-center gap-1 text-amber-400">
-                  <span className="h-2 w-2 rounded-full bg-amber-400" /> Esperando depósito
-                </span>
-                <span className="flex items-center gap-1 text-cyan-400">
-                  <span className="h-2 w-2 rounded-full bg-cyan-400" /> Con snack listo
-                </span>
-              </div>
-            </div>
-
-            {/* Matrix of 20 Lockers */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
-              {buildingLockers.map((locker) => {
-                const isFree = locker.status === 'disponible'
-                const isWaiting = locker.status === 'esperando_deposito'
-                const isSelected = selectedLockerToReserve?.id === locker.id
-
-                return (
                   <button
-                    key={locker.id}
                     type="button"
-                    onClick={() => {
-                      if (isFree) {
-                        playKeyBeep(600)
-                        setSelectedLockerToReserve(locker)
-                      }
-                    }}
-                    className={`rounded-2xl border p-3.5 text-left transition-all relative flex flex-col justify-between min-h-[105px] ${
-                      isSelected
-                        ? 'border-primary bg-primary/20 shadow-lg shadow-primary/20 ring-2 ring-primary scale-105'
-                        : isFree
-                        ? 'border-emerald-500/30 bg-emerald-950/10 hover:border-emerald-400 hover:bg-emerald-950/20 cursor-pointer'
-                        : isWaiting
-                        ? 'border-amber-500/30 bg-amber-950/20 opacity-80 cursor-not-allowed'
-                        : 'border-cyan-500/30 bg-cyan-950/20 opacity-80 cursor-not-allowed'
+                    onClick={() => void toggleSoldOut(product)}
+                    className={`rounded-full px-3 py-1 text-xs font-display font-bold transition-colors ${
+                      product.sold_out
+                        ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                        : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs font-black text-foreground">
-                        #{locker.code}
-                      </span>
-                      <span
-                        className={`h-2 w-2 rounded-full ${
-                          isFree
-                            ? 'bg-emerald-400'
-                            : isWaiting
-                            ? 'bg-amber-400'
-                            : 'bg-cyan-400'
-                        }`}
-                      />
-                    </div>
+                    {product.sold_out ? 'Agotado' : 'Disponible'}
+                  </button>
+                </div>
 
-                    <div className="my-1 text-xs">
-                      {isFree ? (
-                        <p className="font-semibold text-emerald-400 text-[11px]">Libre</p>
-                      ) : isWaiting ? (
-                        <p className="font-semibold text-amber-400 text-[10px] truncate">
-                          {locker.productName || 'Reservado'}
-                        </p>
-                      ) : (
-                        <p className="font-semibold text-cyan-400 text-[10px] truncate">
-                          {locker.productName || 'Ocupado'}
-                        </p>
-                      )}
-                    </div>
-
-                    <span className="text-[9px] font-mono text-muted-foreground capitalize">
-                      {locker.tempType === 'refrigerado' ? '❄️ Frío' : '🌡️ Ambiente'}
+                {/* Stock Quick Controls */}
+                <div className="flex items-center justify-between rounded-xl bg-secondary/60 p-2.5">
+                  <span className="text-xs font-semibold text-muted-foreground">Stock en campus:</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void changeStock(product.id, -1)}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg bg-card text-foreground hover:bg-card/80 active:scale-95 border border-border"
+                    >
+                      <Minus size={14} />
+                    </button>
+                    <span className="min-w-6 text-center font-display font-bold text-base text-foreground">
+                      {product.stock}
                     </span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Reservation Action Box */}
-          {selectedLockerToReserve && (
-            <div className="rounded-3xl border-2 border-primary/50 bg-card p-6 shadow-2xl space-y-4 animate-fadeIn">
-              <div className="flex items-center justify-between border-b border-border/60 pb-3">
-                <div className="flex items-center gap-2 font-display text-base font-bold text-foreground">
-                  <KeyRound size={18} className="text-primary" />
-                  <span>Asignar Snack al Casillero #{selectedLockerToReserve.code} ({selectedLockerToReserve.hubName})</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedLockerToReserve(null)}
-                  className="text-xs text-muted-foreground hover:text-foreground"
-                >
-                  ✕ Cancelar
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground block mb-1.5 font-mono">
-                    Selecciona el snack a depositar:
-                  </label>
-                  <select
-                    value={selectedProductToStoreId}
-                    onChange={(e) => setSelectedProductToStoreId(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-secondary p-3 text-xs font-semibold outline-none focus:ring-1 focus:ring-primary"
-                  >
-                    <option value="">-- Elige uno de tus snacks --</option>
-                    {mine.map((prod) => (
-                      <option key={prod.id} value={prod.id}>
-                        {prod.name} ({money(prod.price)}) - Stock: {prod.stock}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="rounded-2xl bg-secondary/50 p-4 text-xs font-mono space-y-1.5">
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Comisión Bocado (5%):</span>
-                    <span className="text-emerald-400 font-bold">5% solo al venderse</span>
-                  </div>
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Apertura de compuerta:</span>
-                    <span className="text-foreground">PIN de depósito generado</span>
+                    <button
+                      type="button"
+                      onClick={() => void changeStock(product.id, 1)}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg bg-card text-foreground hover:bg-card/80 active:scale-95 border border-border"
+                    >
+                      <Plus size={14} />
+                    </button>
                   </div>
                 </div>
-              </div>
 
-              <button
-                type="button"
-                onClick={handleReserveLockerDeposit}
-                disabled={!selectedProductToStoreId}
-                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-amber-500 py-4 font-display text-sm font-extrabold text-primary-foreground shadow-lg shadow-primary/25 hover:brightness-110 active:scale-95 disabled:opacity-40 transition-all"
-              >
-                <KeyRound size={16} />
-                <span>Reservar Casillero #{selectedLockerToReserve.code} & Generar PIN de Depósito</span>
-              </button>
-            </div>
-          )}
-
-          {/* Deposit Success Result Modal */}
-          {depositSuccessResult && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-fadeIn">
-              <div className="relative w-full max-w-md rounded-3xl border-2 border-primary/50 bg-card p-6 shadow-2xl space-y-5 text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/20 text-primary">
-                  <Zap size={36} />
-                </div>
-
-                <div className="space-y-1">
-                  <span className="text-[10px] font-mono font-bold uppercase text-emerald-400">
-                    ¡Casillero Reservado para Depósito!
+                <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t border-border/40">
+                  <span className="flex items-center gap-1">
+                    <Users size={13} className="text-primary" /> {product.intent_count || 0} apartados
                   </span>
-                  <h3 className="font-display text-xl font-bold text-foreground">
-                    Casillero #{depositSuccessResult.locker.code} · {depositSuccessResult.locker.hubName}
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Producto: <strong>{depositSuccessResult.locker.productName}</strong>
-                  </p>
-                </div>
-
-                {/* Big Deposit PIN Highlight */}
-                <div className="rounded-2xl border-2 border-amber-500/40 bg-amber-950/20 p-4 space-y-1">
-                  <span className="text-[10px] font-mono uppercase text-amber-400 font-bold block">
-                    TU PIN DE DEPÓSITO PARA LA MÁQUINA
-                  </span>
-                  <p className="font-mono text-3xl font-black tracking-widest text-amber-400">
-                    {depositSuccessResult.depositPin}
-                  </p>
-                  <p className="text-[11px] text-zinc-400 mt-1">
-                    Digita este PIN en el teclado de la vitrina para abrir la compuerta y dejar el producto.
-                  </p>
-                </div>
-
-                <div className="flex gap-2">
                   <Link
-                    to="/vitrina"
-                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-primary py-3 text-xs font-display font-bold text-primary-foreground shadow-md hover:opacity-90"
+                    to={`/producto/${product.id}`}
+                    className="font-display font-bold text-primary hover:underline text-xs"
                   >
-                    <KeyRound size={14} />
-                    <span>Ir a la Terminal</span>
+                    Ver en catálogo →
                   </Link>
-                  <button
-                    type="button"
-                    onClick={() => setDepositSuccessResult(null)}
-                    className="flex-1 rounded-xl border border-border bg-secondary py-3 text-xs font-display font-semibold text-foreground hover:bg-secondary/80"
-                  >
-                    Cerrar
-                  </button>
                 </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

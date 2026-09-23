@@ -15,9 +15,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AssignLockerModal } from '../components/lockers/AssignLockerModal'
 import { useAuth } from '../context/AuthContext'
-import { formatTime, money, sellerUserId } from '../lib/format'
+import { formatTime, money, ownsListing, sellerUserId } from '../lib/format'
 import { playKeyBeep } from '../lib/sounds'
-import { fetchOrders, saveOrder } from '../lib/storage-db'
+import { fetchOrders, saveOrder, subscribeToOrderUpdates } from '../lib/storage-db'
 import type { Order, OrderStatus } from '../types'
 
 const labels: Record<OrderStatus, { label: string; color: string }> = {
@@ -42,16 +42,30 @@ export function OrdersPage() {
 
   useEffect(() => {
     void refresh()
+    const unsub = subscribeToOrderUpdates(() => {
+      void refresh()
+    })
+    return () => unsub()
   }, [refresh])
 
   const mine = orders.filter((order) => order.buyerId === user?.id)
-  const selling = orders.filter(
-    (order) =>
-      order.sellerKey.endsWith(`::${user?.id}`) ||
-      order.sellerKey === user?.id ||
-      order.sellerName === user?.name,
-  )
+  const selling = orders.filter((order) => {
+    if (!user) return false
+    const sKey = order.sellerKey || ''
+    const sName = (order.sellerName || '').trim().toLowerCase()
+    const uName = (user.name || '').trim().toLowerCase()
+    const uId = user.id.toLowerCase()
+
+    return (
+      sKey.toLowerCase().endsWith(`::${uId}`) ||
+      sKey.toLowerCase() === uId ||
+      sKey.toLowerCase() === uName ||
+      sName === uName ||
+      ownsListing(order.sellerKey, user.id, user.name)
+    )
+  })
   const list = tab === 'compras' ? mine : selling
+
 
   const setStatus = async (order: Order, status: OrderStatus) => {
     await saveOrder({ ...order, status })

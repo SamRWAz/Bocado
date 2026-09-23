@@ -60,9 +60,45 @@ export async function saveStoredUser(user: StoredUser, upsert = true) {
   }
 }
 
+function notifyOrderSync() {
+  try {
+    const channel = new BroadcastChannel('bocado_orders_channel')
+    channel.postMessage({ type: 'orders_updated' })
+    channel.close()
+  } catch {
+    // Ignore
+  }
+  window.dispatchEvent(new CustomEvent('bocado_orders_sync'))
+}
+
+export function subscribeToOrderUpdates(callback: () => void): () => void {
+  let channel: BroadcastChannel | null = null
+  try {
+    channel = new BroadcastChannel('bocado_orders_channel')
+    channel.onmessage = () => callback()
+  } catch {
+    // Ignore
+  }
+
+  const handleCustom = () => callback()
+  const handleStorage = (e: StorageEvent) => {
+    if (e.key === LOCAL_ORDERS) callback()
+  }
+
+  window.addEventListener('bocado_orders_sync', handleCustom)
+  window.addEventListener('storage', handleStorage)
+
+  return () => {
+    channel?.close()
+    window.removeEventListener('bocado_orders_sync', handleCustom)
+    window.removeEventListener('storage', handleStorage)
+  }
+}
+
 export async function saveOrder(order: Order) {
   const local = readLocal<Order[]>(LOCAL_ORDERS, []).filter((item) => item.id !== order.id)
   localStorage.setItem(LOCAL_ORDERS, JSON.stringify([order, ...local]))
+  notifyOrderSync()
   try {
     await uploadJson(`order-${order.id}.json`, order, true)
   } catch {
@@ -72,18 +108,22 @@ export async function saveOrder(order: Order) {
 
 export async function fetchOrders(): Promise<Order[]> {
   const local = readLocal<Order[]>(LOCAL_ORDERS, [])
-  const { data, error } = await supabase.storage.from(BUCKET).list('', {
-    limit: 200,
-    search: 'order-',
-  })
-  if (error || !data) return local
-  const files = data.filter((file) => file.name.startsWith('order-') && file.name.endsWith('.json'))
-  const remote = (await Promise.all(files.map((file) => downloadJson<Order>(file.name)))).filter(
-    (order): order is Order => !!order,
-  )
-  const map = new Map<string, Order>()
-  ;[...local, ...remote].forEach((order) => map.set(order.id, order))
-  return [...map.values()]
+  try {
+    const { data, error } = await supabase.storage.from(BUCKET).list('', {
+      limit: 200,
+      search: 'order-',
+    })
+    if (error || !data) return local
+    const files = data.filter((file) => file.name.startsWith('order-') && file.name.endsWith('.json'))
+    const remote = (await Promise.all(files.map((file) => downloadJson<Order>(file.name)))).filter(
+      (order): order is Order => !!order,
+    )
+    const map = new Map<string, Order>()
+    ;[...local, ...remote].forEach((order) => map.set(order.id, order))
+    return [...map.values()]
+  } catch {
+    return local
+  }
 }
 
 export async function fetchOrder(id: string) {
@@ -93,3 +133,4 @@ export async function fetchOrder(id: string) {
     null
   )
 }
+
