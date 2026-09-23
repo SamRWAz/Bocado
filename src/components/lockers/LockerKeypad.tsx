@@ -1,8 +1,13 @@
-import { CheckCircle2, Delete, KeyRound, QrCode, Sparkles, X } from 'lucide-react'
+import { CheckCircle2, Delete, KeyRound, LockOpen, QrCode, Sparkles, X, Zap } from 'lucide-react'
 import { useState } from 'react'
-import { depositInLocker, unlockLockerWithPin } from '../../lib/lockers'
+import {
+  depositInLocker,
+  unlockLockerWithVirtualPayment,
+  verifyClaimPin,
+} from '../../lib/lockers'
+import { money } from '../../lib/format'
 import { playErrorBuzz, playKeyBeep, playLockerUnlock, playPaymentSuccess } from '../../lib/sounds'
-import type { Locker } from '../../types'
+import type { Locker, PaymentMethod } from '../../types'
 
 type Props = {
   onLockerUnlocked?: (locker: Locker) => void
@@ -12,8 +17,19 @@ type Props = {
 export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
   const [pinInput, setPinInput] = useState('')
   const [mode, setMode] = useState<'pin' | 'qr'>('pin')
-  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  // Virtual Payment Step State for Buyer
+  const [paymentModalLocker, setPaymentModalLocker] = useState<Locker | null>(null)
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('qr_nequi')
+  const [isPayingVirtual, setIsPayingVirtual] = useState(false)
+  const [paymentReceipt, setPaymentReceipt] = useState<{
+    total: number
+    commission: number
+    netRevenue: number
+    locker: Locker
+  } | null>(null)
 
   const handleKeyPress = (char: string) => {
     if (pinInput.length >= 8) return
@@ -38,42 +54,84 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
     if (!pinInput.trim()) return
     setIsProcessing(true)
 
-    // Check if it's a deposit PIN (starts with DEP) or claim PIN (numeric)
     const isDeposit = pinInput.toUpperCase().startsWith('DEP')
 
     setTimeout(() => {
-      let result
       if (isDeposit) {
-        result = depositInLocker(pinInput)
-      } else {
-        result = unlockLockerWithPin(pinInput)
-      }
-
-      setIsProcessing(false)
-
-      if (result.success && result.locker) {
-        playPaymentSuccess()
-        playLockerUnlock()
-        setStatusMessage({ type: 'success', text: result.message })
-        if (onLockerUnlocked) {
-          onLockerUnlocked(result.locker)
+        // Seller Deposit Flow
+        const result = depositInLocker(pinInput)
+        setIsProcessing(false)
+        if (result.success && result.locker) {
+          playPaymentSuccess()
+          playLockerUnlock()
+          setStatusMessage({ type: 'success', text: result.message })
+          if (onLockerUnlocked) onLockerUnlocked(result.locker)
+        } else {
+          playErrorBuzz()
+          setStatusMessage({ type: 'error', text: result.message })
         }
       } else {
-        playErrorBuzz()
-        setStatusMessage({ type: 'error', text: result.message })
+        // Buyer Claim Flow: Verify PIN and prompt for Virtual QR Payment
+        const check = verifyClaimPin(pinInput)
+        setIsProcessing(false)
+        if (check.success && check.locker) {
+          playPaymentSuccess()
+          setPaymentModalLocker(check.locker)
+        } else {
+          playErrorBuzz()
+          setStatusMessage({ type: 'error', text: check.message })
+        }
       }
     }, 450)
+  }
+
+  const handleConfirmVirtualPayment = async () => {
+    if (!paymentModalLocker) return
+    setIsPayingVirtual(true)
+    playKeyBeep(850)
+
+    try {
+      const res = await unlockLockerWithVirtualPayment({
+        pin: paymentModalLocker.claimPin || pinInput,
+        paymentMethod: selectedPaymentMethod,
+      })
+
+      setIsPayingVirtual(false)
+
+      if (res.success && res.locker && res.receipt) {
+        playPaymentSuccess()
+        playLockerUnlock()
+        setPaymentReceipt({
+          total: res.receipt.total,
+          commission: res.receipt.commission,
+          netRevenue: res.receipt.netRevenue,
+          locker: res.locker,
+        })
+        if (onLockerUnlocked) onLockerUnlocked(res.locker)
+      } else {
+        playErrorBuzz()
+        alert(res.message)
+      }
+    } catch {
+      setIsPayingVirtual(false)
+      playErrorBuzz()
+    }
+  }
+
+  const handleCloseAllModals = () => {
+    setPaymentModalLocker(null)
+    setPaymentReceipt(null)
+    setPinInput('')
+    if (onClose) onClose()
   }
 
   const handleSimulateQrScan = (samplePin: string) => {
     setPinInput(samplePin)
     setMode('pin')
     playPaymentSuccess()
-    playLockerUnlock()
-    const result = unlockLockerWithPin(samplePin)
-    if (result.success && result.locker) {
-      setStatusMessage({ type: 'success', text: result.message })
-      if (onLockerUnlocked) onLockerUnlocked(result.locker)
+    const check = verifyClaimPin(samplePin)
+    if (check.success && check.locker) {
+      setPaymentModalLocker(check.locker)
     }
   }
 
@@ -91,15 +149,15 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
 
       {/* Header */}
       <div className="text-center mb-5">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-bold text-primary mb-2">
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-mono font-bold text-primary mb-2">
           <KeyRound size={13} />
-          <span>Terminal Kiosk de Apertura</span>
+          <span>Terminal Kiosk de Vitrina</span>
         </div>
-        <h3 className="font-display text-xl font-extrabold tracking-tight sm:text-2xl text-foreground">
+        <h3 className="font-display text-xl font-black tracking-tight sm:text-2xl text-foreground">
           Digita tu PIN de Casillero
         </h3>
         <p className="text-xs text-muted-foreground mt-1">
-          Ingresa el PIN de 4 dígitos de tu Pase de Retiro o tu código de vendedor (ej. DEP-1021).
+          Ingresa tu PIN de 4 dígitos para verificar tu snack y pagar por QR, o tu código de vendedor (ej. DEP-1021).
         </p>
       </div>
 
@@ -135,7 +193,7 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
         <div className="max-w-xs mx-auto space-y-4">
           {/* Display screen */}
           <div className="relative rounded-2xl border-2 border-primary/40 bg-black/80 p-4 text-center shadow-inner">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground block mb-1">
+            <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-muted-foreground block mb-1">
               Código Ingresado
             </span>
             <div className="h-10 flex items-center justify-center font-mono text-2xl font-black tracking-widest text-primary">
@@ -150,7 +208,7 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
           {/* Status Message */}
           {statusMessage && (
             <div
-              className={`rounded-xl p-3 text-xs font-semibold animate-in fade-in slide-in-from-top-1 ${
+              className={`rounded-2xl p-3 text-xs font-semibold animate-fadeIn ${
                 statusMessage.type === 'success'
                   ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                   : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
@@ -209,7 +267,7 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
                 playKeyBeep(800)
                 setPinInput('DEP-')
               }}
-              className="flex-1 rounded-xl border border-border bg-secondary/50 py-2 text-[11px] font-semibold text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
+              className="flex-1 rounded-xl border border-border bg-secondary/50 py-2 text-[11px] font-mono font-semibold text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
             >
               + Prefijo DEP- (Vendedor)
             </button>
@@ -223,7 +281,7 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary via-amber-500 to-primary py-4 font-display text-sm font-extrabold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:opacity-95 active:scale-95 disabled:opacity-40"
           >
             <Sparkles size={18} />
-            <span>{isProcessing ? 'Validando código...' : '🔓 Desbloquear Casillero'}</span>
+            <span>{isProcessing ? 'Verificando código...' : 'Continuar / Validar PIN'}</span>
           </button>
         </div>
       ) : (
@@ -237,25 +295,172 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
             Apunta la cámara del celular hacia el código QR de la vitrina inteligente para abrir tu casillero automáticamente.
           </p>
           <div className="space-y-2 pt-2">
-            <span className="text-[10px] font-bold uppercase text-muted-foreground block">
-              Prueba con pases de demostración:
+            <span className="text-[10px] font-mono font-bold uppercase text-muted-foreground block">
+              Prueba con pases demo activos:
             </span>
             <div className="flex flex-wrap gap-2 justify-center">
               <button
                 type="button"
                 onClick={() => handleSimulateQrScan('7492')}
-                className="rounded-lg bg-primary/15 border border-primary/30 px-3 py-1.5 text-xs font-bold text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                className="rounded-xl bg-primary/15 border border-primary/30 px-3 py-1.5 text-xs font-mono font-bold text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
               >
-                QR Casillero D-02 (PIN 7492)
+                QR Edificio D (PIN 7492)
               </button>
               <button
                 type="button"
-                onClick={() => handleSimulateQrScan('3184')}
-                className="rounded-lg bg-primary/15 border border-primary/30 px-3 py-1.5 text-xs font-bold text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                onClick={() => handleSimulateQrScan('5820')}
+                className="rounded-xl bg-primary/15 border border-primary/30 px-3 py-1.5 text-xs font-mono font-bold text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
               >
-                QR Casillero D-04 (PIN 3184)
+                QR Edificio M (PIN 5820)
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* VIRTUAL QR PAYMENT MODAL FOR BUYER                        */}
+      {/* ========================================================= */}
+      {paymentModalLocker && !paymentReceipt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-md rounded-3xl border-2 border-amber-500/50 bg-card p-6 shadow-2xl space-y-5">
+            <button
+              type="button"
+              onClick={() => setPaymentModalLocker(null)}
+              className="absolute right-4 top-4 rounded-full p-2 text-muted-foreground hover:bg-secondary hover:text-foreground"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="text-center space-y-1">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 px-3 py-1 text-xs font-mono font-bold text-amber-400">
+                <QrCode size={13} />
+                <span>Pago Virtual de Retiro</span>
+              </span>
+              <h3 className="font-display text-xl font-bold text-foreground">
+                Casillero #{paymentModalLocker.code} · {paymentModalLocker.hubName}
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Producto asignado: <strong>{paymentModalLocker.productName}</strong>
+              </p>
+            </div>
+
+            {/* QR Code Graphic */}
+            <div className="mx-auto flex h-40 w-40 items-center justify-center rounded-2xl border-2 border-dashed border-amber-400/60 bg-white p-2 shadow-xl">
+              <div className="h-full w-full bg-slate-950 rounded-xl flex flex-col items-center justify-center text-white p-2">
+                <QrCode size={80} className="text-amber-400 animate-pulse" />
+                <span className="text-[8px] font-mono text-zinc-300 mt-1">NEQUI / BANCOLOMBIA</span>
+              </div>
+            </div>
+
+            {/* Payment Method Selector */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setSelectedPaymentMethod('qr_nequi')}
+                className={`py-2 px-3 rounded-xl text-xs font-mono font-bold border transition-all ${
+                  selectedPaymentMethod === 'qr_nequi'
+                    ? 'border-amber-400 bg-amber-500/20 text-amber-300'
+                    : 'border-border bg-secondary text-muted-foreground'
+                }`}
+              >
+                QR Nequi
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedPaymentMethod('qr_bancolombia')}
+                className={`py-2 px-3 rounded-xl text-xs font-mono font-bold border transition-all ${
+                  selectedPaymentMethod === 'qr_bancolombia'
+                    ? 'border-amber-400 bg-amber-500/20 text-amber-300'
+                    : 'border-border bg-secondary text-muted-foreground'
+                }`}
+              >
+                QR Bancolombia
+              </button>
+            </div>
+
+            {/* Amount Summary */}
+            <div className="rounded-2xl border border-border bg-secondary/50 p-4 space-y-2 text-xs font-mono">
+              <div className="flex justify-between text-muted-foreground">
+                <span>Vendedor:</span>
+                <span className="font-semibold text-foreground">{paymentModalLocker.sellerName}</span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
+                <span>Comisión Bocado (5%):</span>
+                <span className="text-emerald-400 font-bold">
+                  {money(Math.round((paymentModalLocker.productPrice || 3500) * 0.05))}
+                </span>
+              </div>
+              <div className="border-t border-border/60 pt-2 flex justify-between font-bold text-sm">
+                <span>Total a Pagar:</span>
+                <span className="text-primary font-extrabold font-mono text-base">
+                  {money(paymentModalLocker.productPrice || 3500)}
+                </span>
+              </div>
+            </div>
+
+            {/* Confirm Payment and Unlock Button */}
+            <button
+              type="button"
+              onClick={handleConfirmVirtualPayment}
+              disabled={isPayingVirtual}
+              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-primary py-4 font-display text-sm font-extrabold text-black shadow-lg shadow-amber-500/25 hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all"
+            >
+              <Zap size={16} />
+              <span>{isPayingVirtual ? 'Procesando Pago Virtual...' : '✓ Realizar Pago Virtual & Abrir Casillero'}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* RECEIPT MODAL WITH 5% COMMISSION BREAKDOWN               */}
+      {/* ========================================================= */}
+      {paymentReceipt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-md rounded-3xl border-2 border-emerald-500/60 bg-card p-6 shadow-2xl space-y-5 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+              <LockOpen size={36} className="animate-bounce" />
+            </div>
+
+            <div className="space-y-1">
+              <span className="text-[10px] font-mono font-bold uppercase text-emerald-400">
+                ¡Pago Exitoso & Casillero Abierto!
+              </span>
+              <h3 className="font-display text-xl font-bold text-foreground">
+                Casillero #{paymentReceipt.locker.code} Destrabado
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Retira tu <strong>{paymentReceipt.locker.productName}</strong>.
+              </p>
+            </div>
+
+            {/* Receipt Details Box */}
+            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-4 text-left space-y-2 text-xs font-mono">
+              <div className="flex justify-between text-zinc-300">
+                <span>Total pagado:</span>
+                <span className="font-bold text-white">{money(paymentReceipt.total)}</span>
+              </div>
+              <div className="flex justify-between text-emerald-400">
+                <span>Comisión Bocado (5%):</span>
+                <span>-{money(paymentReceipt.commission)}</span>
+              </div>
+              <div className="border-t border-emerald-500/20 pt-2 flex justify-between font-bold text-foreground">
+                <span>Transferido al vendedor:</span>
+                <span className="text-primary">{money(paymentReceipt.netRevenue)}</span>
+              </div>
+              <p className="text-[10px] text-zinc-400 pt-1">
+                ✓ Comprobante electrónico despachado al chat de <strong>{paymentReceipt.locker.sellerName}</strong>.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleCloseAllModals}
+              className="w-full rounded-2xl bg-emerald-500 py-3.5 font-display text-xs font-bold text-black hover:bg-emerald-400 transition-all shadow-md"
+            >
+              ✓ Confirmar Retiro y Cerrar
+            </button>
           </div>
         </div>
       )}

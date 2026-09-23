@@ -1,3 +1,4 @@
+import { BookmarkCheck } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { canSell, useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
@@ -9,15 +10,23 @@ function SectionNav() {
     <>
       <NavLink
         to="/catalogo"
-        className={({ isActive }) => (isActive ? 'text-primary font-bold' : 'hover:text-foreground font-medium transition-colors')}
+        className={({ isActive }) =>
+          isActive
+            ? 'text-primary font-bold'
+            : 'hover:text-foreground font-medium transition-colors'
+        }
       >
-        Catálogo en Vivo
+        Catálogo de Snacks
       </NavLink>
       <NavLink
         to="/vitrina"
-        className={({ isActive }) => (isActive ? 'text-primary font-bold' : 'hover:text-foreground font-medium transition-colors')}
+        className={({ isActive }) =>
+          isActive
+            ? 'text-primary font-bold'
+            : 'hover:text-foreground font-medium transition-colors'
+        }
       >
-        Vitrina 24/7
+        Casilleros D · M · L
       </NavLink>
     </>
   )
@@ -41,11 +50,12 @@ export function PublicHeader() {
           <ThemeToggle />
           <Link
             to="/carrito"
-            className="relative rounded-lg px-3 py-2 text-sm font-display font-medium text-muted-foreground hover:text-foreground"
+            className="relative flex items-center gap-1.5 rounded-xl bg-secondary/60 px-3 py-2 text-xs sm:text-sm font-display font-semibold text-foreground hover:bg-secondary transition-colors"
           >
-            Carrito
+            <BookmarkCheck size={16} className="text-primary" />
+            <span className="hidden sm:inline">Apartados</span>
             {count > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 min-w-5 rounded-full bg-primary px-1 text-center text-[10px] font-bold text-primary-foreground">
+              <span className="min-w-5 rounded-full bg-primary px-1.5 py-0.2 text-center text-[10px] font-bold text-primary-foreground animate-pulse">
                 {count}
               </span>
             )}
@@ -53,7 +63,7 @@ export function PublicHeader() {
           {user ? (
             <Link
               to={canSell(user.role) ? '/vender' : '/pedidos'}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-display font-semibold text-primary-foreground"
+              className="rounded-xl bg-primary px-4 py-2 text-xs sm:text-sm font-display font-semibold text-primary-foreground shadow-sm hover:opacity-90"
             >
               Ir a la app
             </Link>
@@ -61,13 +71,13 @@ export function PublicHeader() {
             <>
               <Link
                 to="/login"
-                className="rounded-lg px-3 py-2 text-sm font-display font-medium text-muted-foreground hover:text-foreground"
+                className="rounded-xl px-3 py-2 text-xs sm:text-sm font-display font-medium text-muted-foreground hover:text-foreground"
               >
                 Entrar
               </Link>
               <Link
                 to="/registro"
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-display font-semibold text-primary-foreground"
+                className="rounded-xl bg-primary px-4 py-2 text-xs sm:text-sm font-display font-semibold text-primary-foreground shadow-sm hover:opacity-90"
               >
                 Crear cuenta
               </Link>
@@ -75,7 +85,7 @@ export function PublicHeader() {
           )}
         </div>
       </div>
-      <nav className="flex gap-4 overflow-x-auto border-t border-border px-4 py-2 text-sm text-muted-foreground no-scrollbar md:hidden">
+      <nav className="flex gap-4 overflow-x-auto border-t border-border px-4 py-2 text-xs font-semibold text-muted-foreground no-scrollbar md:hidden">
         <SectionNav />
       </nav>
     </header>
@@ -90,7 +100,7 @@ export function PublicFooter() {
           <BrandMark size={22} className="text-primary" />
           Bocado · Micro-comercio universitario
         </p>
-        <p>Universidad Icesi · Entregas y snacks entre clases.</p>
+        <p>Universidad Icesi · Casilleros Inteligentes en Edificios D, M y L.</p>
         <p className="text-xs">Validación de concepto · 2026</p>
       </div>
     </footer>

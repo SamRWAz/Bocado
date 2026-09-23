@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
+  BookmarkCheck,
+  Building2,
   Flame,
   Lock,
   LockOpen,
   MessageCircle,
-  ShoppingBag,
   Sparkles,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -16,10 +17,10 @@ import { TagList } from './TagList'
 
 type Props = {
   product: Product
-  onAdd: (product: Product) => void
+  onApartar: (product: Product) => void
 }
 
-export function ProductCard({ product, onAdd }: Props) {
+export function ProductCard({ product, onApartar }: Props) {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [doorOpen, setDoorOpen] = useState(false)
@@ -59,9 +60,10 @@ export function ProductCard({ product, onAdd }: Props) {
   }
 
   const isLowStock = product.stock > 0 && product.stock <= 3
-  const lockerSlot = product.lockerNumber || '01'
+  const lockerSlot = product.lockerNumber || '02'
+  const building = product.preferredBuilding || 'D'
 
-  // Map product image to anime stylized assets if it's default or placeholder
+  // Map product image
   const displayImage = (() => {
     if (!product.image_url) return '/images/snack_anime_brownie.jpg'
     const nameLower = product.name.toLowerCase()
@@ -89,32 +91,30 @@ export function ProductCard({ product, onAdd }: Props) {
       }}
       className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900/95 to-black p-4 shadow-xl backdrop-blur-xl transition-all duration-300 hover:border-primary/60 hover:shadow-[0_0_30px_rgba(249,115,22,0.25)]"
     >
-      {/* Top Locker Status Bar with LED */}
+      {/* Top Status Bar with Building & Chat */}
       <div className="flex items-center justify-between border-b border-white/10 pb-2.5 mb-3 text-xs font-mono">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
           <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-          <span className="font-bold text-emerald-400">SLOT #{lockerSlot}</span>
+          <Building2 size={13} />
+          <span>EDIFICIO {building} · SLOT #{lockerSlot}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="rounded-md bg-white/5 px-2 py-0.5 text-[10px] text-zinc-400 border border-white/5">
-            Campus 24/7
-          </span>
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={handleStartChat}
-            className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/5 text-zinc-400 hover:text-primary hover:bg-primary/20 transition-colors"
-            title={`Chat con ${sellerName}`}
+            className="flex h-7 items-center gap-1 rounded-lg bg-white/5 px-2 text-[11px] text-zinc-400 hover:text-primary hover:bg-primary/20 transition-colors"
+            title={`Chatear con ${sellerName}`}
           >
             <MessageCircle size={13} />
+            <span className="hidden sm:inline">Chat</span>
           </button>
         </div>
       </div>
 
       {/* 3D Smart Locker Vault with Opening Glass Window Door */}
-      <div className="locker-vault-perspective relative h-56 w-full overflow-hidden rounded-2xl bg-zinc-950 border border-white/10">
-        {/* Interior Chamber (Inside the locker) */}
+      <div className="locker-vault-perspective relative h-52 w-full overflow-hidden rounded-2xl bg-zinc-950 border border-white/10">
+        {/* Interior Chamber */}
         <div className="absolute inset-0 flex items-center justify-center p-2 bg-gradient-to-t from-black via-zinc-950 to-zinc-900">
-          {/* Spotlight light ray */}
           <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 h-20 w-32 bg-primary/20 blur-xl" />
 
           <img
@@ -131,7 +131,7 @@ export function ProductCard({ product, onAdd }: Props) {
           )}
         </div>
 
-        {/* 3D Smart Glass Window Door (Swings open on left hinge) */}
+        {/* 3D Smart Glass Door */}
         <div
           onClick={handleToggleDoor}
           className={`locker-door absolute inset-0 cursor-pointer rounded-2xl border-2 transition-all duration-700 ${
@@ -140,27 +140,25 @@ export function ProductCard({ product, onAdd }: Props) {
               : 'border-cyan-500/40 bg-slate-900/60 backdrop-blur-[2px] shadow-inner hover:border-cyan-400'
           }`}
         >
-          {/* Glass Window Tint & Grid Reflection Overlay */}
           {!doorOpen ? (
             <div className="flex h-full w-full flex-col justify-between p-3 bg-gradient-to-tr from-cyan-950/40 via-transparent to-white/10">
               <div className="flex items-center justify-between text-[10px] font-mono text-cyan-300">
                 <span className="flex items-center gap-1">
-                  <Lock size={12} className="text-cyan-400" /> VENTANA SEGURA
+                  <Lock size={12} className="text-cyan-400" /> CASILLERO ACTIVO
                 </span>
-                <span className="text-[9px] opacity-75">NFC / PIN</span>
+                <span className="text-[9px] opacity-75">ICESI 24/7</span>
               </div>
 
-              {/* Center Touch To Open Badge */}
-              <div className="mx-auto rounded-xl bg-black/75 px-3 py-1.5 text-center backdrop-blur-md border border-cyan-400/30 shadow-lg">
-                <p className="text-[10px] font-mono font-bold text-cyan-300 flex items-center gap-1.5">
+              <div className="mx-auto rounded-xl bg-black/75 px-3 py-1 text-center backdrop-blur-md border border-cyan-400/30 shadow-lg">
+                <p className="text-[10px] font-mono font-bold text-cyan-300 flex items-center gap-1">
                   <Sparkles size={11} className="text-primary animate-spin" />
-                  <span>Pasa el cursor para abrir</span>
+                  <span>Pasa el cursor para ver</span>
                 </p>
               </div>
 
               <div className="text-[9px] font-mono text-zinc-400 flex justify-between">
-                <span>SENSOR ACTIVO</span>
-                <span>DESBLOQUEO AUTOMÁTICO</span>
+                <span>EDIFICIO {building}</span>
+                <span>RETIRO CON PIN</span>
               </div>
             </div>
           ) : (
@@ -171,7 +169,7 @@ export function ProductCard({ product, onAdd }: Props) {
         </div>
       </div>
 
-      {/* Card Details & Instant Cart Action */}
+      {/* Card Details & Apartar Action */}
       <div className="mt-4 flex flex-1 flex-col justify-between space-y-3">
         <div>
           <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
@@ -189,7 +187,7 @@ export function ProductCard({ product, onAdd }: Props) {
           </div>
         </div>
 
-        {/* Price and Cart Button */}
+        {/* Price and Apartar Button */}
         <div className="pt-3 flex items-center justify-between border-t border-white/10">
           <div>
             <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono block">
@@ -201,14 +199,14 @@ export function ProductCard({ product, onAdd }: Props) {
           <button
             type="button"
             onClick={() => {
-              playLockerUnlock()
-              onAdd(product)
+              playKeyBeep(650)
+              onApartar(product)
             }}
             disabled={product.sold_out || product.stock <= 0}
-            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-amber-500 px-4 py-2.5 font-display text-xs font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:brightness-110 active:scale-95 disabled:opacity-40 transition-all"
+            className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-primary via-amber-500 to-primary px-4 py-2.5 font-display text-xs font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:brightness-110 active:scale-95 disabled:opacity-40 transition-all"
           >
-            <ShoppingBag size={14} />
-            <span>{product.sold_out ? 'Agotado' : 'Apartar & Retirar'}</span>
+            <BookmarkCheck size={14} />
+            <span>{product.sold_out ? 'Agotado' : 'Apartar'}</span>
           </button>
         </div>
       </div>

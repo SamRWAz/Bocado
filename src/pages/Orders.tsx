@@ -1,9 +1,9 @@
 import {
   Boxes,
+  Building2,
   CheckCircle2,
   Copy,
   KeyRound,
-  MapPin,
   MessageSquare,
   QrCode,
   ShieldCheck,
@@ -85,13 +85,13 @@ export function OrdersPage() {
         <div>
           <div className="flex items-center gap-1.5 text-xs font-mono font-bold uppercase tracking-wider text-primary">
             <Sparkles size={13} />
-            <span>Pases Digitales & Vitrina</span>
+            <span>Pases Digitales & Vitrina Icesi</span>
           </div>
-          <h1 className="mt-1 font-brand text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
-            Tus Pases y Pedidos
+          <h1 className="mt-1 font-display text-2xl font-black tracking-tight sm:text-3xl text-foreground">
+            Tus Pases y Apartados
           </h1>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            Digita tu PIN en el teclado de la vitrina para desbloquear tu compuerta contactless.
+            Digita tu PIN en el teclado de la vitrina del <strong>Edificio D, M o L</strong> para desbloquear la compuerta.
           </p>
         </div>
 
@@ -125,20 +125,20 @@ export function OrdersPage() {
       {list.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-border bg-card/40 p-12 text-center text-muted-foreground">
           <Boxes size={44} className="mx-auto mb-3 opacity-30 text-primary" />
-          <p className="font-display font-semibold text-foreground">
+          <p className="font-display font-bold text-foreground">
             {tab === 'compras' ? 'No tienes pases de retiro activos' : 'No tienes depósitos pendientes'}
           </p>
           <p className="mt-1 text-xs max-w-sm mx-auto">
             {tab === 'compras'
-              ? 'Explora el catálogo o la vitrina en tiempo real y compra con retiro automático.'
+              ? 'Explora el catálogo, aparta tus snacks y retíralos con PIN en los Edificios D, M o L.'
               : 'Publica y asigna tus preparaciones a un casillero inteligente para empezar a vender.'}
           </p>
           <div className="mt-4">
             <Link
-              to={tab === 'compras' ? '/vitrina' : '/vender'}
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground"
+              to={tab === 'compras' ? '/catalogo' : '/vender'}
+              className="inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground shadow-md hover:opacity-90"
             >
-              {tab === 'compras' ? 'Ir a la Vitrina' : 'Publicar Snack'}
+              {tab === 'compras' ? 'Ver Catálogo' : 'Publicar Snack'}
             </Link>
           </div>
         </div>
@@ -146,29 +146,30 @@ export function OrdersPage() {
         <div className="grid gap-6 md:grid-cols-2">
           {list.map((order) => {
             const statusConfig = labels[order.status] ?? labels.reservado
-            const claimPin = order.claimPin || '4892'
+            const claimPin = order.claimPin || '7492'
             const hubName = order.lockerHubName || order.pickup || 'Edificio D'
-            const slotNum = order.lockerNumber || '01'
+            const slotNum = order.lockerNumber || '02'
+            const commission = order.platformCommission || Math.round(order.total * 0.05)
+            const netRevenue = order.sellerNetRevenue || order.total - commission
 
             return (
               <article
                 key={order.id}
                 className="flex flex-col rounded-3xl border border-border/80 bg-card/90 backdrop-blur-md p-6 shadow-xl transition-all hover:border-primary/50 relative overflow-hidden"
               >
-                {/* Glow accent bar on top */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-emerald-400 to-cyan-400" />
+                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-emerald-400 to-cyan-400" />
 
                 {/* Header */}
                 <div className="flex items-start justify-between gap-3 pb-3 border-b border-border/60">
                   <div>
                     <span className="text-[10px] uppercase tracking-wider font-mono font-bold text-muted-foreground">
-                      {tab === 'compras' ? 'Vendido por' : 'Comprador'}
+                      {tab === 'compras' ? 'Cocinero:' : 'Comprador:'}
                     </span>
                     <h3 className="font-brand text-base font-bold text-foreground">
                       {tab === 'compras' ? order.sellerName : order.buyerName}
                     </h3>
-                    <p className="flex items-center gap-1 text-xs text-primary font-mono mt-0.5">
-                      <MapPin size={13} className="shrink-0" />
+                    <p className="flex items-center gap-1.5 text-xs text-primary font-mono mt-0.5">
+                      <Building2 size={13} className="shrink-0" />
                       <span>{hubName} · Casillero #{slotNum}</span>
                     </p>
                   </div>
@@ -184,17 +185,17 @@ export function OrdersPage() {
 
                 {/* Digital Claim Pass Hologram Card */}
                 {tab === 'compras' && (
-                  <div className="my-4 rounded-2xl border border-primary/40 bg-zinc-950/80 p-4 relative overflow-hidden">
+                  <div className="my-4 rounded-2xl border border-primary/40 bg-zinc-950/90 p-4 relative overflow-hidden">
                     <div className="flex items-center justify-between text-xs font-mono text-zinc-400 mb-2">
                       <span className="flex items-center gap-1 text-emerald-400 font-bold">
-                        <KeyRound size={14} /> PIN DE RETIRO
+                        <KeyRound size={14} /> PIN DE RETIRO EN MÁQUINA
                       </span>
-                      <span className="text-[10px]">CAMPUS LOCKER PASS</span>
+                      <span className="text-[10px]">CASILLERO #{slotNum}</span>
                     </div>
 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-3xl font-extrabold tracking-widest text-primary drop-shadow-[0_0_12px_rgba(16,185,129,0.5)]">
+                        <span className="font-mono text-3xl font-black tracking-widest text-primary drop-shadow-[0_0_12px_rgba(249,115,22,0.6)]">
                           {claimPin}
                         </span>
                         <button
@@ -207,12 +208,11 @@ export function OrdersPage() {
                         </button>
                       </div>
 
-                      {/* Barcode / QR mini representation */}
                       <div className="flex flex-col items-center">
                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-1">
                           <QrCode size={32} className="text-black" />
                         </div>
-                        <span className="text-[8px] font-mono text-zinc-400 mt-0.5">ESCANEAR</span>
+                        <span className="text-[8px] font-mono text-zinc-400 mt-0.5">PAGO QR</span>
                       </div>
                     </div>
 
@@ -226,20 +226,21 @@ export function OrdersPage() {
 
                 {/* Seller Deposit Pass */}
                 {tab === 'ventas' && (
-                  <div className="my-4 rounded-2xl border border-amber-500/40 bg-amber-950/20 p-4">
-                    <div className="flex items-center justify-between text-xs font-mono text-amber-400 mb-1">
+                  <div className="my-4 rounded-2xl border border-amber-500/40 bg-amber-950/20 p-4 space-y-2">
+                    <div className="flex items-center justify-between text-xs font-mono text-amber-400">
                       <span className="flex items-center gap-1 font-bold">
                         <Zap size={14} /> PIN DE DEPÓSITO
                       </span>
                       <span className="text-[10px]">CASILLERO #{slotNum}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground mb-2">
+                    <p className="text-xs text-muted-foreground">
                       Digita <strong>DEP-{claimPin}</strong> en la vitrina del {hubName} para abrir la compuerta y guardar la comida.
                     </p>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-2xl font-bold tracking-wider text-amber-400">
+                    <div className="flex items-center justify-between pt-1 font-mono">
+                      <span className="text-2xl font-bold tracking-wider text-amber-400">
                         DEP-{claimPin}
                       </span>
+                      <span className="text-[11px] text-emerald-400">Neto: {money(netRevenue)} (Comisión 5%: -{money(commission)})</span>
                     </div>
                   </div>
                 )}
@@ -256,9 +257,9 @@ export function OrdersPage() {
                   ))}
                 </ul>
 
-                {/* Protected locker notes */}
+                {/* Protection note */}
                 {order.isGuaranteed && (
-                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-400 my-1">
+                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-400 my-1 font-mono">
                     <ShieldCheck size={13} />
                     <span>Control de frescura garantizado</span>
                   </div>
@@ -267,12 +268,11 @@ export function OrdersPage() {
                 {/* Total & Action Bar */}
                 <div className="mt-auto pt-4 flex flex-col gap-3 border-t border-border/60">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Total pagado:</span>
+                    <span className="text-xs text-muted-foreground">Total:</span>
                     <span className="font-mono text-lg font-bold text-primary">{money(order.total)}</span>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    {/* Direct to Vitrina action */}
                     <Link
                       to="/vitrina"
                       className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-xs font-display font-bold text-primary-foreground shadow-md shadow-primary/20 hover:brightness-110 transition-all"
@@ -281,7 +281,6 @@ export function OrdersPage() {
                       <span>{tab === 'compras' ? 'Abrir en Vitrina' : 'Ir a Vitrina'}</span>
                     </Link>
 
-                    {/* Chat button */}
                     <button
                       type="button"
                       onClick={() => openChatForOrder(order)}
@@ -291,7 +290,6 @@ export function OrdersPage() {
                       <span>Chat</span>
                     </button>
 
-                    {/* Seller status actions */}
                     {tab === 'ventas' && order.status !== 'entregado' && order.status !== 'cancelado' && (
                       <button
                         type="button"

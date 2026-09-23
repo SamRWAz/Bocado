@@ -45,10 +45,11 @@ export type LockerTempType = 'ambiente' | 'refrigerado'
 
 export type Locker = {
   id: string
-  hubId: string
+  hubId: 'hub_edificio_d' | 'hub_edificio_m' | 'hub_edificio_l' | string
   hubName: string
+  buildingCode: 'D' | 'M' | 'L' | string
   number: string
-  code: string // e.g. D-01, S-03
+  code: string // e.g. D-01, M-14, L-20
   status: LockerStatus
   tempType: LockerTempType
   productId?: string
@@ -59,17 +60,22 @@ export type Locker = {
   sellerName?: string
   buyerId?: string
   buyerName?: string
-  depositPin?: string // 4-6 digit PIN for seller deposit
-  claimPin?: string // 4-6 digit PIN for buyer unlock
+  depositPin?: string // e.g. DEP-4912
+  claimPin?: string // e.g. 7492
   orderId?: string
   isLocked: boolean
   updatedAt: string
+  // Commission & payment breakdown (5% platform fee)
+  platformCommission?: number
+  sellerNetRevenue?: number
+  paidAt?: string
 }
 
 export type LockerHub = {
-  id: string
+  id: 'hub_edificio_d' | 'hub_edificio_m' | 'hub_edificio_l' | string
   name: string
   zone: string
+  building: string
   detail: string
   icon: string
   totalLockers: number
@@ -93,6 +99,7 @@ export type Product = {
   lockerId?: string
   lockerHubId?: string
   lockerNumber?: string
+  preferredBuilding?: 'D' | 'M' | 'L' | string
 }
 
 export type Metrics = {
@@ -117,6 +124,8 @@ export type CartItem = {
   stock: number
   lockerHubId?: string
   lockerNumber?: string
+  building?: 'D' | 'M' | 'L' | string
+  reservedAt?: string
 }
 
 export type OrderStatus = 'reservado' | 'listo' | 'entregado' | 'cancelado'
@@ -146,7 +155,7 @@ export type Order = {
   createdAt: string
   isGuaranteed?: boolean
   reserveFee?: number
-  // Smart Locker properties
+  // Smart Locker & Commission properties
   lockerId?: string
   lockerHubId?: string
   lockerHubName?: string
@@ -156,13 +165,15 @@ export type Order = {
   paymentMethod?: PaymentMethod
   paymentStatus?: 'pendiente' | 'pagado'
   claimedAt?: string
+  platformCommission?: number // 5% fee
+  sellerNetRevenue?: number // 95% to seller
 }
 
 export type StoredUser = AuthUser & {
   passwordHash: string
 }
 
-export type ChatMessageType = 'text' | 'quick' | 'location' | 'status' | 'locker_drop'
+export type ChatMessageType = 'text' | 'quick' | 'location' | 'status' | 'locker_drop' | 'payment_receipt'
 
 export type ChatMessage = {
   id: string
@@ -179,6 +190,10 @@ export type ChatMessage = {
   locationZone?: string
   lockerCode?: string
   claimPin?: string
+  depositPin?: string
+  amount?: number
+  commission?: number
+  netRevenue?: number
   timestamp: string
   read: boolean
 }
@@ -194,3 +209,4 @@ export type ConversationSummary = {
   unreadCount: number
   orderStatus?: OrderStatus
 }
+

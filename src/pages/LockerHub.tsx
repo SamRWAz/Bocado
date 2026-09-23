@@ -4,7 +4,6 @@ import {
   Boxes,
   HelpCircle,
   KeyRound,
-  MapPin,
   Sparkles,
   X,
   Zap,
@@ -43,19 +42,19 @@ export function LockerHubPage() {
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 text-xs font-mono font-bold uppercase tracking-wider text-primary border border-primary/20">
               <Sparkles size={13} className="animate-spin" />
-              Vitrina Inteligente 24/7
+              Red de 60 Casilleros Inteligentes
             </span>
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground font-mono">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
-              Terminal en Línea
+              Edificios D · M · L (Icesi)
             </span>
           </div>
-          <h1 className="mt-2 font-brand text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
+          <h1 className="mt-2 font-display text-2xl font-black tracking-tight sm:text-3xl text-foreground">
             Locker Hub Campus Icesi
           </h1>
           <p className="mt-1 text-sm text-muted-foreground max-w-2xl">
-            Retira tus snacks comprados o deposita tus preparaciones sin esperas ni encuentros personales.
-            Ingresa tu código PIN o escanea el QR en el teclado táctil de la vitrina.
+            Retira tus snacks apartados o deposita tus preparaciones sin esperas ni encuentros personales.
+            Ingresa tu código PIN en el teclado de la vitrina para validar el pago QR y abrir la compuerta.
           </p>
         </div>
 
@@ -64,14 +63,14 @@ export function LockerHubPage() {
           <button
             type="button"
             onClick={() => setShowKeypadModal(true)}
-            className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs sm:text-sm font-display font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:brightness-110 active:scale-95 transition-all"
+            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-amber-500 px-5 py-3 text-xs sm:text-sm font-display font-extrabold text-primary-foreground shadow-lg shadow-primary/25 hover:brightness-110 active:scale-95 transition-all"
           >
             <KeyRound size={16} />
             Digitar PIN en Vitrina
           </button>
           <Link
             to="/catalogo"
-            className="flex items-center gap-2 rounded-xl bg-secondary/80 px-4 py-2.5 text-xs sm:text-sm font-display font-semibold text-foreground hover:bg-secondary border border-border/70 transition-all"
+            className="flex items-center gap-2 rounded-2xl bg-secondary/80 px-4 py-3 text-xs sm:text-sm font-display font-semibold text-foreground hover:bg-secondary border border-border/70 transition-all"
           >
             <Boxes size={16} className="text-primary" />
             Explorar Snacks
@@ -79,17 +78,17 @@ export function LockerHubPage() {
           {isSeller && (
             <Link
               to="/vender"
-              className="flex items-center gap-2 rounded-xl bg-amber-500/15 border border-amber-500/30 px-4 py-2.5 text-xs sm:text-sm font-display font-semibold text-amber-500 hover:bg-amber-500/20 transition-all"
+              className="flex items-center gap-2 rounded-2xl bg-amber-500/15 border border-amber-500/30 px-4 py-3 text-xs sm:text-sm font-display font-semibold text-amber-400 hover:bg-amber-500/20 transition-all"
             >
               <Zap size={16} />
-              Depositar Snack
+              Guardar en Casillero
             </Link>
           )}
         </div>
       </div>
 
-      {/* Campus Hub Selectors */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {/* Campus Hub Selectors (Edificio D, M, L) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {hubs.map((hub) => {
           const isActive = hub.id === activeHub.id
           const hubLockers = getLockersByHub(hub.id)
@@ -102,16 +101,16 @@ export function LockerHubPage() {
               key={hub.id}
               type="button"
               onClick={() => setSelectedHubId(hub.id)}
-              className={`group relative flex flex-col justify-between rounded-2xl p-4 text-left transition-all ${
+              className={`group relative flex flex-col justify-between rounded-3xl p-5 text-left transition-all ${
                 isActive
-                  ? 'border-2 border-primary bg-primary/10 shadow-xl shadow-primary/10 ring-1 ring-primary'
+                  ? 'border-2 border-primary bg-primary/10 shadow-2xl shadow-primary/15 ring-2 ring-primary scale-102'
                   : 'border border-border/80 bg-card/60 hover:border-primary/50 hover:bg-card/90'
               }`}
             >
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 font-brand text-sm font-bold text-foreground">
-                    <MapPin size={16} className={isActive ? 'text-primary' : 'text-muted-foreground'} />
+                  <span className="flex items-center gap-2 font-display text-base font-bold text-foreground">
+                    <span className="text-lg">{hub.icon}</span>
                     {hub.name}
                   </span>
                   <span
@@ -123,12 +122,12 @@ export function LockerHubPage() {
                 <p className="mt-1 text-xs text-muted-foreground">{hub.zone}</p>
               </div>
 
-              <div className="mt-4 flex items-center justify-between border-t border-border/40 pt-3 text-[11px]">
-                <span className="font-mono text-emerald-400 font-semibold">
+              <div className="mt-4 flex items-center justify-between border-t border-border/40 pt-3 text-xs font-mono">
+                <span className="text-emerald-400 font-bold">
                   {readyCount} con comida lista
                 </span>
-                <span className="text-muted-foreground font-mono">
-                  {availableCount}/{totalLockers} vacíos
+                <span className="text-muted-foreground">
+                  {availableCount}/{totalLockers} libres
                 </span>
               </div>
             </button>
@@ -152,15 +151,15 @@ export function LockerHubPage() {
         {/* Physical Keypad Simulator & Info Panel */}
         <div className="lg:col-span-4 space-y-6">
           {/* Keypad */}
-          <div className="rounded-2xl border border-border/80 bg-card/80 p-5 backdrop-blur-md shadow-2xl">
+          <div className="rounded-3xl border border-border/80 bg-card/80 p-5 backdrop-blur-md shadow-2xl">
             <div className="flex items-center justify-between border-b border-border/60 pb-3 mb-4">
               <div className="flex items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/20 text-primary">
                   <KeyRound size={16} />
                 </div>
                 <div>
-                  <h3 className="font-brand text-sm font-bold">Terminal de Apertura</h3>
-                  <p className="text-[10px] text-muted-foreground">Digita tu PIN de 4 dígitos o DEP-PIN</p>
+                  <h3 className="font-display text-sm font-bold">Terminal de Apertura</h3>
+                  <p className="text-[10px] text-muted-foreground font-mono">PIN de 4 dígitos o DEP-PIN</p>
                 </div>
               </div>
               <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -174,34 +173,34 @@ export function LockerHubPage() {
           </div>
 
           {/* How it works info card */}
-          <div className="rounded-2xl border border-border/60 bg-secondary/30 p-4 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+          <div className="rounded-3xl border border-border/60 bg-secondary/30 p-5 space-y-3">
+            <div className="flex items-center gap-2 text-xs font-bold text-foreground font-mono">
               <HelpCircle size={15} className="text-primary" />
-              ¿Cómo funciona la Vitrina Bocado?
+              ¿Cómo funciona el ciclo de casillero?
             </div>
-            <ul className="space-y-2.5 text-xs text-muted-foreground">
-              <li className="flex items-start gap-2">
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[10px] font-bold text-primary">
+            <ul className="space-y-3 text-xs text-muted-foreground">
+              <li className="flex items-start gap-2.5">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[10px] font-bold text-primary">
                   1
                 </span>
                 <span>
-                  <strong>Comprador:</strong> Paga con tarjeta o QR y recibe tu <strong>Pase con PIN de 4 dígitos</strong>.
+                  <strong>Comprador:</strong> Aparta en el catálogo y recibe su <strong>PIN de 4 dígitos</strong>.
                 </span>
               </li>
-              <li className="flex items-start gap-2">
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[10px] font-bold text-primary">
+              <li className="flex items-start gap-2.5">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-[10px] font-bold text-amber-400">
                   2
                 </span>
                 <span>
-                  <strong>Vendedor:</strong> Deposita comida fresca ingresando el PIN de depósito <code>DEP-XXXX</code>.
+                  <strong>Vendedor:</strong> Elige Edificio D, M o L y guarda la comida fresca con su PIN <code>DEP-XXXX</code>.
                 </span>
               </li>
-              <li className="flex items-start gap-2">
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[10px] font-bold text-primary">
+              <li className="flex items-start gap-2.5">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-[10px] font-bold text-emerald-400">
                   3
                 </span>
                 <span>
-                  <strong>Retiro inmediato:</strong> Digita tu PIN en el teclado de la vitrina para que la compuerta se abra automáticamente.
+                  <strong>Pago QR & Retiro:</strong> El comprador digita su PIN en la máquina, paga por QR virtual y la compuerta se abre de inmediato descontando el 5% de comisión.
                 </span>
               </li>
             </ul>
@@ -209,7 +208,7 @@ export function LockerHubPage() {
         </div>
       </div>
 
-      {/* Floating Keypad Modal for quick unlock on mobile or triggered from header */}
+      {/* Floating Keypad Modal for mobile or header trigger */}
       {showKeypadModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-fadeIn">
           <div className="relative w-full max-w-md rounded-3xl border border-border/80 bg-card p-6 shadow-2xl space-y-4">

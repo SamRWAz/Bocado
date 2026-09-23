@@ -75,7 +75,7 @@ export function ShopPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {available.map((product) => (
-            <ProductCard key={product.id} product={product} onAdd={(item) => void addToCart(item)} />
+            <ProductCard key={product.id} product={product} onApartar={(item) => void addToCart(item)} />
           ))}
         </div>
       )}

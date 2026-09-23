@@ -1,32 +1,34 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
   Boxes,
+  ChefHat,
   ChevronDown,
-  KeyRound,
-  Lock,
-  LockOpen,
+  Clock,
   MapPin,
+  ShieldCheck,
   Sparkles,
+  Store,
+  Users,
+  Zap,
 } from 'lucide-react'
 import { AnimatedBackdrop } from '../components/landing/AnimatedBackdrop'
-import { KamuiCardShowcase } from '../components/landing/KamuiCardShowcase'
+import { ProcessConsoleDemo } from '../components/landing/ProcessConsoleDemo'
 import { LOCKER_HUBS, getLockersByHub } from '../lib/lockers'
-import { playKeyBeep, playLockerUnlock } from '../lib/sounds'
+import { playKeyBeep } from '../lib/sounds'
 
 const SLIDES = [
-  { id: 'hero', label: 'Inicio' },
-  { id: 'showcase', label: 'Snacks 3D' },
-  { id: 'flow', label: 'Flujo' },
-  { id: 'campus', label: 'Vitrinas' },
+  { id: 'hero', label: 'Inicio Video' },
+  { id: 'negocio', label: 'Cómo Funciona' },
+  { id: 'consola', label: 'Paso a Paso PIN/QR' },
+  { id: 'casilleros', label: 'Casilleros D·M·L' },
+  { id: 'experiencia', label: 'Experiencia Bocado' },
 ]
 
 export function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [demoLockerOpen, setDemoLockerOpen] = useState(false)
   const [selectedHubId, setSelectedHubId] = useState('hub_edificio_d')
-  const [heroLockerUnlocked, setHeroLockerUnlocked] = useState(false)
   const sectionRefs = useRef<(HTMLElement | null)[]>([])
 
   const scrollToSlide = (index: number) => {
@@ -35,7 +37,33 @@ export function LandingPage() {
     sectionRefs.current[index]?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  // Handle keyboard arrow navigation
+  // Active Scroll Observer: dynamically highlight the vertical dots as user scrolls
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: '-30% 0px -40% 0px',
+      threshold: 0,
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const index = sectionRefs.current.findIndex((el) => el === entry.target)
+          if (index !== -1) {
+            setCurrentSlide(index)
+          }
+        }
+      })
+    }, observerOptions)
+
+    sectionRefs.current.forEach((el) => {
+      if (el) observer.observe(el)
+    })
+
+    return () => observer.disconnect()
+  }, [])
+
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown' || e.key === 'PageDown') {
@@ -48,316 +76,240 @@ export function LandingPage() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [currentSlide])
 
-  const handleHeroLockerToggle = () => {
-    if (!heroLockerUnlocked) {
-      playLockerUnlock()
-      setHeroLockerUnlocked(true)
-    } else {
-      playKeyBeep(400)
-      setHeroLockerUnlocked(false)
-    }
-  }
-
-  const handleDemoUnlock = () => {
-    playKeyBeep(700)
-    setTimeout(() => {
-      playLockerUnlock()
-      setDemoLockerOpen(true)
-    }, 250)
-  }
-
-  const handleDemoClose = () => {
-    playKeyBeep(400)
-    setDemoLockerOpen(false)
-  }
-
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-primary selection:text-white">
       <AnimatedBackdrop />
       <div className="cyber-grid pointer-events-none fixed inset-0 opacity-20" />
 
       {/* Floating Vertical Slide Indicator (Right Side) */}
-      <nav className="fixed right-4 sm:right-8 top-1/2 z-40 -translate-y-1/2 hidden md:flex flex-col items-center gap-3">
-        {SLIDES.map((slide, idx) => (
-          <button
-            key={slide.id}
-            type="button"
-            onClick={() => scrollToSlide(idx)}
-            className="group relative flex items-center justify-end py-1"
-            title={slide.label}
-          >
-            <span className="mr-3 rounded-md bg-black/80 px-2 py-0.5 text-[10px] font-mono text-white opacity-0 transition-opacity group-hover:opacity-100 backdrop-blur-sm border border-white/10">
-              {slide.label}
-            </span>
-            <span
-              className={`block rounded-full transition-all duration-300 ${
-                currentSlide === idx
-                  ? 'h-8 w-2 bg-primary shadow-[0_0_12px_rgba(249,115,22,0.9)]'
-                  : 'h-2 w-2 bg-zinc-600 hover:bg-zinc-400'
-              }`}
-            />
-          </button>
-        ))}
+      <nav
+        aria-label="Navegación de secciones"
+        className="fixed right-4 sm:right-8 top-1/2 z-40 -translate-y-1/2 hidden md:flex flex-col items-center gap-3"
+      >
+        {SLIDES.map((slide, idx) => {
+          const isActive = currentSlide === idx
+          return (
+            <button
+              key={slide.id}
+              type="button"
+              onClick={() => scrollToSlide(idx)}
+              className="group relative flex items-center justify-end py-1"
+              title={slide.label}
+            >
+              <span className="mr-3 rounded-md bg-black/85 px-2.5 py-0.5 text-[11px] font-mono font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100 backdrop-blur-md border border-white/10 shadow-lg">
+                {slide.label}
+              </span>
+              <span
+                className={`block rounded-full transition-all duration-300 ${
+                  isActive
+                    ? 'h-8 w-2.5 bg-primary shadow-[0_0_16px_rgba(249,115,22,1)] ring-2 ring-primary/40'
+                    : 'h-2.5 w-2.5 bg-zinc-600 hover:bg-zinc-400'
+                }`}
+              />
+            </button>
+          )
+        })}
       </nav>
 
       {/* ========================================================= */}
-      {/* SLIDE 1: HERO CINEMÁTICO CON ILUSTRACIÓN ANIMADA          */}
+      {/* SECCIÓN 1: HERO CON VIDEO DE FONDO A PANTALLA COMPLETA    */}
       {/* ========================================================= */}
       <section
         ref={(el) => {
           sectionRefs.current[0] = el
         }}
-        className="relative z-10 flex min-h-[92vh] flex-col items-center justify-center px-4 py-8 sm:px-6"
+        className="relative z-10 flex min-h-[96vh] flex-col items-center justify-center overflow-hidden px-4 py-16 sm:px-6"
       >
-        <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          {/* Left Text Column */}
-          <div className="lg:col-span-6 text-center lg:text-left space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-1.5 text-xs font-mono font-bold uppercase tracking-widest text-primary backdrop-blur-md animate-pulse">
-              <Sparkles size={14} className="text-primary" />
-              <span>Vitrina Inteligente Campus Icesi</span>
-            </div>
+        {/* Full-width Video Background */}
+        <div className="absolute inset-0 -z-10 h-full w-full overflow-hidden">
+          <video
+            src="/BocadoVideo.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="h-full w-full object-cover object-center scale-105 filter brightness-[0.6] contrast-[1.1]"
+          />
+          {/* Obsidian dark & vibrant glassmorphism gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-black/75 backdrop-blur-[2px]" />
+          <div className="absolute inset-0 bg-radial from-primary/10 via-transparent to-black/80" />
+        </div>
 
-            <h1 className="font-display text-4xl font-black tracking-tight sm:text-6xl text-foreground leading-[1.1]">
-              Tus snacks favoritos.{' '}
-              <span className="bg-gradient-to-r from-primary via-amber-400 to-emerald-400 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(249,115,22,0.25)]">
-                En casilleros 24/7.
-              </span>
-            </h1>
-
-            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-lg mx-auto lg:mx-0">
-              Paga digital, recibe tu PIN de 4 dígitos y retira al instante sin esperas ni encuentros personales en el Edificio D, Samán o Biblioteca.
-            </p>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
-              <Link
-                to="/vitrina"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 font-display text-sm font-bold text-primary-foreground shadow-2xl shadow-primary/30 hover:brightness-110 active:scale-95 transition-all"
-              >
-                <Boxes size={18} />
-                <span>Abrir Vitrina de Casilleros</span>
-              </Link>
-              <Link
-                to="/catalogo"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-secondary/80 px-8 py-4 font-display text-sm font-semibold text-foreground hover:bg-secondary active:scale-95 transition-all backdrop-blur-md"
-              >
-                <span>Ver Snacks Disponibles</span>
-                <ArrowRight size={16} />
-              </Link>
-            </div>
+        {/* Hero Content Box */}
+        <div className="relative mx-auto max-w-4xl text-center space-y-6">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-black/60 px-4 py-2 text-xs font-mono font-bold uppercase tracking-widest text-primary backdrop-blur-xl shadow-2xl animate-pulse">
+            <Sparkles size={14} className="text-primary" />
+            <span>Campus Universitario Icesi · Micro-Comercio Inteligente</span>
           </div>
 
-          {/* Right Column: Stylized Animated Anime Locker Artwork */}
-          <div className="lg:col-span-6 flex justify-center">
-            <div
-              onClick={handleHeroLockerToggle}
-              className="group relative cursor-pointer overflow-hidden rounded-3xl border-2 border-primary/40 bg-zinc-950/80 p-2 shadow-[0_0_40px_rgba(249,115,22,0.25)] backdrop-blur-2xl transition-all duration-500 hover:scale-[1.02] hover:border-emerald-400"
+          <h1 className="font-display text-4xl font-black tracking-tight sm:text-6xl lg:text-7xl text-white leading-[1.08] drop-shadow-2xl">
+            Tus snacks favoritos.{' '}
+            <span className="bg-gradient-to-r from-primary via-amber-400 to-emerald-400 bg-clip-text text-transparent drop-shadow-[0_0_35px_rgba(249,115,22,0.4)]">
+              En casilleros inteligentes.
+            </span>
+          </h1>
+
+          <p className="text-sm sm:text-lg text-zinc-200 leading-relaxed max-w-2xl mx-auto drop-shadow-md font-medium">
+            Aparta brownies, galletas y postres artesanales preparados por estudiantes. Retira sin esperas ni contacto en los casilleros climatizados de los <strong>Edificios D, M y L</strong>.
+          </p>
+
+          {/* Action CTAs */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            <Link
+              to="/catalogo"
+              className="w-full sm:w-auto flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-primary via-amber-500 to-primary px-8 py-4 font-display text-sm font-extrabold text-primary-foreground shadow-2xl shadow-primary/40 hover:brightness-110 active:scale-95 transition-all"
             >
-              {/* Anime Artwork Image */}
-              <div className="relative overflow-hidden rounded-2xl">
-                <img
-                  src="/images/hero_anime_locker.jpg"
-                  alt="Estudiante sacando snack del casillero inteligente Bocado"
-                  className="h-64 sm:h-80 w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-
-                {/* Floating UI Badges on Image */}
-                <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-black/80 px-3 py-1 text-[11px] font-mono font-bold text-emerald-400 backdrop-blur-md border border-white/10">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-                  <span>SLOT #042 DESBLOQUEADO</span>
-                </div>
-
-                <div className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-[11px] font-display font-bold text-primary-foreground shadow-lg animate-bounce">
-                  {heroLockerUnlocked ? <LockOpen size={13} /> : <KeyRound size={13} />}
-                  <span>{heroLockerUnlocked ? '¡Compuerta Abierta!' : 'Toca para simular retiro'}</span>
-                </div>
-              </div>
-            </div>
+              <Boxes size={18} />
+              <span>Ver Catálogo de Snacks</span>
+            </Link>
+            <Link
+              to="/vitrina"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-black/60 px-8 py-4 font-display text-sm font-bold text-white hover:bg-black/90 active:scale-95 transition-all backdrop-blur-xl shadow-lg"
+            >
+              <span>Abrir Vitrina 24/7</span>
+              <ArrowRight size={16} />
+            </Link>
           </div>
         </div>
 
-        {/* Scroll Down Cue */}
+        {/* Scroll Cue */}
         <button
           type="button"
           onClick={() => scrollToSlide(1)}
-          className="mt-8 flex flex-col items-center gap-1 text-xs font-mono text-muted-foreground hover:text-primary transition-colors animate-bounce"
+          className="absolute bottom-6 flex flex-col items-center gap-1 text-xs font-mono text-zinc-300 hover:text-primary transition-colors animate-bounce cursor-pointer"
         >
-          <span>Desliza para ver los snacks en 3D</span>
+          <span>Conoce cómo funciona</span>
           <ChevronDown size={18} />
         </button>
       </section>
 
       {/* ========================================================= */}
-      {/* SLIDE 2: 3D KAMUI CARD SHOWCASE (Snacks con Giro 3D)     */}
+      {/* SECCIÓN 2: CÓMO FUNCIONA EL NEGOCIO BOCADO                */}
       {/* ========================================================= */}
       <section
         ref={(el) => {
           sectionRefs.current[1] = el
         }}
-        className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center sm:px-6 border-t border-white/5"
+        className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-20 sm:px-6 border-t border-white/5 bg-background/50 backdrop-blur-sm"
       >
-        <div className="max-w-2xl mb-4">
-          <span className="font-mono text-xs uppercase tracking-widest text-primary font-bold">
-            Showcase Interactivo 3D
-          </span>
-          <h2 className="mt-2 font-display text-3xl font-extrabold sm:text-5xl text-foreground">
-            Snacks frescos en casillero
+        <div className="mx-auto max-w-6xl w-full text-center space-y-4 mb-12">
+          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider text-primary">
+            <Zap size={13} />
+            <span>El Ecosistema Bocado</span>
+          </div>
+          <h2 className="font-display text-3xl font-black sm:text-5xl text-foreground">
+            ¿Cómo funciona el negocio?
           </h2>
-          <p className="mt-2 text-xs sm:text-sm text-muted-foreground">
-            Toca o pasa el cursor sobre la compuerta para verla abrirse en 3D y apartar tu snack.
+          <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
+            Conectamos a estudiantes que cocinan con la comunidad universitaria a través de una red física de 60 casilleros inteligentes climatizados en Icesi.
           </p>
         </div>
 
-        {/* The Kamui 3D Interactive Flip Showcase */}
-        <KamuiCardShowcase />
+        {/* 3 Pillars Grid */}
+        <div className="mx-auto max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+          {/* Pillar 1: Compradores */}
+          <div className="rounded-3xl border border-border/80 bg-card/70 p-6 sm:p-8 backdrop-blur-xl shadow-xl hover:border-primary/50 transition-all flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+                <Users size={28} />
+              </div>
+              <h3 className="font-display text-xl font-bold text-foreground">Para Estudiantes Compradores</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                Exploras el catálogo en vivo, apartas tu snack favorito y recibes tu <strong>PIN de 4 dígitos</strong>. Puedes chatear directamente con el vendedor para cualquier duda.
+              </p>
+            </div>
+            <div className="mt-6 border-t border-border/60 pt-4 text-xs font-mono text-primary font-semibold flex items-center gap-1.5">
+              <Clock size={14} /> Retiro en &lt;10 segundos
+            </div>
+          </div>
+
+          {/* Pillar 2: Estudiantes Cocineros / Vendedores */}
+          <div className="rounded-3xl border border-amber-500/40 bg-gradient-to-b from-amber-500/10 via-card/80 to-card p-6 sm:p-8 backdrop-blur-xl shadow-xl hover:border-amber-400 transition-all flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400">
+                <ChefHat size={28} />
+              </div>
+              <h3 className="font-display text-xl font-bold text-foreground">Para Estudiantes Cocineros</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                Cocinas en casa, seleccionas un casillero libre en los Edificios D, M o L desde la app, depositas con tu PIN <code>DEP-XXXX</code> y vendes 24/7 sin perder tiempo de clase.
+              </p>
+            </div>
+            <div className="mt-6 border-t border-amber-500/20 pt-4 text-xs font-mono text-amber-400 font-semibold flex items-center gap-1.5">
+              <ShieldCheck size={14} /> Solo 5% de comisión por venta
+            </div>
+          </div>
+
+          {/* Pillar 3: Red de Casilleros Icesi */}
+          <div className="rounded-3xl border border-emerald-500/40 bg-gradient-to-b from-emerald-500/10 via-card/80 to-card p-6 sm:p-8 backdrop-blur-xl shadow-xl hover:border-emerald-400 transition-all flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400">
+                <Store size={28} />
+              </div>
+              <h3 className="font-display text-xl font-bold text-foreground">Infraestructura Icesi</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                60 casilleros climatizados y seguros repartidos en los <strong>Edificios D (20), M (20) y L (20)</strong>. La máquina se desbloquea con PIN y valida el pago virtual al instante.
+              </p>
+            </div>
+            <div className="mt-6 border-t border-emerald-500/20 pt-4 text-xs font-mono text-emerald-400 font-semibold flex items-center gap-1.5">
+              <MapPin size={14} /> 60 Casilleros en 3 Edificios
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* ========================================================= */}
-      {/* SLIDE 3: FLUJO VISUAL EN 3 PASOS                          */}
+      {/* SECCIÓN 3: PASO A PASO & MINI CONSOLA INTERACTIVA          */}
       {/* ========================================================= */}
       <section
         ref={(el) => {
           sectionRefs.current[2] = el
         }}
-        className="relative z-10 flex min-h-screen items-center justify-center px-4 py-16 sm:px-6 border-t border-white/5"
+        className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-20 sm:px-6 border-t border-white/5"
       >
-        <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          {/* Left Column: Interactive 3D Demo Vault Door */}
-          <div className="lg:col-span-6 flex justify-center">
-            <div className="relative rounded-3xl border border-primary/30 bg-card/60 p-8 backdrop-blur-2xl shadow-2xl max-w-sm w-full">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-6 font-mono text-xs">
-                <span className="text-emerald-400 font-bold flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-                  SIMULADOR DE CASILLERO
-                </span>
-                <span className="text-zinc-400">SLOT #101</span>
-              </div>
-
-              {/* 3D Locker Component */}
-              <div className="locker-vault-perspective mx-auto flex justify-center my-4">
-                <div
-                  onClick={demoLockerOpen ? handleDemoClose : handleDemoUnlock}
-                  className={`relative h-48 w-48 rounded-3xl border-2 transition-all duration-700 cursor-pointer flex flex-col items-center justify-center p-4 text-center ${
-                    demoLockerOpen
-                      ? 'border-emerald-500 bg-emerald-950/40 locker-door is-open shadow-[0_0_30px_rgba(16,185,129,0.35)]'
-                      : 'border-white/20 bg-zinc-900/90 shadow-xl hover:border-primary'
-                  }`}
-                >
-                  {demoLockerOpen ? (
-                    <div className="space-y-2 animate-fadeIn">
-                      <span className="text-4xl">🍪</span>
-                      <p className="text-xs font-bold text-emerald-300">¡Compuerta Abierta!</p>
-                      <p className="text-[10px] text-zinc-400">Retira tu brownie melcochudo</p>
-                      <span className="text-[9px] font-mono text-emerald-400 underline">
-                        Clic para cerrar
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/20 text-primary">
-                        <Lock size={24} />
-                      </div>
-                      <p className="font-brand text-xs font-bold text-foreground">Casillero #101</p>
-                      <p className="text-[10px] font-mono text-muted-foreground">PIN: 4892</p>
-                      <span className="inline-block rounded-lg bg-primary/20 px-2.5 py-1 text-[10px] font-mono font-bold text-primary border border-primary/30">
-                        Toca para Desbloquear
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-6 text-center">
-                <button
-                  type="button"
-                  onClick={demoLockerOpen ? handleDemoClose : handleDemoUnlock}
-                  className="rounded-xl bg-secondary px-4 py-2 text-xs font-mono font-bold text-foreground hover:bg-secondary/80 transition-all"
-                >
-                  {demoLockerOpen ? 'Cerrar Compuerta' : 'Simular Apertura con PIN 4892'}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: 3 Sleek Steps */}
-          <div className="lg:col-span-6 space-y-6 text-left">
-            <div>
-              <span className="font-mono text-xs uppercase tracking-widest text-primary font-bold">
-                Paso a Paso
-              </span>
-              <h2 className="mt-2 font-display text-3xl font-extrabold sm:text-4xl text-foreground">
-                Cero fricción. Retiro en 10 segundos.
-              </h2>
-            </div>
-
-            <div className="space-y-4">
-              {/* Step 1 */}
-              <div className="flex items-start gap-4 rounded-2xl border border-white/10 bg-card/40 p-4 backdrop-blur-md">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/20 font-mono font-bold text-primary text-sm">
-                  01
-                </div>
-                <div>
-                  <h3 className="font-brand text-sm font-bold text-foreground">Paga Digitalmente</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Tarjeta o QR Nequi/Bancolombia. Recibe tu pase con <strong>PIN de 4 dígitos</strong> de inmediato.
-                  </p>
-                </div>
-              </div>
-
-              {/* Step 2 */}
-              <div className="flex items-start gap-4 rounded-2xl border border-white/10 bg-card/40 p-4 backdrop-blur-md">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 font-mono font-bold text-amber-400 text-sm">
-                  02
-                </div>
-                <div>
-                  <h3 className="font-brand text-sm font-bold text-foreground">El Vendedor Deposita</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    El estudiante cocinero guarda el snack en el casillero usando su PIN de depósito <code>DEP-XXXX</code>.
-                  </p>
-                </div>
-              </div>
-
-              {/* Step 3 */}
-              <div className="flex items-start gap-4 rounded-2xl border border-white/10 bg-card/40 p-4 backdrop-blur-md">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/20 font-mono font-bold text-emerald-400 text-sm">
-                  03
-                </div>
-                <div>
-                  <h3 className="font-brand text-sm font-bold text-foreground">Digita y Disfruta</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Pasa por la vitrina del campus, digita tus 4 dígitos en el teclado táctil y la compuerta se abre sola.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="mx-auto max-w-4xl text-center space-y-3 mb-10">
+          <span className="font-mono text-xs uppercase tracking-widest text-primary font-bold">
+            Simulador de Terminal
+          </span>
+          <h2 className="font-display text-3xl font-black sm:text-5xl text-foreground">
+            Paso a Paso: PIN $\rightarrow$ Pago QR $\rightarrow$ Retiro
+          </h2>
+          <p className="text-xs sm:text-sm text-muted-foreground max-w-xl mx-auto">
+            Experimenta en vivo cómo el usuario digita su PIN en la máquina, realiza el pago virtual y la compuerta se abre entregando el producto con comprobante automático.
+          </p>
         </div>
+
+        {/* The Animated Mini Console Demo Component */}
+        <ProcessConsoleDemo />
       </section>
 
       {/* ========================================================= */}
-      {/* SLIDE 4: VITRINAS EN CAMPUS & FINAL CTA                   */}
+      {/* SECCIÓN 4: RED DE CASILLEROS EN EDIFICIOS D, M Y L        */}
       {/* ========================================================= */}
       <section
         ref={(el) => {
           sectionRefs.current[3] = el
         }}
-        className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center sm:px-6 border-t border-white/5"
+        className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-20 sm:px-6 border-t border-white/5"
       >
-        <div className="max-w-2xl mb-8">
+        <div className="max-w-3xl text-center mb-10 space-y-3">
           <span className="font-mono text-xs uppercase tracking-widest text-emerald-400 font-bold">
-            Vitrinas Activas en Campus
+            Red de Casilleros Activos
           </span>
-          <h2 className="mt-2 font-display text-3xl font-extrabold sm:text-5xl text-foreground">
-            Encuentra tu casillero más cercano
+          <h2 className="font-display text-3xl font-extrabold sm:text-5xl text-foreground">
+            60 Casilleros en Universidad Icesi
           </h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Distribución estratégica en los principales edificios para que retires o deposites cerca de tus clases.
+          </p>
         </div>
 
-        {/* Hubs Selector Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl w-full text-left mb-12">
+        {/* 3 Buildings Display */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-5xl w-full text-left mb-10">
           {LOCKER_HUBS.map((hub) => {
             const isSel = hub.id === selectedHubId
             const hubLockers = getLockersByHub(hub.id)
             const readyCount = hubLockers.filter((l) => l.status === 'listo_para_retiro').length
+            const availableCount = hubLockers.filter((l) => l.status === 'disponible').length
 
             return (
               <button
@@ -367,49 +319,83 @@ export function LandingPage() {
                   setSelectedHubId(hub.id)
                   playKeyBeep(550)
                 }}
-                className={`rounded-3xl border p-5 backdrop-blur-xl transition-all ${
+                className={`rounded-3xl border p-6 backdrop-blur-xl transition-all ${
                   isSel
-                    ? 'border-primary bg-primary/15 shadow-xl shadow-primary/15 ring-2 ring-primary'
-                    : 'border-white/10 bg-card/50 hover:border-white/30'
+                    ? 'border-primary bg-primary/15 shadow-2xl shadow-primary/20 ring-2 ring-primary scale-102'
+                    : 'border-white/10 bg-card/60 hover:border-white/30'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-brand text-sm font-bold text-foreground flex items-center gap-2">
-                    <MapPin size={16} className={isSel ? 'text-primary' : 'text-muted-foreground'} />
+                  <span className="font-display text-lg font-bold text-foreground flex items-center gap-2">
+                    <span className="text-xl">{hub.icon}</span>
                     {hub.name}
                   </span>
-                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
                 </div>
-                <p className="mt-3 text-xs font-mono font-bold text-emerald-400">
-                  {readyCount} snacks listos para retirar
-                </p>
-                <p className="mt-1 text-[11px] text-muted-foreground">{hub.zone}</p>
+                <p className="mt-2 text-xs text-muted-foreground">{hub.zone}</p>
+                <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-3 text-xs font-mono">
+                  <span className="text-emerald-400 font-bold">{readyCount} snacks listos</span>
+                  <span className="text-zinc-400">{availableCount}/20 libres</span>
+                </div>
               </button>
             )
           })}
         </div>
 
-        {/* Bottom Giant CTA Box */}
-        <div className="rounded-3xl border border-primary/40 bg-gradient-to-b from-primary/10 via-card to-zinc-950 p-8 sm:p-12 max-w-3xl w-full space-y-6 shadow-2xl">
-          <h3 className="font-display text-3xl font-black sm:text-4xl text-foreground">
-            ¿Listo para vivir la experiencia Bocado?
-          </h3>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            Explora las vitrinas 24/7 en vivo o únete como estudiante cocinero para vender sin perder tiempo de clase.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-            <Link
-              to="/vitrina"
-              className="rounded-2xl bg-primary px-8 py-4 font-display text-sm font-bold text-primary-foreground shadow-xl shadow-primary/30 hover:brightness-110 active:scale-95 transition-all"
-            >
-              Abrir Vitrina 24/7
-            </Link>
-            <Link
-              to="/registro"
-              className="rounded-2xl border border-white/15 bg-secondary px-8 py-4 font-display text-sm font-semibold text-foreground hover:bg-secondary/80 active:scale-95 transition-all"
-            >
-              Vender en Casillero
-            </Link>
+        <Link
+          to="/vitrina"
+          className="flex items-center gap-2 rounded-2xl bg-primary px-8 py-4 font-display text-sm font-bold text-primary-foreground shadow-xl shadow-primary/30 hover:brightness-110 active:scale-95 transition-all"
+        >
+          <Boxes size={18} />
+          <span>Ver Vitrina de Casilleros D · M · L</span>
+        </Link>
+      </section>
+
+      {/* ========================================================= */}
+      {/* SECCIÓN 5: FRASE DE MARCA CON MOTIVOS TEXTILES Y VISUALES */}
+      {/* ========================================================= */}
+      <section
+        ref={(el) => {
+          sectionRefs.current[4] = el
+        }}
+        className="relative z-10 flex min-h-[75vh] flex-col items-center justify-center px-4 py-20 text-center sm:px-6 border-t border-white/5 overflow-hidden"
+      >
+        {/* Textile / Geometric Accent Glowing Frame */}
+        <div className="relative mx-auto max-w-4xl w-full rounded-3xl border-2 border-primary/30 bg-gradient-to-b from-primary/15 via-zinc-950/90 to-black p-8 sm:p-14 shadow-2xl backdrop-blur-2xl">
+          {/* Top Geometric Artisan Textile Strip */}
+          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-primary via-amber-400 via-emerald-400 to-cyan-400 opacity-90" />
+
+          {/* Decorative Corner Textile Crosses */}
+          <div className="absolute top-4 left-4 text-primary font-mono text-sm opacity-60">❖ ❖ ❖</div>
+          <div className="absolute top-4 right-4 text-emerald-400 font-mono text-sm opacity-60">❖ ❖ ❖</div>
+          <div className="absolute bottom-4 left-4 text-amber-400 font-mono text-sm opacity-60">❖ ❖ ❖</div>
+          <div className="absolute bottom-4 right-4 text-cyan-400 font-mono text-sm opacity-60">❖ ❖ ❖</div>
+
+          <div className="my-6 space-y-6">
+            <span className="font-mono text-xs uppercase tracking-widest text-primary font-bold">
+              Cultura Universitaria · Sabor & Innovación
+            </span>
+
+            <h3 className="font-display text-3xl font-black sm:text-5xl text-white leading-tight">
+              Listo para vivir la experiencia{' '}
+              <span className="bg-gradient-to-r from-primary via-amber-400 to-emerald-400 bg-clip-text text-transparent">
+                Bocado
+              </span>
+              .
+            </h3>
+
+            <p className="text-sm sm:text-base text-zinc-300 max-w-2xl mx-auto leading-relaxed">
+              El sabor artesanal hecho por tus compañeros de universidad, con la comodidad de la tecnología que se adapta a tu día entre clases.
+            </p>
+
+            {/* Subtle textile geometric weave line */}
+            <div className="mx-auto flex items-center justify-center gap-3 pt-4 text-zinc-500 text-xs font-mono">
+              <span>━━━</span>
+              <span className="text-primary">✦</span>
+              <span className="text-amber-400">✦</span>
+              <span className="text-emerald-400">✦</span>
+              <span>━━━</span>
+            </div>
           </div>
         </div>
       </section>

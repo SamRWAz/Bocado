@@ -287,6 +287,10 @@ export async function sendMessage(params: {
   productName?: string
   messageType?: ChatMessage['messageType']
   locationZone?: string
+  lockerCode?: string
+  amount?: number
+  commission?: number
+  netRevenue?: number
 }): Promise<ChatMessage> {
   // Ensure valid recipient ID and recipient Name fallback
   let rId = params.recipientId?.trim()
@@ -313,6 +317,10 @@ export async function sendMessage(params: {
     text: params.text.trim(),
     messageType: params.messageType ?? 'text',
     locationZone: params.locationZone,
+    lockerCode: params.lockerCode,
+    amount: params.amount,
+    commission: params.commission,
+    netRevenue: params.netRevenue,
     timestamp: new Date().toISOString(),
     read: false,
   }

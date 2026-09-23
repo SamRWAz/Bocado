@@ -1,8 +1,8 @@
 import {
   Boxes,
+  Building2,
   CreditCard,
   Lock,
-  MapPin,
   QrCode,
   ShieldCheck,
   Sparkles,
@@ -15,7 +15,13 @@ import { fetchProduct, incrementMetric, updateProduct } from '../lib/api'
 import { sendMessage } from '../lib/chat'
 import { GUARANTEED_RESERVE_FEE, inputClass, labelClass } from '../lib/constants'
 import { displaySeller, money, sellerUserId } from '../lib/format'
-import { LOCKER_HUBS, assignLocker, generatePin, getLockersByHub } from '../lib/lockers'
+import {
+  LOCKER_HUBS,
+  PLATFORM_COMMISSION_RATE,
+  assignLocker,
+  generatePin,
+  getLockersByHub,
+} from '../lib/lockers'
 import { playPaymentSuccess } from '../lib/sounds'
 import { saveOrder } from '../lib/storage-db'
 import type { Order, PaymentMethod } from '../types'
@@ -26,7 +32,7 @@ export function CheckoutPage() {
   const navigate = useNavigate()
 
   const [selectedHubId, setSelectedHubId] = useState('hub_edificio_d')
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('tarjeta')
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('qr_nequi')
   const [cardNumber, setCardNumber] = useState('4532 •••• •••• 9012')
   const [cardHolder] = useState(user?.name || 'Estudiante Icesi')
   const [cardExp, setCardExp] = useState('08/28')
@@ -40,7 +46,7 @@ export function CheckoutPage() {
   const hubLockers = getLockersByHub(selectedHubId)
   const finalTotal = total + (guaranteedReserve ? GUARANTEED_RESERVE_FEE : 0)
 
-  const targetLocker = hubLockers[0]
+  const targetLocker = hubLockers.find((l) => l.status === 'disponible') || hubLockers[0]
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -81,6 +87,9 @@ export function CheckoutPage() {
           group.reduce((sum, item) => sum + item.price * item.qty, 0) +
           (guaranteedReserve ? GUARANTEED_RESERVE_FEE : 0)
 
+        const commission = Math.round(orderTotal * PLATFORM_COMMISSION_RATE)
+        const netRevenue = orderTotal - commission
+
         const order: Order = {
           id: orderId,
           buyerId: user.id,
@@ -109,11 +118,13 @@ export function CheckoutPage() {
           claimPin: generatedClaimPin,
           paymentMethod,
           paymentStatus: 'pagado',
+          platformCommission: commission,
+          sellerNetRevenue: netRevenue,
         }
 
         await saveOrder(order)
 
-        // Assign and prime locker in simulator
+        // Assign and prime locker in system
         const primaryProduct = group[0]
         try {
           assignLocker({
@@ -127,6 +138,7 @@ export function CheckoutPage() {
             buyerId: user.id,
             buyerName: user.name,
             orderId,
+            preferredBuilding: (primaryProduct.building as 'D' | 'M' | 'L') || 'D',
             preferredLockerId: targetLocker?.id,
           })
         } catch {
@@ -143,7 +155,11 @@ export function CheckoutPage() {
           recipientName: sName,
           orderId,
           productName: itemsSummary,
-          text: `🎉 ¡Pago Exitoso! He comprado ${itemsSummary} en la vitrina inteligente (${activeHub.name} - Casillero #${targetLocker?.code || 'D-01'}). PIN de retiro: ${generatedClaimPin}.`,
+          text: `🎉 ¡Snack Apartado en ${activeHub.name}!\n` +
+            `📦 Producto(s): ${itemsSummary}\n` +
+            `📍 Casillero #${targetLocker?.code || 'D-01'}\n` +
+            `🔑 PIN de Retiro: ${generatedClaimPin}\n` +
+            `💵 Total: ${money(orderTotal)} (Comisión Bocado 5%: ${money(commission)} · Neto Vendedor: ${money(netRevenue)})`,
           messageType: 'text',
         })
       }
@@ -152,10 +168,10 @@ export function CheckoutPage() {
       playPaymentSuccess()
       clear()
 
-      // Redirect directly to orders where the Digital Locker Claim Pass is displayed
+      // Redirect directly to orders / claim passes
       navigate('/pedidos')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo procesar el pago')
+      setError(err instanceof Error ? err.message : 'No se pudo procesar el apartado')
     } finally {
       setLoading(false)
     }
@@ -164,7 +180,7 @@ export function CheckoutPage() {
   if (items.length === 0) {
     return (
       <div className="py-24 text-center">
-        <p className="text-sm text-muted-foreground">Tu bolsa de compra está vacía.</p>
+        <p className="text-sm text-muted-foreground">Tu lista de apartados está vacía.</p>
       </div>
     )
   }
@@ -174,46 +190,54 @@ export function CheckoutPage() {
       <div>
         <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-mono font-bold text-primary mb-2">
           <Sparkles size={13} />
-          <span>Pago Digital & Asignación de Casillero</span>
+          <span>Generación de Pase Digital & Asignación de Casillero</span>
         </div>
-        <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-          Confirmar y Desbloquear Snack
+        <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+          Confirmar Apartados y Generar PIN
         </h1>
         <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-          Al pagar recibirás tu <strong>PIN de 4 dígitos</strong> para abrir el casillero en el campus sin contacto.
+          Al confirmar recibirás tu <strong>PIN de 4 dígitos</strong> para retirar sin contacto en los casilleros de los <strong>Edificios D, M o L</strong>.
         </p>
       </div>
 
-      {/* 1. Hub & Locker Selector */}
+      {/* 1. Building / Hub Selector */}
       <div className="rounded-3xl border border-border/80 bg-card/80 p-5 backdrop-blur-md shadow-sm space-y-4">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold font-mono uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-            <MapPin size={14} className="text-primary" />
-            1. Selecciona la Vitrina del Campus
+            <Building2 size={14} className="text-primary" />
+            1. Selecciona el Edificio de Retiro
           </span>
-          <span className="text-xs font-mono text-emerald-400">Casilleros Disponibles</span>
+          <span className="text-xs font-mono text-emerald-400 font-bold">20 Casilleros por Edificio</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {LOCKER_HUBS.map((hub) => {
             const isSel = hub.id === selectedHubId
             const lks = getLockersByHub(hub.id)
+            const availableCount = lks.filter((l) => l.status === 'disponible').length
+
             return (
               <button
                 key={hub.id}
                 type="button"
                 onClick={() => setSelectedHubId(hub.id)}
-                className={`rounded-2xl p-3.5 text-left border transition-all ${
+                className={`rounded-2xl p-4 text-left border transition-all ${
                   isSel
                     ? 'border-primary bg-primary/15 shadow-md shadow-primary/10 ring-1 ring-primary'
                     : 'border-border/70 bg-secondary/30 hover:border-primary/40'
                 }`}
               >
-                <p className="font-brand text-xs font-bold text-foreground">{hub.name}</p>
+                <div className="flex items-center justify-between">
+                  <p className="font-display text-sm font-bold text-foreground flex items-center gap-1.5">
+                    <span>{hub.icon}</span>
+                    {hub.name}
+                  </p>
+                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                </div>
                 <p className="mt-1 text-[10px] text-muted-foreground">{hub.zone}</p>
-                <div className="mt-2.5 flex items-center gap-1 text-[10px] font-mono text-emerald-400">
+                <div className="mt-3 flex items-center gap-1 text-[10px] font-mono text-emerald-400 font-bold">
                   <Boxes size={12} />
-                  <span>Casillero #{lks[0]?.code || '01'}</span>
+                  <span>{availableCount} casilleros libres</span>
                 </div>
               </button>
             )
@@ -221,30 +245,18 @@ export function CheckoutPage() {
         </div>
       </div>
 
-      {/* 2. Payment Method Selector & Interface */}
+      {/* 2. Virtual Payment Method Selector */}
       <div className="rounded-3xl border border-border/80 bg-card/80 p-5 backdrop-blur-md shadow-sm space-y-5">
         <span className="text-xs font-bold font-mono uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
           <CreditCard size={14} className="text-primary" />
-          2. Método de Pago Seguro
+          2. Método de Pago Virtual para Retiro
         </span>
 
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
-            onClick={() => setPaymentMethod('tarjeta')}
-            className={`flex items-center justify-center gap-2 rounded-xl py-3 px-4 text-xs font-display font-bold border transition-all ${
-              paymentMethod === 'tarjeta'
-                ? 'border-primary bg-primary/15 text-primary shadow-sm'
-                : 'border-border bg-secondary/30 text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <CreditCard size={16} />
-            Tarjeta Débito / Crédito
-          </button>
-          <button
-            type="button"
             onClick={() => setPaymentMethod('qr_nequi')}
-            className={`flex items-center justify-center gap-2 rounded-xl py-3 px-4 text-xs font-display font-bold border transition-all ${
+            className={`flex items-center justify-center gap-2 rounded-2xl py-3 px-4 text-xs font-display font-bold border transition-all ${
               paymentMethod === 'qr_nequi'
                 ? 'border-primary bg-primary/15 text-primary shadow-sm'
                 : 'border-border bg-secondary/30 text-muted-foreground hover:text-foreground'
@@ -253,26 +265,47 @@ export function CheckoutPage() {
             <QrCode size={16} />
             QR Nequi / Bancolombia
           </button>
+          <button
+            type="button"
+            onClick={() => setPaymentMethod('tarjeta')}
+            className={`flex items-center justify-center gap-2 rounded-2xl py-3 px-4 text-xs font-display font-bold border transition-all ${
+              paymentMethod === 'tarjeta'
+                ? 'border-primary bg-primary/15 text-primary shadow-sm'
+                : 'border-border bg-secondary/30 text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <CreditCard size={16} />
+            Tarjeta Débito / Crédito
+          </button>
         </div>
 
-        {/* Dynamic Payment Interface */}
-        {paymentMethod === 'tarjeta' ? (
+        {paymentMethod === 'qr_nequi' ? (
+          <div className="rounded-2xl border border-border/80 bg-zinc-950/80 p-6 text-center space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Al retirar en la vitrina del <strong>{activeHub.name}</strong>, escanearás el QR en pantalla para pagar con <strong>Nequi</strong> o <strong>Bancolombia</strong>.
+            </p>
+            <div className="mx-auto flex h-36 w-36 items-center justify-center rounded-2xl border-2 border-dashed border-emerald-500/50 bg-white p-2 shadow-xl">
+              <div className="h-full w-full bg-slate-900 rounded-lg flex flex-col items-center justify-center text-white p-2">
+                <QrCode size={72} className="text-emerald-400 animate-pulse" />
+                <span className="mt-1 text-[8px] font-mono text-zinc-300">PAGO CASILLERO ICESI</span>
+              </div>
+            </div>
+            <p className="font-mono text-xs text-emerald-400 font-bold">
+              Monto a Transferir: {money(finalTotal)}
+            </p>
+          </div>
+        ) : (
           <div className="space-y-4">
-            {/* Holographic Cyber Card Preview */}
             <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-tr from-slate-900 via-indigo-950 to-emerald-950 p-5 text-white shadow-2xl">
               <div className="flex items-center justify-between">
                 <span className="font-mono text-xs tracking-widest text-emerald-300 font-bold">BOCADO PASS</span>
                 <span className="font-display text-xs font-bold opacity-80">CAMPUS ICESI</span>
               </div>
-              <div className="my-5 flex items-center gap-2">
-                <div className="h-6 w-9 rounded-md bg-amber-400/80 border border-amber-300" />
-                <span className="text-[10px] font-mono opacity-70">CONTACTLESS NFC</span>
-              </div>
-              <p className="font-mono text-base tracking-widest sm:text-lg">{cardNumber}</p>
-              <div className="mt-4 flex items-center justify-between text-xs font-mono">
+              <p className="font-mono text-base tracking-widest sm:text-lg my-4">{cardNumber}</p>
+              <div className="flex items-center justify-between text-xs font-mono">
                 <div>
                   <span className="text-[9px] uppercase text-zinc-400 block">Titular</span>
-                  <span className="font-semibold truncate max-w-[150px] inline-block">{cardHolder}</span>
+                  <span className="font-semibold">{cardHolder}</span>
                 </div>
                 <div>
                   <span className="text-[9px] uppercase text-zinc-400 block">Expira</span>
@@ -281,7 +314,6 @@ export function CheckoutPage() {
               </div>
             </div>
 
-            {/* Inputs */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="col-span-2">
                 <label className={labelClass}>Número de Tarjeta</label>
@@ -313,29 +345,13 @@ export function CheckoutPage() {
               </div>
             </div>
           </div>
-        ) : (
-          /* Dynamic QR Code Simulator */
-          <div className="rounded-2xl border border-border/80 bg-zinc-950/80 p-6 text-center space-y-4">
-            <p className="text-xs text-muted-foreground">
-              Escanea con tu app <strong>Nequi</strong> o <strong>Bancolombia a la Mano</strong>
-            </p>
-            <div className="mx-auto flex h-44 w-44 items-center justify-center rounded-2xl border-2 border-dashed border-emerald-500/50 bg-white p-2 shadow-xl">
-              <div className="h-full w-full bg-slate-900 rounded-lg flex flex-col items-center justify-center text-white p-2">
-                <QrCode size={90} className="text-emerald-400 animate-pulse" />
-                <span className="mt-1 text-[9px] font-mono text-zinc-300">PAGO DIRECTO CAMPUS</span>
-              </div>
-            </div>
-            <p className="font-mono text-xs text-emerald-400 font-bold">
-              Monto a Transferir: {money(finalTotal)}
-            </p>
-          </div>
         )}
       </div>
 
       {/* 3. Snacks & Order Summary */}
       <div className="rounded-3xl border border-border/80 bg-card/80 p-5 backdrop-blur-md shadow-sm space-y-3">
         <span className="text-xs font-bold font-mono uppercase tracking-wider text-muted-foreground">
-          Resumen de tu pedido ({items.length})
+          Resumen de Apartados ({items.length})
         </span>
         <ul className="space-y-2 text-sm divide-y divide-border/40">
           {items.map((item) => (
@@ -350,17 +366,17 @@ export function CheckoutPage() {
                 )}
                 <div>
                   <span className="font-medium text-foreground text-xs sm:text-sm">{item.name}</span>
-                  <p className="text-[11px] text-muted-foreground">Vendedor: {displaySeller(item.seller)}</p>
+                  <p className="text-[11px] text-muted-foreground">Cocinero: {displaySeller(item.seller)}</p>
                 </div>
               </div>
-              <span className="font-display font-bold text-primary text-xs sm:text-sm">
+              <span className="font-mono font-bold text-primary text-xs sm:text-sm">
                 {item.qty} × {money(item.price)}
               </span>
             </li>
           ))}
         </ul>
 
-        {/* Guaranteed Smart Locker Protection */}
+        {/* Protection */}
         <div className="pt-3 border-t border-border/60">
           <label className="flex items-start gap-3 rounded-2xl bg-secondary/50 p-3.5 cursor-pointer hover:bg-secondary/70 transition-colors">
             <input
@@ -377,31 +393,31 @@ export function CheckoutPage() {
                 <span className="text-primary font-bold">+{money(GUARANTEED_RESERVE_FEE)}</span>
               </div>
               <p className="mt-1 text-muted-foreground leading-relaxed text-[11px]">
-                Garantiza compartimento con ventilación o refrigeración activa para conservar tu snack en perfecto estado.
+                Garantiza compartimento con ventilación o refrigeración activa para conservar tu snack fresco.
               </p>
             </div>
           </label>
         </div>
 
         <div className="pt-3 flex justify-between items-baseline border-t border-border font-display">
-          <span className="text-sm font-semibold text-foreground">Total a pagar:</span>
-          <span className="text-2xl font-bold text-primary">{money(finalTotal)}</span>
+          <span className="text-sm font-semibold text-foreground">Total a pagar al retirar:</span>
+          <span className="text-2xl font-black text-primary">{money(finalTotal)}</span>
         </div>
       </div>
 
-      {error && <p className="rounded-xl bg-destructive/10 p-3 text-xs text-destructive">{error}</p>}
+      {error && <p className="rounded-2xl bg-destructive/10 p-3 text-xs text-destructive">{error}</p>}
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-2xl bg-primary py-4 font-display text-sm font-bold text-primary-foreground shadow-xl shadow-primary/25 hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+        className="w-full rounded-2xl bg-gradient-to-r from-primary to-amber-500 py-4 font-display text-sm font-extrabold text-primary-foreground shadow-xl shadow-primary/25 hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
       >
         {loading ? (
-          'Procesando pago y generando pase...'
+          'Confirmando apartado y asignando casillero...'
         ) : (
           <>
             <Lock size={16} />
-            Pagar {money(finalTotal)} y Generar Pase con PIN
+            Confirmar Apartado en {activeHub.name} & Obtener PIN
           </>
         )}
       </button>

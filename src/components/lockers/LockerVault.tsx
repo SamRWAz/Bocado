@@ -17,9 +17,9 @@ import {
   getLockersByHub,
   subscribeToLockerUpdates,
 } from '../../lib/lockers'
+import { money } from '../../lib/format'
 import { playPaymentSuccess } from '../../lib/sounds'
 import type { Locker } from '../../types'
-import { money } from '../../lib/format'
 
 type Props = {
   selectedHubId?: string
@@ -36,7 +36,6 @@ export function LockerVault({
   onOpenKeypad,
   highlightLockerCode,
   onSelectLocker,
-  onUnlockLocker: _onUnlockLocker,
 }: Props) {
   const hubs = getLockerHubs()
   const [activeHubId, setActiveHubId] = useState(selectedHubId)
@@ -71,7 +70,7 @@ export function LockerVault({
       closeAndResetLocker(locker.id)
       setCelebratingLockerId(null)
       setSelectedLocker(null)
-    }, 2800)
+    }, 2500)
   }
 
   // Count stats
@@ -80,7 +79,7 @@ export function LockerVault({
 
   return (
     <div className="space-y-6">
-      {/* Hub Selector Tabs */}
+      {/* Hub Selector Tabs (Edificios D, M, L) */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
           {hubs.map((hub) => {
@@ -123,7 +122,7 @@ export function LockerVault({
       </div>
 
       {/* Hub Info Banner */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-border/80 bg-card/60 p-4 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-3xl border border-border/80 bg-card/60 p-4 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-xl text-primary">
             {currentHub.icon}
@@ -139,25 +138,25 @@ export function LockerVault({
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-xs font-semibold">
+        <div className="flex items-center gap-4 text-xs font-semibold font-mono">
           <div className="flex items-center gap-1.5 text-emerald-400">
             <span className="h-2 w-2 rounded-full bg-emerald-500 led-glow-emerald" />
-            <span>{availableCount} Disponibles</span>
+            <span>{availableCount} Libres</span>
           </div>
           <div className="flex items-center gap-1.5 text-cyan-400">
             <span className="h-2 w-2 rounded-full bg-cyan-500 led-glow-cyan" />
-            <span>{readyCount} Listos para retiro</span>
+            <span>{readyCount} Con Snack</span>
           </div>
         </div>
       </div>
 
-      {/* 3D Physical Locker Kiosk Grid */}
+      {/* 20 Locker Grid for active hub */}
       <div className="rounded-3xl border-2 border-border/90 bg-gradient-to-b from-card/90 via-card/70 to-card/90 p-5 shadow-2xl backdrop-blur-xl locker-vault-perspective">
         <div className="mb-4 flex items-center justify-between border-b border-border/60 pb-3">
           <div className="flex items-center gap-2">
             <Zap size={16} className="text-primary" />
             <span className="font-display text-xs font-extrabold uppercase tracking-wider text-foreground">
-              Vitrina Física Inteligente · Matriz de Casilleros
+              Matriz de 20 Casilleros · {currentHub.name}
             </span>
           </div>
           <span className="text-[11px] text-muted-foreground">
@@ -165,7 +164,7 @@ export function LockerVault({
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
           {lockers.map((locker) => {
             const isOpen = locker.status === 'abierto'
             const isReady = locker.status === 'listo_para_retiro'
@@ -179,7 +178,7 @@ export function LockerVault({
                   setSelectedLocker(locker)
                   if (onSelectLocker) onSelectLocker(locker)
                 }}
-                className={`group relative flex flex-col justify-between rounded-2xl border-2 p-4 transition-all duration-300 cursor-pointer overflow-hidden min-h-[190px] ${
+                className={`group relative flex flex-col justify-between rounded-2xl border-2 p-3.5 transition-all duration-300 cursor-pointer overflow-hidden min-h-[175px] ${
                   isOpen
                     ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
                     : isReady
@@ -189,16 +188,15 @@ export function LockerVault({
                     : 'border-border/80 bg-secondary/30 hover:border-emerald-500/50 hover:bg-secondary/50'
                 } ${isHighlighted ? 'ring-2 ring-primary animate-pulse' : ''}`}
               >
-                {/* Top Status Bar with LED & Code */}
+                {/* Top Status Bar */}
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-xs font-black tracking-wider text-foreground">
                     #{locker.code}
                   </span>
 
-                  {/* LED Indicator Light */}
                   <div className="flex items-center gap-1.5">
                     {locker.tempType === 'refrigerado' && (
-                      <span className="rounded-full bg-cyan-500/15 p-1 text-cyan-400 text-[10px]" title="Climatizado / Refrigerado">
+                      <span className="rounded-full bg-cyan-500/15 p-1 text-cyan-400 text-[10px]" title="Climatizado refrigerado">
                         <Thermometer size={11} />
                       </span>
                     )}
@@ -216,16 +214,16 @@ export function LockerVault({
                   </div>
                 </div>
 
-                {/* Locker Content / Food Preview */}
+                {/* Locker Content */}
                 <div className="my-2 flex flex-1 flex-col items-center justify-center text-center">
                   {isOpen ? (
                     <div className="animate-in fade-in zoom-in-95 space-y-1">
-                      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary">
-                        <LockOpen size={22} className="animate-bounce" />
+                      <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-primary/20 text-primary">
+                        <LockOpen size={20} className="animate-bounce" />
                       </div>
-                      <p className="font-display text-xs font-extrabold text-primary">¡Casillero Abierto!</p>
+                      <p className="font-display text-[11px] font-extrabold text-primary">¡Abierto!</p>
                       {locker.productName && (
-                        <p className="text-[11px] font-semibold text-foreground line-clamp-1">{locker.productName}</p>
+                        <p className="text-[10px] font-semibold text-foreground line-clamp-1">{locker.productName}</p>
                       )}
                     </div>
                   ) : isReady ? (
@@ -234,45 +232,45 @@ export function LockerVault({
                         <img
                           src={locker.productImage}
                           alt={locker.productName ?? 'Snack'}
-                          className="mx-auto h-12 w-12 rounded-xl object-cover shadow-sm border border-cyan-500/30"
+                          className="mx-auto h-11 w-11 rounded-xl object-cover shadow-sm border border-cyan-500/30"
                         />
                       ) : (
-                        <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-400">
-                          <ShoppingBag size={20} />
+                        <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-400">
+                          <ShoppingBag size={18} />
                         </div>
                       )}
-                      <p className="font-display text-xs font-bold text-foreground line-clamp-1">{locker.productName}</p>
+                      <p className="font-display text-[11px] font-bold text-foreground line-clamp-1">{locker.productName}</p>
                       <p className="text-[10px] font-extrabold text-cyan-400">{locker.productPrice ? money(locker.productPrice) : ''}</p>
                     </div>
                   ) : isWaiting ? (
                     <div className="space-y-1 text-amber-400">
-                      <PackageCheck size={24} className="mx-auto opacity-75 animate-pulse" />
-                      <p className="font-display text-[11px] font-bold">Esperando depósito</p>
-                      <p className="text-[10px] text-muted-foreground line-clamp-1">{locker.productName || 'Snack reservado'}</p>
+                      <PackageCheck size={22} className="mx-auto opacity-75 animate-pulse" />
+                      <p className="font-display text-[10px] font-bold">Esperando depósito</p>
+                      <p className="text-[9px] text-muted-foreground line-clamp-1">{locker.productName || 'Reservado'}</p>
                     </div>
                   ) : (
                     <div className="space-y-1 text-muted-foreground/60">
-                      <Lock size={22} className="mx-auto opacity-40 group-hover:text-emerald-400 transition-colors" />
-                      <p className="font-display text-[11px] font-bold text-muted-foreground">Casillero Libre</p>
-                      <span className="text-[9px] text-emerald-400 font-semibold block">Listo para guardar</span>
+                      <Lock size={20} className="mx-auto opacity-40 group-hover:text-emerald-400 transition-colors" />
+                      <p className="font-display text-[10px] font-bold text-muted-foreground">Disponible</p>
+                      <span className="text-[8px] text-emerald-400 font-semibold block">Libre</span>
                     </div>
                   )}
                 </div>
 
-                {/* Bottom Action / Pin Helper */}
-                <div className="mt-1 border-t border-border/40 pt-2 flex items-center justify-between text-[10px]">
+                {/* Bottom Action */}
+                <div className="mt-1 border-t border-border/40 pt-1.5 flex items-center justify-between text-[10px]">
                   {isOpen ? (
-                    <span className="text-primary font-bold">Puerta destrabada</span>
+                    <span className="text-primary font-bold">Destrabado</span>
                   ) : isReady ? (
                     <span className="text-cyan-400 font-bold flex items-center gap-1">
-                      <KeyRound size={10} /> PIN requerido
+                      <KeyRound size={10} /> Con PIN
                     </span>
                   ) : isWaiting ? (
                     <span className="text-amber-400 font-semibold">PIN vendedor</span>
                   ) : (
-                    <span className="text-emerald-400 font-semibold">Disponible</span>
+                    <span className="text-emerald-400 font-semibold">Libre</span>
                   )}
-                  <ChevronRight size={13} className="text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
+                  <ChevronRight size={12} className="text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </div>
             )
@@ -280,9 +278,9 @@ export function LockerVault({
         </div>
       </div>
 
-      {/* Selected Locker Detail Modal / Bottom Drawer */}
+      {/* Selected Locker Detail Modal */}
       {selectedLocker && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md animate-in fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md animate-fadeIn">
           <div className="relative w-full max-w-md rounded-3xl border-2 border-primary/40 bg-card p-6 shadow-2xl space-y-4">
             <button
               type="button"
@@ -341,7 +339,7 @@ export function LockerVault({
               <div className="rounded-2xl bg-secondary/50 p-4 space-y-3">
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className="text-[10px] font-bold uppercase text-cyan-400">Snack en casillero:</span>
+                    <span className="text-[10px] font-bold uppercase text-cyan-400 font-mono">Snack en casillero:</span>
                     <h4 className="font-display text-base font-bold text-foreground">{selectedLocker.productName}</h4>
                     <p className="text-xs text-muted-foreground">Vendedor: {selectedLocker.sellerName}</p>
                   </div>
@@ -353,11 +351,11 @@ export function LockerVault({
                 </div>
 
                 <div className="rounded-xl border border-cyan-500/30 bg-cyan-950/30 p-3 text-xs text-cyan-300">
-                  <p className="font-semibold flex items-center gap-1.5">
+                  <p className="font-semibold flex items-center gap-1.5 font-mono">
                     <KeyRound size={14} /> Para abrir este casillero:
                   </p>
                   <p className="mt-1 text-[11px] text-muted-foreground">
-                    Digita tu PIN de 4 dígitos o usa el botón de teclado Kiosk.
+                    Digita el PIN en el teclado Kiosk para validar tu producto y abrir con pago virtual QR.
                     {selectedLocker.claimPin && (
                       <span className="block mt-1 text-foreground font-mono font-bold text-sm">
                         PIN Demo de prueba: <strong className="text-primary">{selectedLocker.claimPin}</strong>

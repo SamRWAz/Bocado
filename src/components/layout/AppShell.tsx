@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  BookmarkCheck,
   Boxes,
   ClipboardList,
   LogOut,
@@ -14,8 +15,8 @@ import { canSell, isAdmin, useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
 import { getUnreadCount, subscribeToChatUpdates } from '../../lib/chat'
 import { initials } from '../../lib/format'
-import { ThemeToggle } from '../ThemeToggle'
 import { BrandMark } from '../BrandMark'
+import { ThemeToggle } from '../ThemeToggle'
 
 export function AppShell() {
   const { user, logout } = useAuth()
@@ -37,10 +38,10 @@ export function AppShell() {
 
   const links = [
     { to: '/catalogo', label: 'Snacks', icon: ShoppingBag },
-    { to: '/vitrina', label: 'Vitrina 24/7', icon: Boxes },
+    { to: '/vitrina', label: 'Casilleros D·M·L', icon: Boxes },
     { to: '/mensajes', label: 'Mensajes', icon: MessageSquare, badge: unreadChat },
-    ...(seller ? [{ to: '/vender', label: 'Mi Puesto / Vender', icon: Store }] : []),
-    { to: '/pedidos', label: 'Pedidos / Casilleros', icon: ClipboardList },
+    ...(seller ? [{ to: '/vender', label: 'Panel Vendedor & Casilleros', icon: Store }] : []),
+    { to: '/pedidos', label: 'Mis Pases / Pedidos', icon: ClipboardList },
     ...(admin ? [{ to: '/metricas', label: 'Métricas', icon: BarChart3 }] : []),
   ]
 
@@ -58,15 +59,15 @@ export function AppShell() {
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) =>
-                  `relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-display font-medium transition-colors ${
-                    isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                  `relative flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs sm:text-sm font-display font-semibold transition-colors ${
+                    isActive ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
                   }`
                 }
               >
                 <link.icon size={16} />
                 <span>{link.label}</span>
                 {Boolean(link.badge) && (
-                  <span className="ml-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground animate-pulse">
+                  <span className="ml-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white animate-pulse">
                     {link.badge}
                   </span>
                 )}
@@ -77,12 +78,12 @@ export function AppShell() {
             <ThemeToggle />
             <Link
               to="/carrito"
-              className="relative flex items-center gap-1.5 rounded-lg bg-secondary/60 px-3 py-2 text-xs sm:text-sm font-display font-medium text-foreground hover:bg-secondary transition-colors"
+              className="relative flex items-center gap-1.5 rounded-xl bg-secondary/60 px-3 py-2 text-xs sm:text-sm font-display font-medium text-foreground hover:bg-secondary transition-colors"
             >
-              <ShoppingBag size={16} className="text-primary" />
-              <span>Carrito</span>
+              <BookmarkCheck size={16} className="text-primary" />
+              <span>Apartados</span>
               {count > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-center text-[10px] font-bold text-primary-foreground">
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-center text-[10px] font-bold text-primary-foreground animate-pulse">
                   {count}
                 </span>
               )}
@@ -91,7 +92,7 @@ export function AppShell() {
               <>
                 <Link
                   to="/cuenta"
-                  className="hidden items-center gap-2 rounded-lg px-2 py-1.5 text-sm sm:flex hover:bg-secondary/40 transition-colors"
+                  className="hidden items-center gap-2 rounded-xl px-2 py-1.5 text-sm sm:flex hover:bg-secondary/40 transition-colors"
                 >
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-xs font-display font-bold text-primary">
                     {initials(user.name)}
@@ -101,14 +102,14 @@ export function AppShell() {
                 <button
                   type="button"
                   onClick={() => void logout()}
-                  className="rounded-lg p-2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="rounded-xl p-2 text-muted-foreground hover:text-foreground transition-colors"
                   aria-label="Cerrar sesión"
                 >
                   <LogOut size={18} />
                 </button>
               </>
             ) : (
-              <Link to="/login" className="flex items-center gap-1 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-primary-foreground">
+              <Link to="/login" className="flex items-center gap-1 rounded-xl bg-primary px-3 py-2 text-xs font-bold text-primary-foreground">
                 <UserRound size={14} /> Entrar
               </Link>
             )}
