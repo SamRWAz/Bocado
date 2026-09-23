@@ -274,8 +274,8 @@ export function ProductDetailPage() {
             </div>
 
             {apartadoDone ? (
-              <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-4 space-y-3 animate-fadeIn text-center">
-                <div className="flex items-center justify-center gap-2 text-emerald-400 font-display font-bold text-sm">
+              <div className="rounded-2xl border-2 border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 p-4 space-y-3 animate-fadeIn text-center">
+                <div className="flex items-center justify-center gap-2 text-primary font-display font-bold text-sm">
                   <CheckCircle2 size={18} />
                   <span>¡Snack apartado con éxito!</span>
                 </div>
@@ -286,7 +286,7 @@ export function ProductDetailPage() {
                   <button
                     type="button"
                     onClick={handleStartChat}
-                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-primary to-amber-500 py-2.5 text-xs font-display font-bold text-primary-foreground shadow-md hover:opacity-90"
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-primary hover:bg-[#751010] py-2.5 text-xs font-display font-bold text-white shadow-xs transition-colors cursor-pointer"
                   >
                     <MessageCircle size={14} />
                     <span>Chatear con el Vendedor</span>
@@ -306,7 +306,7 @@ export function ProductDetailPage() {
                   type="button"
                   disabled={isApartando || product.sold_out || product.stock <= 0}
                   onClick={() => void handleApartar()}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-amber-500 py-4 font-display text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 transition-transform hover:opacity-95 active:scale-95 disabled:opacity-40"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-primary hover:bg-[#751010] py-4 font-display text-sm font-bold text-white shadow-md transition-transform active:scale-95 disabled:opacity-40 cursor-pointer"
                 >
                   <BookmarkCheck size={18} />
                   {isApartando ? 'Apartando snack...' : 'Apartar Snack para Retiro'}
@@ -314,7 +314,7 @@ export function ProductDetailPage() {
                 <button
                   type="button"
                   onClick={handleStartChat}
-                  className="flex items-center justify-center gap-2 rounded-2xl bg-secondary px-6 py-4 font-display text-sm font-semibold text-foreground hover:bg-secondary/80 transition-colors"
+                  className="flex items-center justify-center gap-2 rounded-2xl bg-secondary px-6 py-4 font-display text-sm font-semibold text-foreground hover:bg-secondary/80 transition-colors cursor-pointer"
                 >
                   <MessageCircle size={18} />
                   <span>Chatear</span>

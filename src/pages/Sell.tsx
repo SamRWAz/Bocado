@@ -256,24 +256,24 @@ export function SellPage() {
           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">
             Apartados pendientes
           </span>
-          <p className="mt-1 font-display text-xl font-black text-amber-400">
+          <p className="mt-1 font-display text-xl font-black text-primary">
             {pendingApartados.length}
           </p>
         </div>
         <div className="rounded-2xl border border-border bg-card p-3.5 shadow-sm">
           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1 font-mono">
-            <TrendingUp size={12} className="text-emerald-400" /> Valor Total
+            <TrendingUp size={12} className="text-primary" /> Valor Total
           </span>
-          <p className="mt-1 font-display text-xl font-black text-emerald-400">{money(totalValue)}</p>
+          <p className="mt-1 font-display text-xl font-black text-primary">{money(totalValue)}</p>
         </div>
       </div>
 
       {/* Pending Apartados Alert Banner */}
       {pendingApartados.length > 0 && (
-        <div className="rounded-3xl border-2 border-amber-500/50 bg-gradient-to-r from-amber-950/40 via-card to-card p-5 shadow-lg space-y-3 animate-fadeIn">
+        <div className="rounded-3xl border-2 border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30 p-5 shadow-xs space-y-3 animate-fadeIn">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400 font-bold">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-100 text-[#8F1414] dark:bg-red-900 dark:text-red-300 font-bold">
                 <BookmarkCheck size={20} />
               </div>
               <div>
@@ -288,7 +288,7 @@ export function SellPage() {
 
             <Link
               to="/pedidos"
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-display font-bold text-black shadow-md hover:bg-amber-400 transition-colors self-start sm:self-auto"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#8F1414] hover:bg-[#751010] px-4 py-2.5 text-xs font-display font-bold text-white shadow-xs transition-colors self-start sm:self-auto"
             >
               <span>Gestionar Apartados</span>
               <span>→</span>
@@ -299,7 +299,7 @@ export function SellPage() {
             {pendingApartados.slice(0, 3).map((ord) => (
               <div
                 key={ord.id}
-                className="flex items-center justify-between rounded-2xl border border-amber-500/30 bg-secondary/40 p-3 text-xs"
+                className="flex items-center justify-between rounded-2xl border border-red-200 dark:border-red-900/50 bg-card p-3 text-xs"
               >
                 <div>
                   <span className="font-bold text-foreground block">
@@ -310,7 +310,7 @@ export function SellPage() {
                   </span>
                 </div>
                 <div className="text-right font-mono">
-                  <span className="font-bold text-amber-400 block">{money(ord.total)}</span>
+                  <span className="font-bold text-primary block">{money(ord.total)}</span>
                   <span className="text-[10px] text-muted-foreground">{formatTime(ord.createdAt)}</span>
                 </div>
               </div>
@@ -351,7 +351,7 @@ export function SellPage() {
         </div>
 
         {publishSuccess && (
-          <div className="rounded-2xl border-2 border-emerald-500/40 bg-emerald-500/10 p-4 flex items-center gap-3 text-emerald-400 animate-fadeIn">
+          <div className="rounded-2xl border-2 border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 p-4 flex items-center gap-3 text-[#8F1414] dark:text-red-300 animate-fadeIn">
             <CheckCircle2 size={20} className="shrink-0" />
             <div className="text-xs">
               <p className="font-bold font-display text-sm">¡Snack publicado con éxito en el catálogo!</p>
@@ -517,7 +517,7 @@ export function SellPage() {
                       }
                       className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-display font-semibold transition-all ${
                         selected
-                          ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
+                          ? 'bg-[#8F1414] text-white shadow-xs'
                           : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
                       }`}
                     >
@@ -541,7 +541,7 @@ export function SellPage() {
                     alt="Preview"
                     className="h-44 w-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-between p-3">
+                  <div className="absolute inset-0 bg-black/60 flex items-end justify-between p-3">
                     <span className="text-xs text-white font-medium flex items-center gap-1">
                       <ImageIcon size={14} /> Imagen seleccionada
                     </span>
@@ -586,7 +586,7 @@ export function SellPage() {
               type="button"
               onClick={() => void publish()}
               disabled={uploading || !name.trim() || !price}
-              className="w-full rounded-2xl bg-gradient-to-r from-primary to-amber-500 py-4 font-display text-sm font-extrabold text-primary-foreground shadow-xl shadow-primary/25 hover:brightness-110 active:scale-95 disabled:opacity-40 transition-all flex items-center justify-center gap-2"
+              className="w-full rounded-2xl bg-[#8F1414] hover:bg-[#751010] py-4 font-display text-sm font-extrabold text-white shadow-md active:scale-95 disabled:opacity-40 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               {uploading ? (
                 'Publicando snack en el campus...'
@@ -610,30 +610,30 @@ export function SellPage() {
             </p>
 
             {/* Simulated Product Card */}
-            <article className="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-zinc-900/95 to-black p-4 shadow-2xl backdrop-blur-xl transition-all">
+            <article className="overflow-hidden rounded-3xl border-2 border-border bg-card p-4 shadow-sm transition-all">
               {/* Top Bar: Seller info */}
-              <div className="flex items-center justify-between border-b border-white/10 pb-2.5 mb-3 text-xs">
+              <div className="flex items-center justify-between border-b border-border/60 pb-2.5 mb-3 text-xs">
                 <div className="flex items-center gap-2 truncate">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-[10px] font-bold text-primary font-mono">
                     {(user.name || 'V').charAt(0).toUpperCase()}
                   </span>
-                  <span className="font-medium text-zinc-300 text-xs truncate">
+                  <span className="font-medium text-foreground text-xs truncate">
                     {user.name || 'Mi Tienda'}
                   </span>
                 </div>
-                <span className="rounded-md bg-white/5 px-2 py-0.5 text-[10px] text-zinc-400 font-mono">
+                <span className="rounded-md bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground font-mono">
                   Edif. {preferredBuilding}
                 </span>
               </div>
 
               {/* Product Image */}
-              <div className="relative h-48 w-full overflow-hidden rounded-2xl bg-zinc-950 border border-white/10 block">
+              <div className="relative h-48 w-full overflow-hidden rounded-2xl bg-secondary border border-border block">
                 <img
                   src={livePreviewImage}
                   alt={name || 'Preview'}
                   className="h-full w-full object-cover rounded-xl"
                 />
-                <span className="absolute bottom-2 left-2 rounded-lg bg-emerald-500/90 px-2.5 py-1 text-[10px] font-bold text-white shadow-md">
+                <span className="absolute bottom-2 left-2 rounded-lg bg-[#8F1414] px-2.5 py-1 text-[10px] font-bold text-white shadow-md">
                   Stock: {stock || '0'}
                 </span>
               </div>
@@ -652,7 +652,7 @@ export function SellPage() {
                   <TagList tags={[...tags, ...dietary]} size="sm" />
                 </div>
 
-                <div className="pt-3 flex items-center justify-between border-t border-white/10">
+                <div className="pt-3 flex items-center justify-between border-t border-border/60">
                   <div>
                     <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono block">
                       Precio
@@ -662,7 +662,7 @@ export function SellPage() {
                     </p>
                   </div>
 
-                  <span className="rounded-xl bg-gradient-to-r from-primary to-amber-500 px-3.5 py-2 font-display text-xs font-bold text-primary-foreground shadow-md">
+                  <span className="rounded-xl bg-[#8F1414] px-3.5 py-2 font-display text-xs font-bold text-white shadow-xs">
                     Apartar
                   </span>
                 </div>
@@ -714,8 +714,8 @@ export function SellPage() {
                     onClick={() => void toggleSoldOut(product)}
                     className={`rounded-full px-3 py-1 text-xs font-display font-bold transition-colors ${
                       product.sold_out
-                        ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                        : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        ? 'bg-secondary text-muted-foreground border border-border'
+                        : 'bg-red-100 text-[#8F1414] dark:bg-red-950 dark:text-red-300 border border-red-200 dark:border-red-800'
                     }`}
                   >
                     {product.sold_out ? 'Agotado' : 'Disponible'}

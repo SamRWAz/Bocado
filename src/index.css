@@ -10,19 +10,19 @@
   --card-foreground: 25 25% 14%;
   --popover: 0 0% 100%;
   --popover-foreground: 25 25% 14%;
-  --primary: 0 78% 35%;
+  --primary: 0 76% 32%;
   --primary-foreground: 0 0% 100%;
   --secondary: 36 25% 93%;
   --secondary-foreground: 25 25% 14%;
   --muted: 36 18% 92%;
   --muted-foreground: 25 10% 46%;
-  --accent: 0 78% 35%;
+  --accent: 0 76% 32%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 75% 45%;
   --destructive-foreground: 0 0% 100%;
   --border: 36 18% 87%;
   --input: 36 18% 87%;
-  --ring: 0 78% 35%;
+  --ring: 0 76% 32%;
   --radius: 0.875rem;
 }
 
@@ -34,19 +34,19 @@
   --card-foreground: 36 25% 94%;
   --popover: 20 14% 13%;
   --popover-foreground: 36 25% 94%;
-  --primary: 0 72% 46%;
+  --primary: 0 72% 44%;
   --primary-foreground: 0 0% 100%;
   --secondary: 20 12% 18%;
   --secondary-foreground: 36 20% 90%;
   --muted: 20 12% 18%;
   --muted-foreground: 36 10% 60%;
-  --accent: 0 72% 46%;
+  --accent: 0 72% 44%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 70% 50%;
   --destructive-foreground: 0 0% 100%;
   --border: 20 12% 22%;
   --input: 20 12% 22%;
-  --ring: 0 72% 46%;
+  --ring: 0 72% 44%;
 }
 
 html {
@@ -112,53 +112,35 @@ h6 {
   box-shadow: 8px 0 24px rgba(0, 0, 0, 0.3);
 }
 
-/* Standard Clean Badges */
-.badge-bakery-strawberry {
+/* Harmonious Red & Warm Neutral Badges */
+.badge-bakery-strawberry,
+.badge-bakery-flame,
+.badge-bakery-honey,
+.badge-bakery-matcha {
   background-color: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #fca5a5;
+  color: #8f1414;
+  border: 1px solid #fecaca;
 }
 
-.dark .badge-bakery-strawberry {
-  background-color: #450a0a;
+.dark .badge-bakery-strawberry,
+.dark .badge-bakery-flame,
+.dark .badge-bakery-honey,
+.dark .badge-bakery-matcha {
+  background-color: #3b0a0a;
   color: #fca5a5;
   border-color: #7f1d1d;
 }
 
-.badge-bakery-matcha {
-  background-color: #dcfce7;
-  color: #166534;
-  border: 1px solid #86efac;
+.badge-bakery-neutral {
+  background-color: #f5efeb;
+  color: #221c18;
+  border: 1px solid #e5ddd2;
 }
 
-.dark .badge-bakery-matcha {
-  background-color: #052e16;
-  color: #86efac;
-  border-color: #14532d;
-}
-
-.badge-bakery-honey {
-  background-color: #fef3c7;
-  color: #92400e;
-  border: 1px solid #fde68a;
-}
-
-.dark .badge-bakery-honey {
-  background-color: #451a03;
-  color: #fde68a;
-  border-color: #78350f;
-}
-
-.badge-bakery-flame {
-  background-color: #ffedd5;
-  color: #9a3412;
-  border: 1px solid #fed7aa;
-}
-
-.dark .badge-bakery-flame {
-  background-color: #431407;
-  color: #fed7aa;
-  border-color: #7c2d12;
+.dark .badge-bakery-neutral {
+  background-color: #26201c;
+  color: #f3efe9;
+  border-color: #3a322d;
 }
 
 /* Standard Food Card Hover */

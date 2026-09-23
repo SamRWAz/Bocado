@@ -25,28 +25,24 @@ const BUILDINGS: {
   name: string
   zone: string
   icon: string
-  accentColor: string
 }[] = [
   {
     code: 'D',
     name: 'Edificio D',
     zone: 'Plazoleta Central · Piso 1',
     icon: '⚡',
-    accentColor: 'from-amber-500/20 to-orange-500/10 border-amber-500/40 text-amber-400',
   },
   {
     code: 'M',
     name: 'Edificio M',
     zone: 'Hall de Aulas y Labs · Piso 1',
     icon: '🏛️',
-    accentColor: 'from-cyan-500/20 to-blue-500/10 border-cyan-500/40 text-cyan-400',
   },
   {
     code: 'L',
     name: 'Edificio L',
     zone: 'Zona de Estudios 24/7 · Piso 1',
     icon: '🌿',
-    accentColor: 'from-emerald-500/20 to-teal-500/10 border-emerald-500/40 text-emerald-400',
   },
 ]
 
@@ -104,8 +100,8 @@ export function AssignLockerModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
       <div className="relative w-full max-w-lg rounded-3xl border border-border/80 bg-card p-6 shadow-2xl overflow-hidden">
-        {/* Top accent glow */}
-        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-emerald-400 to-cyan-400" />
+        {/* Top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#8F1414]" />
 
         {/* Close button */}
         <button
@@ -146,8 +142,8 @@ export function AssignLockerModal({
               </div>
               <div className="flex justify-between items-center pt-1 border-t border-border/40 font-mono text-[11px]">
                 <span className="text-muted-foreground">Total Venta: <strong>{money(order.total)}</strong></span>
-                <span className="text-emerald-400 font-bold">
-                  Neto a recibir: {money(netRevenue)} <span className="text-zinc-500 font-normal">(5% comisión: -{money(commission)})</span>
+                <span className="text-primary font-bold">
+                  Neto a recibir: {money(netRevenue)} <span className="text-muted-foreground font-normal">(5% comisión: -{money(commission)})</span>
                 </span>
               </div>
             </div>
@@ -184,8 +180,8 @@ export function AssignLockerModal({
                         <span
                           className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md ${
                             availableCount > 0
-                              ? 'bg-emerald-500/15 text-emerald-400'
-                              : 'bg-rose-500/15 text-rose-400'
+                              ? 'bg-primary/15 text-primary'
+                              : 'bg-secondary text-muted-foreground'
                           }`}
                         >
                           {availableCount}/20 libres
@@ -204,7 +200,7 @@ export function AssignLockerModal({
             </div>
 
             {error && (
-              <div className="rounded-xl bg-rose-500/15 border border-rose-500/30 p-2.5 text-xs text-rose-400 font-mono">
+              <div className="rounded-xl bg-destructive/15 border border-destructive/30 p-2.5 text-xs text-destructive font-mono">
                 {error}
               </div>
             )}
@@ -214,7 +210,7 @@ export function AssignLockerModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 rounded-xl border border-border bg-secondary/80 py-2.5 text-xs font-display font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                className="flex-1 rounded-xl border border-border bg-secondary/80 py-2.5 text-xs font-display font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
@@ -222,7 +218,7 @@ export function AssignLockerModal({
                 type="button"
                 onClick={() => void handleAssign()}
                 disabled={loading}
-                className="flex-[2] flex items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-xs font-display font-bold text-primary-foreground shadow-lg shadow-primary/25 hover:brightness-110 disabled:opacity-50 transition-all"
+                className="flex-[2] flex items-center justify-center gap-1.5 rounded-xl bg-primary hover:bg-[#751010] py-2.5 text-xs font-display font-bold text-white shadow-md disabled:opacity-50 transition-all cursor-pointer"
               >
                 <Sparkles size={14} />
                 <span>{loading ? 'Asignando casillero...' : 'Asignar Automáticamente'}</span>
@@ -232,7 +228,7 @@ export function AssignLockerModal({
         ) : (
           /* Success Screen */
           <div className="space-y-4 text-center py-2 animate-fadeIn">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 ring-4 ring-emerald-500/10">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/20 text-primary ring-4 ring-primary/10">
               <CheckCircle2 size={32} />
             </div>
 
@@ -246,9 +242,9 @@ export function AssignLockerModal({
             </div>
 
             {/* Deposit Box Card */}
-            <div className="rounded-2xl border border-amber-500/40 bg-amber-950/20 p-4 space-y-3 text-left">
+            <div className="rounded-2xl border border-red-200 dark:border-red-900 bg-red-50/60 dark:bg-red-950/30 p-4 space-y-3 text-left">
               <div className="flex justify-between items-center text-xs font-mono">
-                <span className="text-amber-400 font-bold flex items-center gap-1">
+                <span className="text-primary font-bold flex items-center gap-1">
                   <Zap size={14} /> TU PIN DE DEPÓSITO
                 </span>
                 <span className="rounded-md bg-secondary px-2 py-0.5 text-foreground font-bold">
@@ -256,14 +252,14 @@ export function AssignLockerModal({
                 </span>
               </div>
 
-              <div className="flex items-center justify-between rounded-xl bg-black/60 p-3 border border-white/10">
-                <span className="font-mono text-2xl font-black tracking-widest text-amber-400">
+              <div className="flex items-center justify-between rounded-xl bg-card p-3 border border-border">
+                <span className="font-mono text-2xl font-black tracking-widest text-primary">
                   {result.depositPin}
                 </span>
                 <button
                   type="button"
                   onClick={() => handleCopy(result.depositPin)}
-                  className="flex items-center gap-1 rounded-lg bg-secondary px-2.5 py-1.5 text-xs font-mono font-medium text-foreground hover:bg-secondary/80 transition-colors"
+                  className="flex items-center gap-1 rounded-lg bg-secondary px-2.5 py-1.5 text-xs font-mono font-medium text-foreground hover:bg-secondary/80 transition-colors cursor-pointer"
                 >
                   <Copy size={13} />
                   <span>{copied ? 'Copiado' : 'Copiar'}</span>
@@ -273,7 +269,7 @@ export function AssignLockerModal({
               <div className="space-y-1 text-[11px] text-muted-foreground font-mono">
                 <p>
                   📍 <strong>Instrucciones:</strong> Ve al {result.locker.hubName}, digita{' '}
-                  <strong className="text-amber-400">{result.depositPin}</strong> en la vitrina para abrir la compuerta #{result.locker.number} y guarda el pedido.
+                  <strong className="text-primary">{result.depositPin}</strong> en la vitrina para abrir la compuerta #{result.locker.number} y guarda el pedido.
                 </p>
                 <p>
                   🔑 <strong>PIN del comprador:</strong> {result.claimPin} (enviado a {order.buyerName} por chat).
@@ -284,7 +280,7 @@ export function AssignLockerModal({
             <button
               type="button"
               onClick={onClose}
-              className="w-full rounded-xl bg-primary py-2.5 text-xs font-display font-bold text-primary-foreground shadow-md hover:brightness-110 transition-all"
+              className="w-full rounded-xl bg-primary hover:bg-[#751010] py-2.5 text-xs font-display font-bold text-white shadow-md transition-all cursor-pointer"
             >
               Listo, entendido
             </button>

@@ -105,13 +105,13 @@ export function LandingPage() {
       >
         <div className="relative mx-auto max-w-4xl text-center space-y-6">
           <div className="inline-flex items-center gap-2 rounded-full bg-white/15 border border-white/30 px-4 py-1.5 text-xs font-mono font-bold uppercase tracking-wider text-white">
-            <Sparkles size={14} className="text-amber-300" />
+            <Sparkles size={14} className="text-red-200" />
             <span>Campus Universitario Icesi · Micro-Comercio Inteligente</span>
           </div>
 
           <h1 className="font-display text-4xl font-black tracking-tight sm:text-6xl lg:text-7xl text-white leading-[1.08]">
             Tus snacks favoritos.{' '}
-            <span className="text-amber-300">
+            <span className="text-red-100">
               En casilleros inteligentes.
             </span>
           </h1>
@@ -237,7 +237,7 @@ export function LandingPage() {
           {/* Pillar 2: Cocineros */}
           <div className="rounded-3xl border-2 border-border bg-[#FAF6F0] dark:bg-[#1E1917] p-6 sm:p-8 shadow-xs flex flex-col justify-between">
             <div className="space-y-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-700 text-white">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#751010] text-white">
                 <ChefHat size={24} />
               </div>
               <h3 className="font-display text-xl font-bold text-foreground">Para Cocineros</h3>
@@ -245,7 +245,7 @@ export function LandingPage() {
                 Cocinas en casa, seleccionas un casillero libre en los Edificios D, M o L desde la app, depositas con tu PIN y vendes sin perder horas de clase.
               </p>
             </div>
-            <div className="mt-6 border-t border-border pt-4 text-xs font-mono text-amber-800 dark:text-amber-400 font-bold flex items-center gap-1.5">
+            <div className="mt-6 border-t border-border pt-4 text-xs font-mono text-[#8F1414] dark:text-red-400 font-bold flex items-center gap-1.5">
               <ShieldCheck size={14} /> Solo 5% de comisión por venta
             </div>
           </div>
@@ -253,7 +253,7 @@ export function LandingPage() {
           {/* Pillar 3: Infraestructura */}
           <div className="rounded-3xl border-2 border-border bg-[#FAF6F0] dark:bg-[#1E1917] p-6 sm:p-8 shadow-xs flex flex-col justify-between">
             <div className="space-y-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-800 text-white">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#5C0C0C] text-white">
                 <Store size={24} />
               </div>
               <h3 className="font-display text-xl font-bold text-foreground">Infraestructura Icesi</h3>
@@ -261,7 +261,7 @@ export function LandingPage() {
                 60 casilleros inteligentes distribuidos en los <strong>Edificios D (20), M (20) y L (20)</strong>. La máquina se desbloquea con tu PIN y valida el pago virtual.
               </p>
             </div>
-            <div className="mt-6 border-t border-border pt-4 text-xs font-mono text-emerald-800 dark:text-emerald-400 font-bold flex items-center gap-1.5">
+            <div className="mt-6 border-t border-border pt-4 text-xs font-mono text-[#8F1414] dark:text-red-400 font-bold flex items-center gap-1.5">
               <MapPin size={14} /> 60 Casilleros en 3 Edificios
             </div>
           </div>
@@ -303,7 +303,7 @@ export function LandingPage() {
         className="relative z-10 bg-white dark:bg-[#151210] py-20 px-4 sm:px-6 border-b border-border"
       >
         <div className="max-w-3xl mx-auto text-center mb-10 space-y-3">
-          <span className="inline-block rounded-full bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-300 px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider">
+          <span className="inline-block rounded-full bg-red-100 text-[#8F1414] dark:bg-red-950 dark:text-red-300 px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider">
             Red de Casilleros Activos
           </span>
           <h2 className="font-display text-3xl font-black sm:text-4xl text-foreground">
@@ -341,11 +341,11 @@ export function LandingPage() {
                     <span className="text-xl">{hub.icon}</span>
                     {hub.name}
                   </span>
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-600" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#8F1414]" />
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">{hub.zone}</p>
                 <div className="mt-6 flex items-center justify-between border-t border-border pt-3 text-xs font-mono">
-                  <span className="text-emerald-700 dark:text-emerald-400 font-bold">{readyCount} snacks listos</span>
+                  <span className="text-[#8F1414] dark:text-red-400 font-bold">{readyCount} snacks listos</span>
                   <span className="text-muted-foreground">{availableCount}/20 libres</span>
                 </div>
               </button>
@@ -370,7 +370,7 @@ export function LandingPage() {
       <footer className="relative z-10 bg-[#1C1917] text-white py-16 px-4 sm:px-6">
         <div className="mx-auto max-w-4xl text-center space-y-6">
           <h3 className="font-display text-3xl font-black sm:text-4xl text-white">
-            Listo para vivir la experiencia <span className="text-amber-300">Bocado</span>.
+            Listo para vivir la experiencia <span className="text-red-400">Bocado</span>.
           </h3>
           <p className="text-sm text-neutral-300 max-w-xl mx-auto leading-relaxed">
             El sabor artesanal hecho por tus compañeros de universidad, con la comodidad de los casilleros inteligentes entre clases.

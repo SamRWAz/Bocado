@@ -190,7 +190,7 @@ export function CartPage() {
 
         <Link
           to="/checkout"
-          className="block w-full rounded-2xl bg-gradient-to-r from-primary to-amber-500 py-4 text-center font-display text-xs font-extrabold text-primary-foreground shadow-lg shadow-primary/25 hover:brightness-110 active:scale-95 transition-all"
+          className="block w-full rounded-2xl bg-primary hover:bg-[#751010] py-4 text-center font-display text-xs font-extrabold text-white shadow-md active:scale-95 transition-all"
         >
           Confirmar Apartados y Obtener PIN →
         </Link>

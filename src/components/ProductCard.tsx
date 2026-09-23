@@ -68,25 +68,25 @@ export function ProductCard({ product, onApartar }: Props) {
     return '/images/real_brownie.jpg'
   })()
 
-  // Freshness & specialty badge helper
+  // Freshness & specialty badge helper (Unified Red / Neutral Palette)
   const getBadge = () => {
     const n = (product.name + ' ' + (product.category || '')).toLowerCase()
-    if (n.includes('brownie')) return { label: 'Horneado hoy ✨', cls: 'badge-bakery-honey' }
-    if (n.includes('parfait') || n.includes('fruta')) return { label: 'Fruta fresca 🍓', cls: 'badge-bakery-strawberry' }
-    if (n.includes('empanada')) return { label: 'Recién hecho 🔥', cls: 'badge-bakery-flame' }
-    if (n.includes('galleta')) return { label: '100% Casero 🍪', cls: 'badge-bakery-honey' }
-    if (n.includes('matcha') || n.includes('vegano')) return { label: 'Artesanal 🌿', cls: 'badge-bakery-matcha' }
-    return { label: 'Especial Bocado ✨', cls: 'badge-bakery-flame' }
+    if (n.includes('brownie')) return { label: 'Horneado hoy', cls: 'badge-bakery-strawberry' }
+    if (n.includes('parfait') || n.includes('fruta')) return { label: 'Fruta fresca', cls: 'badge-bakery-strawberry' }
+    if (n.includes('empanada')) return { label: 'Recién hecho', cls: 'badge-bakery-strawberry' }
+    if (n.includes('galleta')) return { label: '100% Casero', cls: 'badge-bakery-strawberry' }
+    if (n.includes('matcha') || n.includes('vegano')) return { label: 'Artesanal', cls: 'badge-bakery-neutral' }
+    return { label: 'Especial Bocado', cls: 'badge-bakery-strawberry' }
   }
 
   const badge = getBadge()
 
   return (
-    <article className="food-card-hover group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/80 bg-card p-4 shadow-sm backdrop-blur-xl">
+    <article className="food-card-hover group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card p-4 shadow-xs">
       {/* Top Bar: Seller & Chat Action */}
-      <div className="flex items-center justify-between border-b border-border/50 pb-2.5 mb-3 text-xs">
+      <div className="flex items-center justify-between border-b border-border/60 pb-2.5 mb-3 text-xs">
         <div className="flex items-center gap-2 truncate">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-[10px] font-bold text-primary font-mono shadow-xs">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-100 dark:bg-red-950 text-[10px] font-bold text-[#8F1414] dark:text-red-300 font-mono">
             {sellerName.charAt(0).toUpperCase()}
           </span>
           <span className="font-semibold text-foreground/80 text-xs truncate">
@@ -96,7 +96,7 @@ export function ProductCard({ product, onApartar }: Props) {
         <button
           type="button"
           onClick={handleStartChat}
-          className="flex h-7 items-center gap-1 rounded-full bg-secondary/80 hover:bg-primary/15 hover:text-primary px-3 text-[11px] font-medium text-muted-foreground transition-all duration-200"
+          className="flex h-7 items-center gap-1 rounded-full bg-secondary hover:bg-red-50 hover:text-[#8F1414] dark:hover:bg-red-950 px-3 text-[11px] font-medium text-muted-foreground transition-colors cursor-pointer"
           title={`Chatear con ${sellerName}`}
         >
           <MessageCircle size={13} />
@@ -107,31 +107,31 @@ export function ProductCard({ product, onApartar }: Props) {
       {/* Product Real Image Showcase */}
       <Link
         to={`/producto/${product.id}`}
-        className="relative h-52 w-full overflow-hidden rounded-2xl bg-secondary/50 border border-border/40 block group-hover:shadow-md transition-shadow"
+        className="relative h-52 w-full overflow-hidden rounded-2xl bg-secondary border border-border block group-hover:shadow-xs transition-shadow"
       >
         <img
           src={displayImage}
           alt={product.name}
-          className="h-full w-full object-cover rounded-2xl transition-transform duration-700 ease-out group-hover:scale-108"
+          className="h-full w-full object-cover rounded-2xl transition-transform duration-500 ease-out group-hover:scale-105"
           loading="lazy"
         />
 
         {/* Top Badges */}
         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10">
-          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold backdrop-blur-md shadow-xs ${badge.cls}`}>
+          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-xs ${badge.cls}`}>
             {badge.label}
           </span>
         </div>
 
         {/* Rating chip */}
-        <div className="absolute top-2.5 right-2.5 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-amber-300 backdrop-blur-md flex items-center gap-1 shadow-sm">
-          <Star size={10} className="fill-amber-300 text-amber-300" />
+        <div className="absolute top-2.5 right-2.5 rounded-full bg-black/75 px-2 py-0.5 text-[10px] font-bold text-white flex items-center gap-1 shadow-xs">
+          <Star size={10} className="fill-white text-white" />
           <span>4.9</span>
         </div>
 
         {/* Low Stock Warning */}
         {isLowStock && (
-          <span className="absolute bottom-2 left-2 rounded-xl bg-rose-600/90 px-2.5 py-1 text-[10px] font-bold text-white shadow-md backdrop-blur-sm animate-pulse flex items-center gap-1">
+          <span className="absolute bottom-2 left-2 rounded-xl bg-[#8F1414] px-2.5 py-1 text-[10px] font-bold text-white shadow-xs flex items-center gap-1">
             <Flame size={12} /> ¡Solo {product.stock} disponibles!
           </span>
         )}
@@ -152,12 +152,12 @@ export function ProductCard({ product, onApartar }: Props) {
         </div>
 
         {/* Price and Apartar Button */}
-        <div className="pt-3 flex items-center justify-between border-t border-border/60">
+        <div className="pt-3 flex items-center justify-between border-t border-border">
           <div>
             <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono block">
               Precio
             </span>
-            <p className="font-mono text-lg font-black text-primary">{money(product.price)}</p>
+            <p className="font-mono text-lg font-black text-[#8F1414] dark:text-red-400">{money(product.price)}</p>
           </div>
 
           <button
@@ -167,7 +167,7 @@ export function ProductCard({ product, onApartar }: Props) {
               onApartar(product)
             }}
             disabled={product.sold_out || product.stock <= 0}
-            className="flex items-center gap-1.5 rounded-2xl bg-gradient-to-r from-primary via-orange-500 to-primary px-4 py-2.5 font-display text-xs font-bold text-primary-foreground shadow-md shadow-primary/25 hover:brightness-110 active:scale-95 disabled:opacity-40 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 rounded-2xl bg-[#8F1414] hover:bg-[#751010] px-4 py-2.5 font-display text-xs font-bold text-white shadow-xs active:scale-95 disabled:opacity-40 transition-all cursor-pointer"
           >
             <BookmarkCheck size={14} />
             <span>{product.sold_out ? 'Agotado' : 'Apartar'}</span>

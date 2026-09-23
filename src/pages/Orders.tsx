@@ -21,10 +21,10 @@ import { fetchOrders, saveOrder, subscribeToOrderUpdates } from '../lib/storage-
 import type { Order, OrderStatus } from '../types'
 
 const labels: Record<OrderStatus, { label: string; color: string }> = {
-  reservado: { label: 'Apartado / Pendiente', color: 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700' },
-  listo: { label: 'Listo en Casillero', color: 'bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-700' },
-  entregado: { label: 'Retirado / Completado', color: 'bg-zinc-100 text-zinc-800 border-zinc-300 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700' },
-  cancelado: { label: 'Cancelado', color: 'bg-rose-100 text-rose-900 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-700' },
+  reservado: { label: 'Apartado / Pendiente', color: 'bg-red-50 text-[#8F1414] border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800' },
+  listo: { label: 'Listo en Casillero', color: 'bg-red-100 text-[#8F1414] border-red-300 dark:bg-red-900/60 dark:text-red-200 dark:border-red-700' },
+  entregado: { label: 'Retirado / Completado', color: 'bg-secondary text-muted-foreground border-border' },
+  cancelado: { label: 'Cancelado', color: 'bg-secondary text-muted-foreground/60 border-border' },
 }
 
 export function OrdersPage() {
@@ -183,7 +183,7 @@ export function OrdersPage() {
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono block">
               Ganancias Netas (95%)
             </span>
-            <p className="mt-1 font-mono text-xl font-black text-emerald-600 dark:text-emerald-400">
+            <p className="mt-1 font-mono text-xl font-black text-primary">
               {money(totalNet)}
             </p>
             <span className="text-[11px] text-muted-foreground mt-0.5 block">Liquidado al cocinero</span>
@@ -282,7 +282,7 @@ export function OrdersPage() {
                 {tab === 'compras' && (
                   <div className="my-4 rounded-2xl border border-border bg-secondary/70 p-4 relative overflow-hidden">
                     <div className="flex items-center justify-between text-xs font-mono text-muted-foreground mb-2">
-                      <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-bold">
+                      <span className="flex items-center gap-1 text-primary font-bold">
                         <KeyRound size={14} /> PIN DE RETIRO EN VITRINA
                       </span>
                       <span className="text-[10px] font-bold text-foreground">
@@ -315,14 +315,14 @@ export function OrdersPage() {
                       </div>
                     ) : (
                       <div className="py-2 text-center">
-                        <p className="text-xs text-amber-700 dark:text-amber-400 font-mono">
+                        <p className="text-xs text-primary font-mono">
                           ⏳ El cocinero está preparando tu pedido y asignando el casillero.
                         </p>
                       </div>
                     )}
 
                     {copiedPin === claimPin && (
-                      <p className="mt-2 text-[10px] font-mono text-emerald-600 dark:text-emerald-400">
+                      <p className="mt-2 text-[10px] font-mono text-primary">
                         ✓ PIN copiado al portapapeles
                       </p>
                     )}
@@ -365,7 +365,7 @@ export function OrdersPage() {
                       </>
                     ) : (
                       <div className="space-y-2 text-center sm:text-left">
-                        <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-amber-700 dark:text-amber-400">
+                        <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-primary">
                           <Zap size={14} />
                           <span>Solicitud de compra recibida</span>
                         </div>
@@ -408,7 +408,7 @@ export function OrdersPage() {
                       <span>Comisión Bocado (5%):</span>
                       <span>-{money(commission)}</span>
                     </div>
-                    <div className="flex justify-between font-bold text-emerald-700 dark:text-emerald-400 pt-1 border-t border-border/40">
+                    <div className="flex justify-between font-bold text-primary pt-1 border-t border-border/40">
                       <span>Neto pagado a ti:</span>
                       <span>{money(netRevenue)}</span>
                     </div>
@@ -417,8 +417,8 @@ export function OrdersPage() {
 
                 {/* Protection note */}
                 {order.isGuaranteed && (
-                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 my-1 font-mono">
-                    <ShieldCheck size={13} />
+                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground my-1 font-mono">
+                    <ShieldCheck size={13} className="text-primary" />
                     <span>Control de frescura garantizado</span>
                   </div>
                 )}
@@ -466,7 +466,7 @@ export function OrdersPage() {
                       <button
                         type="button"
                         onClick={() => void setStatus(order, 'entregado')}
-                        className="flex items-center gap-1 rounded-xl bg-emerald-600 text-white px-3 py-2 text-xs font-bold hover:bg-emerald-700 transition-colors cursor-pointer"
+                        className="flex items-center gap-1 rounded-xl bg-[#8F1414] hover:bg-[#751010] text-white px-3 py-2 text-xs font-bold transition-colors cursor-pointer"
                       >
                         <CheckCircle2 size={14} /> Marcar Retirado
                       </button>

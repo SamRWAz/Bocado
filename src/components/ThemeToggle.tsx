@@ -42,7 +42,7 @@ export function ThemeToggle() {
       className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-secondary/80 text-foreground transition-all hover:border-primary/50 hover:bg-secondary active:scale-95"
       aria-label="Cambiar tema"
     >
-      {theme === 'dark' ? <Sun size={17} className="text-amber-400" /> : <Moon size={17} className="text-primary" />}
+      {theme === 'dark' ? <Sun size={17} className="text-primary" /> : <Moon size={17} className="text-primary" />}
     </button>
   )
 }

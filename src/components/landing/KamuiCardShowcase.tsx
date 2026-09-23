@@ -170,16 +170,16 @@ export function KamuiCardShowcase() {
           }`}
         >
           {/* Card FRONT Face */}
-          <div className="backface-hidden absolute inset-0 flex flex-col justify-between overflow-hidden rounded-3xl border-2 border-primary/50 bg-gradient-to-b from-zinc-900 via-zinc-950 to-black p-4 shadow-[0_0_35px_rgba(249,115,22,0.3)] backdrop-blur-xl">
+          <div className="backface-hidden absolute inset-0 flex flex-col justify-between overflow-hidden rounded-3xl border-2 border-primary/50 bg-[#1C1917] p-4 shadow-xl backdrop-blur-xl">
             {/* Top Bar with Slot ID & Temp Status */}
             <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
               <div className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-                <span className="font-mono text-xs font-black tracking-wider text-emerald-400">
+                <span className="h-2 w-2 rounded-full bg-primary" />
+                <span className="font-mono text-xs font-black tracking-wider text-white">
                   SLOT #{currentItem.lockerCode}
                 </span>
               </div>
-              <span className="rounded-full bg-primary/20 px-2.5 py-0.5 text-[10px] font-mono font-bold text-primary border border-primary/30">
+              <span className="rounded-full bg-primary/20 px-2.5 py-0.5 text-[10px] font-mono font-bold text-red-300 border border-primary/30">
                 {currentItem.hubName}
               </span>
             </div>
@@ -191,7 +191,7 @@ export function KamuiCardShowcase() {
                 alt={currentItem.name}
                 className="h-48 w-full object-cover transition-transform duration-500 hover:scale-110"
               />
-              <span className="absolute top-2 left-2 rounded-lg bg-black/75 px-2 py-0.5 text-[10px] font-mono font-bold text-amber-300 backdrop-blur-sm border border-white/10">
+              <span className="absolute top-2 left-2 rounded-lg bg-black/75 px-2 py-0.5 text-[10px] font-mono font-bold text-red-200 backdrop-blur-sm border border-white/10">
                 {currentItem.tag}
               </span>
               <div className="absolute bottom-2 right-2 rounded-full bg-black/80 px-2 py-0.5 text-[10px] font-mono text-zinc-300 flex items-center gap-1 backdrop-blur-sm">
@@ -219,7 +219,7 @@ export function KamuiCardShowcase() {
                 <button
                   type="button"
                   onClick={(e) => handleInstantBuy(e, currentItem)}
-                  className="flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 font-display text-xs font-bold text-primary-foreground shadow-lg shadow-primary/30 hover:brightness-110 active:scale-95 transition-all"
+                  className="flex items-center gap-1.5 rounded-xl bg-primary hover:bg-[#751010] px-3.5 py-2 font-display text-xs font-bold text-white shadow-md active:scale-95 transition-all cursor-pointer"
                 >
                   <ShoppingBag size={14} />
                   <span>Apartar</span>
@@ -229,10 +229,10 @@ export function KamuiCardShowcase() {
           </div>
 
           {/* Card BACK Face (Revealed on 180° Flip) */}
-          <div className="backface-hidden rotate-y-180 absolute inset-0 flex flex-col justify-between overflow-hidden rounded-3xl border-2 border-cyan-500/60 bg-gradient-to-b from-slate-950 via-zinc-950 to-black p-5 shadow-[0_0_35px_rgba(6,182,212,0.35)] backdrop-blur-xl">
+          <div className="backface-hidden rotate-y-180 absolute inset-0 flex flex-col justify-between overflow-hidden rounded-3xl border-2 border-primary/60 bg-[#1C1917] p-5 shadow-xl backdrop-blur-xl">
             <div>
               <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                <span className="font-mono text-xs font-bold text-cyan-400 flex items-center gap-1">
+                <span className="font-mono text-xs font-bold text-primary flex items-center gap-1">
                   <Sparkles size={13} /> FICHA DE CASILLERO
                 </span>
                 <span className="font-mono text-xs text-zinc-400">{currentItem.lockerCode}</span>
@@ -255,13 +255,13 @@ export function KamuiCardShowcase() {
                   </div>
                   <div className="flex justify-between text-[11px] text-zinc-400">
                     <span>Temperatura:</span>
-                    <strong className={currentItem.temp === 'refrigerado' ? 'text-cyan-400' : 'text-amber-400'}>
+                    <strong className="text-white">
                       {currentItem.temp === 'refrigerado' ? '❄️ Refrigerado Activo' : '⚡ Temperatura Ambiente'}
                     </strong>
                   </div>
                   <div className="flex justify-between text-[11px] text-zinc-400">
                     <span>Desbloqueo:</span>
-                    <strong className="text-emerald-400">PIN de 4 Dígitos / QR</strong>
+                    <strong className="text-primary">PIN de 4 Dígitos / QR</strong>
                   </div>
                 </div>
               </div>
@@ -271,7 +271,7 @@ export function KamuiCardShowcase() {
               <button
                 type="button"
                 onClick={(e) => handleInstantBuy(e, currentItem)}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary to-amber-500 py-3 font-display text-xs font-bold text-primary-foreground shadow-xl hover:brightness-110 active:scale-95 transition-all"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary hover:bg-[#751010] py-3 font-display text-xs font-bold text-white shadow-md active:scale-95 transition-all cursor-pointer"
               >
                 <KeyRound size={15} />
                 <span>Comprar {money(currentItem.price)} & Generar PIN</span>

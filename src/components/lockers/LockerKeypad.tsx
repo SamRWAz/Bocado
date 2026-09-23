@@ -210,8 +210,8 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
             <div
               className={`rounded-2xl p-3 text-xs font-semibold animate-fadeIn ${
                 statusMessage.type === 'success'
-                  ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                  : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                  ? 'bg-red-100 text-[#8F1414] dark:bg-red-950 dark:text-red-300 border border-red-200 dark:border-red-800'
+                  : 'bg-destructive/15 text-destructive border border-destructive/30'
               }`}
             >
               <div className="flex items-center gap-2">
@@ -278,7 +278,7 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
             type="button"
             onClick={handleExecute}
             disabled={!pinInput.trim() || isProcessing}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-primary via-amber-500 to-primary py-4 font-display text-sm font-extrabold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:opacity-95 active:scale-95 disabled:opacity-40"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary hover:bg-[#751010] py-4 font-display text-sm font-extrabold text-white shadow-md transition-all active:scale-95 disabled:opacity-40 cursor-pointer"
           >
             <Sparkles size={18} />
             <span>{isProcessing ? 'Verificando código...' : 'Continuar / Validar PIN'}</span>
@@ -288,7 +288,7 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
         /* QR Scanner Simulator */
         <div className="max-w-xs mx-auto text-center space-y-4">
           <div className="relative mx-auto flex h-48 w-48 items-center justify-center rounded-3xl border-2 border-dashed border-primary/50 bg-secondary/40 overflow-hidden">
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent animate-bounce" />
+            <div className="absolute inset-x-0 top-0 h-1 bg-primary animate-bounce" />
             <QrCode size={96} className="text-primary/70 animate-pulse" />
           </div>
           <p className="text-xs text-muted-foreground">
@@ -323,7 +323,7 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
       {/* ========================================================= */}
       {paymentModalLocker && !paymentReceipt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-md rounded-3xl border-2 border-amber-500/50 bg-card p-6 shadow-2xl space-y-5">
+          <div className="relative w-full max-w-md rounded-3xl border-2 border-primary/40 bg-card p-6 shadow-2xl space-y-5">
             <button
               type="button"
               onClick={() => setPaymentModalLocker(null)}
@@ -333,7 +333,7 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
             </button>
 
             <div className="text-center space-y-1">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 px-3 py-1 text-xs font-mono font-bold text-amber-400">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 text-[#8F1414] dark:bg-red-950 dark:text-red-300 border border-red-200 dark:border-red-800 px-3 py-1 text-xs font-mono font-bold">
                 <QrCode size={13} />
                 <span>Pago Virtual de Retiro</span>
               </span>
@@ -346,9 +346,9 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
             </div>
 
             {/* QR Code Graphic */}
-            <div className="mx-auto flex h-40 w-40 items-center justify-center rounded-2xl border-2 border-dashed border-amber-400/60 bg-white p-2 shadow-xl">
+            <div className="mx-auto flex h-40 w-40 items-center justify-center rounded-2xl border-2 border-dashed border-primary/60 bg-white p-2 shadow-xl">
               <div className="h-full w-full bg-slate-950 rounded-xl flex flex-col items-center justify-center text-white p-2">
-                <QrCode size={80} className="text-amber-400 animate-pulse" />
+                <QrCode size={80} className="text-primary animate-pulse" />
                 <span className="text-[8px] font-mono text-zinc-300 mt-1">NEQUI / BANCOLOMBIA</span>
               </div>
             </div>
@@ -360,7 +360,7 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
                 onClick={() => setSelectedPaymentMethod('qr_nequi')}
                 className={`py-2 px-3 rounded-xl text-xs font-mono font-bold border transition-all ${
                   selectedPaymentMethod === 'qr_nequi'
-                    ? 'border-amber-400 bg-amber-500/20 text-amber-300'
+                    ? 'border-primary bg-primary/15 text-primary'
                     : 'border-border bg-secondary text-muted-foreground'
                 }`}
               >
@@ -371,7 +371,7 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
                 onClick={() => setSelectedPaymentMethod('qr_bancolombia')}
                 className={`py-2 px-3 rounded-xl text-xs font-mono font-bold border transition-all ${
                   selectedPaymentMethod === 'qr_bancolombia'
-                    ? 'border-amber-400 bg-amber-500/20 text-amber-300'
+                    ? 'border-primary bg-primary/15 text-primary'
                     : 'border-border bg-secondary text-muted-foreground'
                 }`}
               >
@@ -387,7 +387,7 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
               </div>
               <div className="flex justify-between text-muted-foreground">
                 <span>Comisión Bocado (5%):</span>
-                <span className="text-emerald-400 font-bold">
+                <span className="text-primary font-bold">
                   {money(Math.round((paymentModalLocker.productPrice || 3500) * 0.05))}
                 </span>
               </div>
@@ -404,7 +404,7 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
               type="button"
               onClick={handleConfirmVirtualPayment}
               disabled={isPayingVirtual}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-primary py-4 font-display text-sm font-extrabold text-black shadow-lg shadow-amber-500/25 hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all"
+              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-primary hover:bg-[#751010] py-4 font-display text-sm font-extrabold text-white shadow-md active:scale-95 disabled:opacity-50 transition-all cursor-pointer"
             >
               <Zap size={16} />
               <span>{isPayingVirtual ? 'Procesando Pago Virtual...' : '✓ Realizar Pago Virtual & Abrir Casillero'}</span>
@@ -418,13 +418,13 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
       {/* ========================================================= */}
       {paymentReceipt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-md rounded-3xl border-2 border-emerald-500/60 bg-card p-6 shadow-2xl space-y-5 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+          <div className="relative w-full max-w-md rounded-3xl border-2 border-primary/40 bg-card p-6 shadow-2xl space-y-5 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/20 text-primary">
               <LockOpen size={36} className="animate-bounce" />
             </div>
 
             <div className="space-y-1">
-              <span className="text-[10px] font-mono font-bold uppercase text-emerald-400">
+              <span className="text-[10px] font-mono font-bold uppercase text-primary">
                 ¡Pago Exitoso & Casillero Abierto!
               </span>
               <h3 className="font-display text-xl font-bold text-foreground">
@@ -436,20 +436,20 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
             </div>
 
             {/* Receipt Details Box */}
-            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-4 text-left space-y-2 text-xs font-mono">
-              <div className="flex justify-between text-zinc-300">
+            <div className="rounded-2xl border border-red-200 dark:border-red-900 bg-red-50/60 dark:bg-red-950/30 p-4 text-left space-y-2 text-xs font-mono">
+              <div className="flex justify-between text-foreground">
                 <span>Total pagado:</span>
-                <span className="font-bold text-white">{money(paymentReceipt.total)}</span>
+                <span className="font-bold text-primary">{money(paymentReceipt.total)}</span>
               </div>
-              <div className="flex justify-between text-emerald-400">
+              <div className="flex justify-between text-muted-foreground">
                 <span>Comisión Bocado (5%):</span>
                 <span>-{money(paymentReceipt.commission)}</span>
               </div>
-              <div className="border-t border-emerald-500/20 pt-2 flex justify-between font-bold text-foreground">
+              <div className="border-t border-border pt-2 flex justify-between font-bold text-foreground">
                 <span>Transferido al vendedor:</span>
                 <span className="text-primary">{money(paymentReceipt.netRevenue)}</span>
               </div>
-              <p className="text-[10px] text-zinc-400 pt-1">
+              <p className="text-[10px] text-muted-foreground pt-1">
                 ✓ Comprobante electrónico despachado al chat de <strong>{paymentReceipt.locker.sellerName}</strong>.
               </p>
             </div>
@@ -457,7 +457,7 @@ export function LockerKeypad({ onLockerUnlocked, onClose }: Props) {
             <button
               type="button"
               onClick={handleCloseAllModals}
-              className="w-full rounded-2xl bg-emerald-500 py-3.5 font-display text-xs font-bold text-black hover:bg-emerald-400 transition-all shadow-md"
+              className="w-full rounded-2xl bg-primary hover:bg-[#751010] py-3.5 font-display text-xs font-bold text-white transition-all shadow-md cursor-pointer"
             >
               ✓ Confirmar Retiro y Cerrar
             </button>

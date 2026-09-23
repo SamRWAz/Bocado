@@ -97,9 +97,9 @@ export function ProcessConsoleDemo() {
       {/* Top Header / Kiosk Terminal Bar */}
       <div className="flex flex-wrap items-center justify-between border-b border-neutral-800 pb-4 mb-6 gap-3">
         <div className="flex items-center gap-2.5">
-          <span className="h-3 w-3 rounded-full bg-emerald-500 inline-block" />
+          <span className="h-3 w-3 rounded-full bg-[#8F1414] inline-block" />
           <div className="text-left">
-            <span className="font-mono text-xs font-bold tracking-widest text-emerald-400">
+            <span className="font-mono text-xs font-bold tracking-widest text-red-300">
               TERMINAL FÍSICA BOCADO
             </span>
             <p className="text-[11px] text-neutral-400 font-mono">
@@ -158,7 +158,7 @@ export function ProcessConsoleDemo() {
           }}
           className={`flex items-center justify-center gap-2 rounded-xl py-2 px-3 text-xs font-mono font-bold border transition-all cursor-pointer ${
             step === 'qr'
-              ? 'border-amber-400 bg-amber-700 text-white shadow-xs'
+              ? 'border-white bg-[#751010] text-white shadow-xs'
               : 'border-neutral-800 bg-neutral-900/60 text-neutral-400'
           }`}
         >
@@ -176,7 +176,7 @@ export function ProcessConsoleDemo() {
           }}
           className={`flex items-center justify-center gap-2 rounded-xl py-2 px-3 text-xs font-mono font-bold border transition-all cursor-pointer ${
             step === 'unlocked'
-              ? 'border-emerald-500 bg-emerald-800 text-white shadow-xs'
+              ? 'border-white bg-[#5C0C0C] text-white shadow-xs'
               : 'border-neutral-800 bg-neutral-900/60 text-neutral-400'
           }`}
         >
@@ -197,7 +197,7 @@ export function ProcessConsoleDemo() {
                 <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-neutral-400 block mb-1">
                   Digita el PIN de tu pase (Demo: {sampleSnack.pin})
                 </span>
-                <div className="flex h-12 items-center justify-center font-mono text-3xl font-black tracking-widest text-amber-400">
+                <div className="flex h-12 items-center justify-center font-mono text-3xl font-black tracking-widest text-white">
                   {pinInput ? (
                     <span>{pinInput.padEnd(4, ' • ')}</span>
                   ) : (
@@ -221,7 +221,7 @@ export function ProcessConsoleDemo() {
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="flex h-12 items-center justify-center rounded-xl border border-rose-900/60 bg-rose-950/40 font-mono text-xs font-bold text-rose-300 hover:bg-rose-900/60 active:scale-95 cursor-pointer"
+                  className="flex h-12 items-center justify-center rounded-xl border border-neutral-700 bg-neutral-800 font-mono text-xs font-bold text-neutral-300 hover:bg-neutral-700 active:scale-95 cursor-pointer"
                 >
                   BORRAR
                 </button>
@@ -235,7 +235,7 @@ export function ProcessConsoleDemo() {
                 <button
                   type="button"
                   onClick={() => handleDigit('7')}
-                  className="flex h-12 items-center justify-center rounded-xl border border-emerald-900/60 bg-emerald-950/40 font-mono text-xs font-bold text-emerald-300 hover:bg-emerald-900/60 active:scale-95 cursor-pointer"
+                  className="flex h-12 items-center justify-center rounded-xl border border-red-900/60 bg-red-950/40 font-mono text-xs font-bold text-red-300 hover:bg-red-900/60 active:scale-95 cursor-pointer"
                 >
                   OK
                 </button>
@@ -245,10 +245,10 @@ export function ProcessConsoleDemo() {
 
           {step === 'qr' && (
             <div className="space-y-4">
-              <div className="rounded-2xl border-2 border-amber-600 bg-black p-4 text-center space-y-3">
+              <div className="rounded-2xl border-2 border-[#8F1414] bg-black p-4 text-center space-y-3">
                 <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
                   <span className="text-xs font-mono text-neutral-400">PAGO VIRTUAL</span>
-                  <span className="font-mono text-xs font-bold text-amber-400">PIN VALIDADO ✓</span>
+                  <span className="font-mono text-xs font-bold text-red-300">PIN VALIDADO ✓</span>
                 </div>
 
                 <div className="py-2">
@@ -273,7 +273,7 @@ export function ProcessConsoleDemo() {
                 type="button"
                 onClick={handlePayAndUnlock}
                 disabled={isPaying}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3.5 font-display text-sm font-bold text-white hover:bg-emerald-700 transition-all cursor-pointer disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#8F1414] py-3.5 font-display text-sm font-bold text-white hover:bg-[#751010] transition-all cursor-pointer disabled:opacity-50"
               >
                 <CheckCircle2 size={16} />
                 <span>{isPaying ? 'Validando pago...' : 'Simular Pago Exitoso & Destrabar'}</span>
@@ -283,8 +283,8 @@ export function ProcessConsoleDemo() {
 
           {step === 'unlocked' && (
             <div className="space-y-4">
-              <div className="rounded-2xl border-2 border-emerald-600 bg-black p-4 space-y-3">
-                <div className="flex items-center gap-2 text-emerald-400 text-xs font-mono font-bold">
+              <div className="rounded-2xl border-2 border-[#8F1414] bg-black p-4 space-y-3">
+                <div className="flex items-center gap-2 text-red-300 text-xs font-mono font-bold">
                   <CheckCircle2 size={16} />
                   <span>COMPROBANTE DE RETIRO EMITIDO</span>
                 </div>
@@ -296,7 +296,7 @@ export function ProcessConsoleDemo() {
                   </div>
                   <div className="flex justify-between">
                     <span>Casillero:</span>
-                    <span className="text-emerald-400 font-bold">#{sampleSnack.slot} ({sampleSnack.building})</span>
+                    <span className="text-white font-bold">#{sampleSnack.slot} ({sampleSnack.building})</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Total pagado:</span>
@@ -308,7 +308,7 @@ export function ProcessConsoleDemo() {
                   </div>
                   <div className="border-t border-neutral-800 pt-1.5 flex justify-between font-bold text-white">
                     <span>Neto al vendedor (95%):</span>
-                    <span className="text-emerald-400">${sampleSnack.net.toLocaleString('es-CO')} COP</span>
+                    <span className="text-red-300 font-bold">${sampleSnack.net.toLocaleString('es-CO')} COP</span>
                   </div>
                 </div>
 
@@ -330,9 +330,9 @@ export function ProcessConsoleDemo() {
             <div
               className={`relative h-64 w-full rounded-3xl border-2 transition-all duration-700 flex flex-col items-center justify-center p-4 text-center ${
                 step === 'unlocked'
-                  ? 'border-emerald-600 bg-emerald-950/60 locker-door is-open'
+                  ? 'border-[#8F1414] bg-[#2A0E0E] locker-door is-open'
                   : step === 'qr'
-                  ? 'border-amber-600 bg-neutral-900'
+                  ? 'border-[#751010] bg-neutral-900'
                   : 'border-neutral-800 bg-neutral-900'
               }`}
             >
@@ -341,17 +341,17 @@ export function ProcessConsoleDemo() {
                   <img
                     src="/images/real_brownie.jpg"
                     alt="Brownie"
-                    className="h-24 w-24 object-cover rounded-xl mx-auto shadow-md border border-emerald-500/50"
+                    className="h-24 w-24 object-cover rounded-xl mx-auto shadow-md border border-[#8F1414]/50"
                   />
-                  <p className="text-xs font-bold text-emerald-400">¡Compuerta Abierta!</p>
+                  <p className="text-xs font-bold text-red-300">¡Compuerta Abierta!</p>
                   <p className="text-[10px] text-neutral-400 font-mono">Slot #{sampleSnack.slot} Destrabado</p>
                 </div>
               ) : step === 'qr' ? (
                 <div className="space-y-3">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-900/40 text-amber-400 border border-amber-600">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-950/40 text-red-300 border border-[#8F1414]">
                     <QrCode size={28} />
                   </div>
-                  <p className="font-mono text-xs font-bold text-amber-300">Esperando Pago QR</p>
+                  <p className="font-mono text-xs font-bold text-red-200">Esperando Pago QR</p>
                   <span className="inline-block rounded-lg bg-black px-2.5 py-1 text-[10px] font-mono text-neutral-300 border border-neutral-800">
                     Slot #{sampleSnack.slot}
                   </span>

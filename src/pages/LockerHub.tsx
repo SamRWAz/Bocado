@@ -45,7 +45,7 @@ export function LockerHubPage() {
               Red de 60 Casilleros Inteligentes
             </span>
             <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground font-mono">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+              <span className="h-2 w-2 rounded-full bg-[#8F1414]" />
               Edificios D · M · L (Icesi)
             </span>
           </div>
@@ -63,7 +63,7 @@ export function LockerHubPage() {
           <button
             type="button"
             onClick={() => setShowKeypadModal(true)}
-            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-amber-500 px-5 py-3 text-xs sm:text-sm font-display font-extrabold text-primary-foreground shadow-lg shadow-primary/25 hover:brightness-110 active:scale-95 transition-all"
+            className="flex items-center gap-2 rounded-2xl bg-primary hover:bg-[#751010] px-5 py-3 text-xs sm:text-sm font-display font-extrabold text-white shadow-md active:scale-95 transition-all cursor-pointer"
           >
             <KeyRound size={16} />
             Digitar PIN en Vitrina
@@ -78,7 +78,7 @@ export function LockerHubPage() {
           {isSeller && (
             <Link
               to="/vender"
-              className="flex items-center gap-2 rounded-2xl bg-amber-500/15 border border-amber-500/30 px-4 py-3 text-xs sm:text-sm font-display font-semibold text-amber-400 hover:bg-amber-500/20 transition-all"
+              className="flex items-center gap-2 rounded-2xl bg-primary/10 border border-primary/30 px-4 py-3 text-xs sm:text-sm font-display font-semibold text-primary hover:bg-primary/20 transition-all"
             >
               <Zap size={16} />
               Guardar en Casillero
@@ -123,7 +123,7 @@ export function LockerHubPage() {
               </div>
 
               <div className="mt-4 flex items-center justify-between border-t border-border/40 pt-3 text-xs font-mono">
-                <span className="text-emerald-400 font-bold">
+                <span className="text-primary font-bold">
                   {readyCount} con comida lista
                 </span>
                 <span className="text-muted-foreground">
@@ -162,7 +162,7 @@ export function LockerHubPage() {
                   <p className="text-[10px] text-muted-foreground font-mono">PIN de 4 dígitos o DEP-PIN</p>
                 </div>
               </div>
-              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
             </div>
 
             <LockerKeypad
@@ -188,7 +188,7 @@ export function LockerHubPage() {
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-[10px] font-bold text-amber-400">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[10px] font-bold text-primary">
                   2
                 </span>
                 <span>
@@ -196,7 +196,7 @@ export function LockerHubPage() {
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-[10px] font-bold text-emerald-400">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[10px] font-bold text-primary">
                   3
                 </span>
                 <span>

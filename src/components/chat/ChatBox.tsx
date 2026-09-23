@@ -134,9 +134,9 @@ export function ChatBox({
             </button>
           )}
 
-          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-primary/30 via-amber-500/20 to-primary/10 font-display text-xs font-black text-primary border border-primary/30 shadow-inner">
+          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/15 font-display text-xs font-black text-primary border border-primary/30 shadow-inner">
             {initials(partnerName) || <User size={16} />}
-            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card bg-emerald-500" />
+            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card bg-[#8F1414]" />
           </div>
 
           <div className="min-w-0 flex-1">
@@ -149,7 +149,7 @@ export function ChatBox({
               </span>
             </div>
             <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1.5 mt-0.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shrink-0" />
               <span className="truncate">Coordinación directa de entrega</span>
             </p>
           </div>
@@ -180,7 +180,7 @@ export function ChatBox({
 
       {/* Related Order or Product Banner */}
       {(orderId || productName) && (
-        <div className="flex items-center justify-between border-b border-border/60 bg-gradient-to-r from-primary/10 via-secondary/40 to-transparent px-4 py-2 text-xs">
+        <div className="flex items-center justify-between border-b border-border/60 bg-secondary/40 px-4 py-2 text-xs">
           <div className="flex items-center gap-2 text-muted-foreground min-w-0">
             <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-primary/20 text-primary">
               <ShoppingBag size={13} />
@@ -229,7 +229,7 @@ export function ChatBox({
                 <div
                   className={`max-w-[80%] sm:max-w-sm rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm shadow-sm transition-all ${
                     isMe
-                      ? 'rounded-tr-xs bg-gradient-to-r from-primary to-amber-500 text-primary-foreground font-medium shadow-primary/10'
+                      ? 'rounded-tr-xs bg-primary text-white font-medium shadow-xs'
                       : 'rounded-tl-xs border border-border/80 bg-secondary/90 text-foreground backdrop-blur-sm'
                   }`}
                 >
@@ -243,7 +243,7 @@ export function ChatBox({
                   {isMe && (
                     <span title={msg.read ? 'Leído' : 'Enviado'}>
                       {msg.read ? (
-                        <CheckCheck size={12} className="text-emerald-400 inline" />
+                        <CheckCheck size={12} className="text-primary inline" />
                       ) : (
                         <Check size={12} className="text-muted-foreground inline" />
                       )}
@@ -275,7 +275,7 @@ export function ChatBox({
           <button
             type="submit"
             disabled={!inputText.trim() || sending}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-r from-primary to-amber-500 text-primary-foreground shadow-md shadow-primary/25 transition-transform hover:brightness-110 active:scale-95 disabled:opacity-40"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary hover:bg-[#751010] text-white shadow-md transition-transform active:scale-95 disabled:opacity-40 cursor-pointer"
             aria-label="Enviar mensaje"
           >
             <Send size={16} />

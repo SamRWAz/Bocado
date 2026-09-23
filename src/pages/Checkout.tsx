@@ -207,7 +207,7 @@ export function CheckoutPage() {
             <Building2 size={14} className="text-primary" />
             1. Selecciona el Edificio de Retiro
           </span>
-          <span className="text-xs font-mono text-emerald-400 font-bold">20 Casilleros por Edificio</span>
+          <span className="text-xs font-mono text-primary font-bold">20 Casilleros por Edificio</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -232,10 +232,10 @@ export function CheckoutPage() {
                     <span>{hub.icon}</span>
                     {hub.name}
                   </p>
-                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                  <span className="h-2 w-2 rounded-full bg-[#8F1414]" />
                 </div>
                 <p className="mt-1 text-[10px] text-muted-foreground">{hub.zone}</p>
-                <div className="mt-3 flex items-center gap-1 text-[10px] font-mono text-emerald-400 font-bold">
+                <div className="mt-3 flex items-center gap-1 text-[10px] font-mono text-primary font-bold">
                   <Boxes size={12} />
                   <span>{availableCount} casilleros libres</span>
                 </div>
@@ -284,21 +284,21 @@ export function CheckoutPage() {
             <p className="text-xs text-muted-foreground">
               Al retirar en la vitrina del <strong>{activeHub.name}</strong>, escanearás el QR en pantalla para pagar con <strong>Nequi</strong> o <strong>Bancolombia</strong>.
             </p>
-            <div className="mx-auto flex h-36 w-36 items-center justify-center rounded-2xl border-2 border-dashed border-emerald-500/50 bg-white p-2 shadow-xl">
+            <div className="mx-auto flex h-36 w-36 items-center justify-center rounded-2xl border-2 border-dashed border-primary/50 bg-white p-2 shadow-xl">
               <div className="h-full w-full bg-slate-900 rounded-lg flex flex-col items-center justify-center text-white p-2">
-                <QrCode size={72} className="text-emerald-400 animate-pulse" />
+                <QrCode size={72} className="text-primary animate-pulse" />
                 <span className="mt-1 text-[8px] font-mono text-zinc-300">PAGO CASILLERO ICESI</span>
               </div>
             </div>
-            <p className="font-mono text-xs text-emerald-400 font-bold">
+            <p className="font-mono text-xs text-primary font-bold">
               Monto a Transferir: {money(finalTotal)}
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-tr from-slate-900 via-indigo-950 to-emerald-950 p-5 text-white shadow-2xl">
+            <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-[#1C1917] p-5 text-white shadow-2xl">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-xs tracking-widest text-emerald-300 font-bold">BOCADO PASS</span>
+                <span className="font-mono text-xs tracking-widest text-red-300 font-bold">BOCADO PASS</span>
                 <span className="font-display text-xs font-bold opacity-80">CAMPUS ICESI</span>
               </div>
               <p className="font-mono text-base tracking-widest sm:text-lg my-4">{cardNumber}</p>
@@ -410,7 +410,7 @@ export function CheckoutPage() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-2xl bg-gradient-to-r from-primary to-amber-500 py-4 font-display text-sm font-extrabold text-primary-foreground shadow-xl shadow-primary/25 hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+        className="w-full rounded-2xl bg-primary hover:bg-[#751010] py-4 font-display text-sm font-extrabold text-white shadow-md active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer"
       >
         {loading ? (
           'Confirmando apartado y asignando casillero...'

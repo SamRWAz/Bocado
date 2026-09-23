@@ -113,7 +113,7 @@ export function LockerVault({
           <button
             type="button"
             onClick={onOpenKeypad}
-            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-primary to-amber-500 px-4 py-2.5 font-display text-xs font-extrabold text-primary-foreground shadow-md transition-transform hover:opacity-90 active:scale-95 self-start sm:self-auto"
+            className="flex items-center gap-2 rounded-2xl bg-primary hover:bg-[#751010] px-4 py-2.5 font-display text-xs font-extrabold text-white shadow-md transition-transform active:scale-95 self-start sm:self-auto cursor-pointer"
           >
             <KeyRound size={15} />
             <span>Digitar PIN / Abrir</span>
@@ -130,8 +130,8 @@ export function LockerVault({
           <div>
             <div className="flex items-center gap-2">
               <h2 className="font-display text-base font-bold text-foreground">{currentHub.name}</h2>
-              <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" /> En línea 24/7
+              <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold text-primary">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" /> En línea 24/7
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">{currentHub.zone} · {currentHub.detail}</p>
@@ -139,19 +139,19 @@ export function LockerVault({
         </div>
 
         <div className="flex items-center gap-4 text-xs font-semibold font-mono">
-          <div className="flex items-center gap-1.5 text-emerald-400">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 led-glow-emerald" />
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <span className="h-2 w-2 rounded-full bg-muted-foreground" />
             <span>{availableCount} Libres</span>
           </div>
-          <div className="flex items-center gap-1.5 text-cyan-400">
-            <span className="h-2 w-2 rounded-full bg-cyan-500 led-glow-cyan" />
+          <div className="flex items-center gap-1.5 text-primary">
+            <span className="h-2 w-2 rounded-full bg-primary" />
             <span>{readyCount} Con Snack</span>
           </div>
         </div>
       </div>
 
       {/* 20 Locker Grid for active hub */}
-      <div className="rounded-3xl border-2 border-border/90 bg-gradient-to-b from-card/90 via-card/70 to-card/90 p-5 shadow-2xl backdrop-blur-xl locker-vault-perspective">
+      <div className="rounded-3xl border-2 border-border/90 bg-card p-5 shadow-sm backdrop-blur-xl locker-vault-perspective">
         <div className="mb-4 flex items-center justify-between border-b border-border/60 pb-3">
           <div className="flex items-center gap-2">
             <Zap size={16} className="text-primary" />
@@ -164,7 +164,7 @@ export function LockerVault({
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-5">
           {lockers.map((locker) => {
             const isOpen = locker.status === 'abierto'
             const isReady = locker.status === 'listo_para_retiro'
@@ -182,10 +182,10 @@ export function LockerVault({
                   isOpen
                     ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
                     : isReady
-                    ? 'border-cyan-500/50 bg-cyan-950/20 hover:border-cyan-400 shadow-md'
+                    ? 'border-red-200 dark:border-red-900 bg-red-50/70 dark:bg-red-950/30 hover:border-primary shadow-xs'
                     : isWaiting
-                    ? 'border-amber-500/50 bg-amber-950/20 hover:border-amber-400'
-                    : 'border-border/80 bg-secondary/30 hover:border-emerald-500/50 hover:bg-secondary/50'
+                    ? 'border-border bg-secondary/40 hover:border-primary/40'
+                    : 'border-border/80 bg-card hover:border-primary/50 hover:bg-secondary/30'
                 } ${isHighlighted ? 'ring-2 ring-primary animate-pulse' : ''}`}
               >
                 {/* Top Status Bar */}
@@ -196,19 +196,19 @@ export function LockerVault({
 
                   <div className="flex items-center gap-1.5">
                     {locker.tempType === 'refrigerado' && (
-                      <span className="rounded-full bg-cyan-500/15 p-1 text-cyan-400 text-[10px]" title="Climatizado refrigerado">
+                      <span className="rounded-full bg-secondary p-1 text-primary text-[10px]" title="Climatizado refrigerado">
                         <Thermometer size={11} />
                       </span>
                     )}
                     <span
                       className={`h-2.5 w-2.5 rounded-full ${
                         isOpen
-                          ? 'bg-primary led-glow-primary'
+                          ? 'bg-primary'
                           : isReady
-                          ? 'bg-cyan-400 led-glow-cyan'
+                          ? 'bg-primary'
                           : isWaiting
-                          ? 'bg-amber-400 led-glow-amber'
-                          : 'bg-emerald-400 led-glow-emerald'
+                          ? 'bg-muted-foreground/60'
+                          : 'bg-muted-foreground/30'
                       }`}
                     />
                   </div>
@@ -232,27 +232,27 @@ export function LockerVault({
                         <img
                           src={locker.productImage}
                           alt={locker.productName ?? 'Snack'}
-                          className="mx-auto h-11 w-11 rounded-xl object-cover shadow-sm border border-cyan-500/30"
+                          className="mx-auto h-11 w-11 rounded-xl object-cover shadow-xs border border-red-200 dark:border-red-900"
                         />
                       ) : (
-                        <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-400">
+                        <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-red-100 text-[#8F1414] dark:bg-red-900 dark:text-red-300">
                           <ShoppingBag size={18} />
                         </div>
                       )}
                       <p className="font-display text-[11px] font-bold text-foreground line-clamp-1">{locker.productName}</p>
-                      <p className="text-[10px] font-extrabold text-cyan-400">{locker.productPrice ? money(locker.productPrice) : ''}</p>
+                      <p className="text-[10px] font-extrabold text-primary">{locker.productPrice ? money(locker.productPrice) : ''}</p>
                     </div>
                   ) : isWaiting ? (
-                    <div className="space-y-1 text-amber-400">
-                      <PackageCheck size={22} className="mx-auto opacity-75 animate-pulse" />
+                    <div className="space-y-1 text-muted-foreground">
+                      <PackageCheck size={22} className="mx-auto opacity-75 animate-pulse text-primary" />
                       <p className="font-display text-[10px] font-bold">Esperando depósito</p>
                       <p className="text-[9px] text-muted-foreground line-clamp-1">{locker.productName || 'Reservado'}</p>
                     </div>
                   ) : (
                     <div className="space-y-1 text-muted-foreground/60">
-                      <Lock size={20} className="mx-auto opacity-40 group-hover:text-emerald-400 transition-colors" />
+                      <Lock size={20} className="mx-auto opacity-40 group-hover:text-primary transition-colors" />
                       <p className="font-display text-[10px] font-bold text-muted-foreground">Disponible</p>
-                      <span className="text-[8px] text-emerald-400 font-semibold block">Libre</span>
+                      <span className="text-[8px] text-muted-foreground font-semibold block">Libre</span>
                     </div>
                   )}
                 </div>
@@ -262,13 +262,13 @@ export function LockerVault({
                   {isOpen ? (
                     <span className="text-primary font-bold">Destrabado</span>
                   ) : isReady ? (
-                    <span className="text-cyan-400 font-bold flex items-center gap-1">
+                    <span className="text-primary font-bold flex items-center gap-1">
                       <KeyRound size={10} /> Con PIN
                     </span>
                   ) : isWaiting ? (
-                    <span className="text-amber-400 font-semibold">PIN vendedor</span>
+                    <span className="text-muted-foreground font-semibold">PIN vendedor</span>
                   ) : (
-                    <span className="text-emerald-400 font-semibold">Libre</span>
+                    <span className="text-muted-foreground font-semibold">Libre</span>
                   )}
                   <ChevronRight size={12} className="text-muted-foreground group-hover:translate-x-0.5 transition-transform" />
                 </div>
@@ -296,10 +296,8 @@ export function LockerVault({
                   selectedLocker.status === 'abierto'
                     ? 'bg-primary text-primary-foreground'
                     : selectedLocker.status === 'listo_para_retiro'
-                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
-                    : selectedLocker.status === 'esperando_deposito'
-                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                    : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                    ? 'bg-red-100 text-[#8F1414] dark:bg-red-950 dark:text-red-300 border border-red-200 dark:border-red-800'
+                    : 'bg-secondary text-foreground border border-border'
                 }`}
               >
                 #{selectedLocker.code}
@@ -339,7 +337,7 @@ export function LockerVault({
               <div className="rounded-2xl bg-secondary/50 p-4 space-y-3">
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className="text-[10px] font-bold uppercase text-cyan-400 font-mono">Snack en casillero:</span>
+                    <span className="text-[10px] font-bold uppercase text-primary font-mono">Snack en casillero:</span>
                     <h4 className="font-display text-base font-bold text-foreground">{selectedLocker.productName}</h4>
                     <p className="text-xs text-muted-foreground">Vendedor: {selectedLocker.sellerName}</p>
                   </div>
@@ -350,8 +348,8 @@ export function LockerVault({
                   )}
                 </div>
 
-                <div className="rounded-xl border border-cyan-500/30 bg-cyan-950/30 p-3 text-xs text-cyan-300">
-                  <p className="font-semibold flex items-center gap-1.5 font-mono">
+                <div className="rounded-xl border border-red-200 dark:border-red-900 bg-red-50/60 dark:bg-red-950/30 p-3 text-xs text-foreground">
+                  <p className="font-semibold flex items-center gap-1.5 font-mono text-primary">
                     <KeyRound size={14} /> Para abrir este casillero:
                   </p>
                   <p className="mt-1 text-[11px] text-muted-foreground">
@@ -370,14 +368,14 @@ export function LockerVault({
                     setSelectedLocker(null)
                     if (onOpenKeypad) onOpenKeypad()
                   }}
-                  className="w-full rounded-xl bg-cyan-500 py-3 font-display text-xs font-bold text-white shadow-md hover:bg-cyan-600 transition-colors"
+                  className="w-full rounded-xl bg-primary hover:bg-[#751010] py-3 font-display text-xs font-bold text-white shadow-md transition-colors cursor-pointer"
                 >
                   Digitar PIN en el Kiosk →
                 </button>
               </div>
             ) : selectedLocker.status === 'esperando_deposito' ? (
-              <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4 text-xs text-amber-300 space-y-2">
-                <p className="font-display font-bold">Esperando que el vendedor deposite la comida.</p>
+              <div className="rounded-2xl bg-secondary/80 border border-border p-4 text-xs text-foreground space-y-2">
+                <p className="font-display font-bold text-primary">Esperando que el vendedor deposite la comida.</p>
                 <p className="text-muted-foreground text-[11px]">
                   El vendedor tiene asignado el código de depósito <strong>{selectedLocker.depositPin}</strong> para abrir la vitrina y guardar el snack.
                 </p>
@@ -387,7 +385,7 @@ export function LockerVault({
                     setSelectedLocker(null)
                     if (onOpenKeypad) onOpenKeypad()
                   }}
-                  className="w-full rounded-xl bg-amber-500 py-2.5 font-display text-xs font-bold text-black hover:bg-amber-400"
+                  className="w-full rounded-xl bg-primary hover:bg-[#751010] py-2.5 font-display text-xs font-bold text-white transition-colors cursor-pointer"
                 >
                   Digitar PIN de Depósito (Vendedor) →
                 </button>
