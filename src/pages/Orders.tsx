@@ -259,8 +259,8 @@ export function OrdersPage() {
                     <h3 className="font-display text-base font-bold text-foreground">
                       {tab === 'compras' ? order.sellerName : order.buyerName}
                     </h3>
-                    <p className="flex items-center gap-1.5 text-xs text-primary font-mono mt-0.5">
-                      <Building2 size={13} className="shrink-0" />
+                    <p className="flex items-center gap-1.5 text-xs text-foreground font-mono font-semibold mt-0.5">
+                      <Building2 size={13} className="shrink-0 text-[#8F1414]" />
                       <span>
                         {hasAssignedLocker
                           ? `${hubName} · Casillero #${slotNum}`
@@ -280,49 +280,49 @@ export function OrdersPage() {
 
                 {/* Buyer Digital Claim Pass */}
                 {tab === 'compras' && (
-                  <div className="my-4 rounded-2xl border border-border bg-secondary/70 p-4 relative overflow-hidden">
-                    <div className="flex items-center justify-between text-xs font-mono text-muted-foreground mb-2">
-                      <span className="flex items-center gap-1 text-primary font-bold">
-                        <KeyRound size={14} /> PIN DE RETIRO EN VITRINA
+                  <div className="my-4 rounded-2xl border-2 border-border/80 bg-secondary/50 p-4 relative overflow-hidden space-y-3">
+                    <div className="flex items-center justify-between text-xs font-mono">
+                      <span className="flex items-center gap-1.5 text-foreground font-bold font-mono">
+                        <KeyRound size={14} className="text-[#8F1414]" /> PIN DE RETIRO EN VITRINA
                       </span>
-                      <span className="text-[10px] font-bold text-foreground">
+                      <span className="text-[11px] font-bold text-foreground font-mono bg-card px-2.5 py-0.5 rounded-lg border border-border">
                         {hasAssignedLocker ? `${hubName} · Casillero #${slotNum}` : 'EN PREPARACIÓN'}
                       </span>
                     </div>
 
                     {claimPin ? (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-3xl font-black tracking-widest text-primary">
+                      <div className="flex items-center justify-between rounded-xl bg-card p-3.5 border border-border shadow-xs">
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono text-3xl font-black tracking-widest text-foreground">
                             {claimPin}
                           </span>
                           <button
                             type="button"
                             onClick={() => handleCopyPin(claimPin)}
-                            className="rounded-lg bg-card p-1.5 text-xs text-muted-foreground hover:text-foreground border border-border transition-colors cursor-pointer"
+                            className="rounded-lg bg-secondary p-2 text-xs text-foreground hover:bg-secondary/80 border border-border transition-colors cursor-pointer"
                             title="Copiar PIN"
                           >
-                            <Copy size={14} />
+                            <Copy size={15} />
                           </button>
                         </div>
 
                         <div className="flex flex-col items-center">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-1 border border-border">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-1 border border-border shadow-xs">
                             <QrCode size={32} className="text-black" />
                           </div>
-                          <span className="text-[8px] font-mono text-muted-foreground mt-0.5">PAGO QR</span>
+                          <span className="text-[9px] font-mono font-bold text-foreground/80 mt-0.5">PAGO QR</span>
                         </div>
                       </div>
                     ) : (
-                      <div className="py-2 text-center">
-                        <p className="text-xs text-primary font-mono">
+                      <div className="py-3 px-2 text-center rounded-xl bg-card border border-border">
+                        <p className="text-xs text-foreground font-medium">
                           ⏳ El cocinero está preparando tu pedido y asignando el casillero.
                         </p>
                       </div>
                     )}
 
                     {copiedPin === claimPin && (
-                      <p className="mt-2 text-[10px] font-mono text-primary">
+                      <p className="text-xs font-mono font-bold text-foreground text-center">
                         ✓ PIN copiado al portapapeles
                       </p>
                     )}
@@ -331,51 +331,51 @@ export function OrdersPage() {
 
                 {/* Seller Active Deposit Pass / Action Box */}
                 {tab === 'ventas' && (
-                  <div className="my-4 rounded-2xl border border-border bg-secondary/70 p-4">
+                  <div className="my-4 rounded-2xl border-2 border-border/80 bg-secondary/50 p-4 space-y-3">
                     {hasAssignedLocker ? (
                       <>
-                        <div className="flex items-center justify-between text-xs font-mono text-muted-foreground mb-2">
-                          <span className="text-primary font-bold flex items-center gap-1">
-                            <Zap size={14} /> CASILLERO ASIGNADO
+                        <div className="flex items-center justify-between text-xs font-mono">
+                          <span className="text-foreground font-bold flex items-center gap-1.5 font-mono">
+                            <Zap size={14} className="text-[#8F1414]" /> CASILLERO ASIGNADO
                           </span>
-                          <span className="font-bold text-foreground">
+                          <span className="font-bold text-foreground font-mono text-[11px] bg-card px-2.5 py-0.5 rounded-lg border border-border">
                             {hubName} · #{slotNum}
                           </span>
                         </div>
 
-                        <div className="flex items-center justify-between rounded-xl bg-card p-3 border border-border">
+                        <div className="flex items-center justify-between rounded-xl bg-card p-3.5 border border-border shadow-xs">
                           <div>
-                            <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono block">
-                              PIN de Depósito:
+                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono font-bold block">
+                              Tu PIN de Depósito:
                             </span>
-                            <span className="font-mono text-xl font-black text-foreground">
+                            <span className="font-mono text-2xl font-black text-foreground">
                               {depositPin}
                             </span>
                           </div>
 
                           <div className="text-right">
-                            <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono block">
+                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono font-bold block">
                               PIN del Comprador:
                             </span>
-                            <span className="font-mono text-sm font-bold text-primary">
+                            <span className="font-mono text-base font-black text-foreground">
                               {claimPin || 'Automático'}
                             </span>
                           </div>
                         </div>
                       </>
                     ) : (
-                      <div className="space-y-2 text-center sm:text-left">
-                        <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-primary">
-                          <Zap size={14} />
+                      <div className="space-y-3 text-center sm:text-left">
+                        <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-foreground">
+                          <Zap size={14} className="text-[#8F1414]" />
                           <span>Solicitud de compra recibida</span>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          El comprador apartó este snack. Asígnale un casillero automático en el <strong>Edificio D, M o L</strong> para generar el PIN.
+                        <p className="text-xs text-foreground/80 font-medium">
+                          El comprador apartó este snack. Asígnale un casillero automático en el <strong>Edificio D, M o L</strong> para generar el PIN de entrega.
                         </p>
                         <button
                           type="button"
                           onClick={() => setOrderToAssign(order)}
-                          className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 px-3 text-xs font-display font-bold text-primary-foreground shadow-sm hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+                          className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#8F1414] hover:bg-[#751010] py-3 px-4 text-xs font-display font-bold text-white shadow-sm active:scale-95 transition-all cursor-pointer"
                         >
                           <Zap size={14} />
                           <span>Asignar Casillero Automático</span>

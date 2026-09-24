@@ -242,37 +242,46 @@ export function AssignLockerModal({
             </div>
 
             {/* Deposit Box Card */}
-            <div className="rounded-2xl border border-red-200 dark:border-red-900 bg-red-50/60 dark:bg-red-950/30 p-4 space-y-3 text-left">
-              <div className="flex justify-between items-center text-xs font-mono">
-                <span className="text-primary font-bold flex items-center gap-1">
-                  <Zap size={14} /> TU PIN DE DEPÓSITO
+            <div className="rounded-2xl border-2 border-border bg-card p-5 space-y-4 text-left shadow-sm">
+              <div className="flex flex-wrap justify-between items-center gap-2">
+                <span className="text-foreground font-black text-xs font-mono uppercase tracking-wider flex items-center gap-1.5">
+                  <Zap size={15} className="text-[#8F1414]" /> TU PIN DE DEPÓSITO
                 </span>
-                <span className="rounded-md bg-secondary px-2 py-0.5 text-foreground font-bold">
+                <span className="rounded-xl bg-[#8F1414] text-white px-3 py-1 text-xs font-bold font-mono shadow-xs">
                   {result.locker.hubName} · Casillero #{result.locker.number}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between rounded-xl bg-card p-3 border border-border">
-                <span className="font-mono text-2xl font-black tracking-widest text-primary">
+              {/* PIN Big Box */}
+              <div className="flex items-center justify-between rounded-2xl bg-[#1C1917] dark:bg-black p-4 border border-border shadow-inner">
+                <span className="font-mono text-3xl font-black tracking-widest text-[#FAF6F0]">
                   {result.depositPin}
                 </span>
                 <button
                   type="button"
                   onClick={() => handleCopy(result.depositPin)}
-                  className="flex items-center gap-1 rounded-lg bg-secondary px-2.5 py-1.5 text-xs font-mono font-medium text-foreground hover:bg-secondary/80 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 rounded-xl bg-white/15 hover:bg-white/25 px-3 py-2 text-xs font-mono font-bold text-white transition-colors cursor-pointer"
                 >
-                  <Copy size={13} />
-                  <span>{copied ? 'Copiado' : 'Copiar'}</span>
+                  <Copy size={14} />
+                  <span>{copied ? '¡Copiado!' : 'Copiar'}</span>
                 </button>
               </div>
 
-              <div className="space-y-1 text-[11px] text-muted-foreground font-mono">
+              {/* High Contrast Instructions Box */}
+              <div className="rounded-2xl bg-secondary/80 border border-border p-4 space-y-2.5 text-xs text-foreground font-sans leading-relaxed">
                 <p>
-                  📍 <strong>Instrucciones:</strong> Ve al {result.locker.hubName}, digita{' '}
-                  <strong className="text-primary">{result.depositPin}</strong> en la vitrina para abrir la compuerta #{result.locker.number} y guarda el pedido.
+                  <strong>📍 Instrucciones:</strong> Ve al <strong>{result.locker.hubName}</strong>, digita el PIN{' '}
+                  <strong className="text-[#8F1414] dark:text-red-300 font-mono px-1.5 py-0.5 bg-card rounded border border-border">
+                    {result.depositPin}
+                  </strong>{' '}
+                  en la vitrina para abrir la compuerta <strong>#{result.locker.number}</strong> y guarda el pedido.
                 </p>
-                <p>
-                  🔑 <strong>PIN del comprador:</strong> {result.claimPin} (enviado a {order.buyerName} por chat).
+                <p className="border-t border-border/60 pt-2 text-foreground/90">
+                  <strong>🔑 PIN del comprador:</strong>{' '}
+                  <span className="font-mono font-bold text-foreground px-1.5 py-0.5 bg-card rounded border border-border">
+                    {result.claimPin}
+                  </span>{' '}
+                  (enviado automáticamente a <strong>{order.buyerName}</strong> por chat).
                 </p>
               </div>
             </div>
@@ -280,7 +289,7 @@ export function AssignLockerModal({
             <button
               type="button"
               onClick={onClose}
-              className="w-full rounded-xl bg-primary hover:bg-[#751010] py-2.5 text-xs font-display font-bold text-white shadow-md transition-all cursor-pointer"
+              className="w-full rounded-2xl bg-[#8F1414] hover:bg-[#751010] py-3 font-display text-sm font-bold text-white shadow-md transition-all cursor-pointer"
             >
               Listo, entendido
             </button>

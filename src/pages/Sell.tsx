@@ -270,48 +270,48 @@ export function SellPage() {
 
       {/* Pending Apartados Alert Banner */}
       {pendingApartados.length > 0 && (
-        <div className="rounded-3xl border-2 border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30 p-5 shadow-xs space-y-3 animate-fadeIn">
+        <div className="rounded-3xl border-2 border-primary/20 bg-card p-5 shadow-sm space-y-4 animate-fadeIn">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-red-100 text-[#8F1414] dark:bg-red-900 dark:text-red-300 font-bold">
-                <BookmarkCheck size={20} />
+            <div className="flex items-center gap-3.5">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#8F1414] text-white font-bold shadow-xs shrink-0">
+                <BookmarkCheck size={22} />
               </div>
               <div>
-                <h3 className="font-display font-bold text-foreground text-sm sm:text-base">
+                <h3 className="font-display font-black text-foreground text-base sm:text-lg">
                   ¡Tienes {pendingApartados.length} apartado(s) nuevo(s) de compradores!
                 </h3>
-                <p className="text-xs text-muted-foreground">
-                  Los estudiantes han apartado tus snacks. Revisa los detalles y coordina la entrega.
+                <p className="text-xs text-foreground/80 font-medium">
+                  Los estudiantes han apartado tus snacks. Revisa los detalles y coordina la entrega o el depósito en casillero.
                 </p>
               </div>
             </div>
 
             <Link
               to="/pedidos"
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#8F1414] hover:bg-[#751010] px-4 py-2.5 text-xs font-display font-bold text-white shadow-xs transition-colors self-start sm:self-auto"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#8F1414] hover:bg-[#751010] px-4 py-2.5 text-xs font-display font-bold text-white shadow-xs transition-colors self-start sm:self-auto cursor-pointer"
             >
               <span>Gestionar Apartados</span>
               <span>→</span>
             </Link>
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 pt-1">
+          <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 pt-1">
             {pendingApartados.slice(0, 3).map((ord) => (
               <div
                 key={ord.id}
-                className="flex items-center justify-between rounded-2xl border border-red-200 dark:border-red-900/50 bg-card p-3 text-xs"
+                className="flex items-center justify-between rounded-2xl border border-border bg-secondary/70 p-3.5 text-xs shadow-xs"
               >
                 <div>
-                  <span className="font-bold text-foreground block">
+                  <span className="font-bold text-foreground block text-sm">
                     {ord.buyerName || 'Estudiante'}
                   </span>
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="text-xs text-muted-foreground font-medium">
                     {ord.items.map((i) => `${i.qty}× ${i.name}`).join(', ')}
                   </span>
                 </div>
                 <div className="text-right font-mono">
-                  <span className="font-bold text-primary block">{money(ord.total)}</span>
-                  <span className="text-[10px] text-muted-foreground">{formatTime(ord.createdAt)}</span>
+                  <span className="font-extrabold text-foreground block text-sm">{money(ord.total)}</span>
+                  <span className="text-[11px] text-muted-foreground">{formatTime(ord.createdAt)}</span>
                 </div>
               </div>
             ))}
