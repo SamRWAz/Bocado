@@ -18,6 +18,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { TagList } from '../components/TagList'
 import { canSell, useAuth } from '../context/AuthContext'
 import {
+  deleteProduct,
   fetchProducts,
   incrementMetric,
   insertProduct,
@@ -200,6 +201,12 @@ export function SellPage() {
       stock: nextSoldOut ? 0 : product.stock > 0 ? product.stock : 5,
     })
     await incrementMetric('inventory_updates')
+    await refresh()
+  }
+
+  const handleDeleteProduct = async (id: string, prodName: string) => {
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar "${prodName}"?`)) return
+    await deleteProduct(id)
     await refresh()
   }
 
@@ -709,17 +716,27 @@ export function SellPage() {
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => void toggleSoldOut(product)}
-                    className={`rounded-full px-3 py-1 text-xs font-display font-bold transition-colors ${
-                      product.sold_out
-                        ? 'bg-secondary text-muted-foreground border border-border'
-                        : 'bg-red-100 text-[#8F1414] dark:bg-red-950 dark:text-red-300 border border-red-200 dark:border-red-800'
-                    }`}
-                  >
-                    {product.sold_out ? 'Agotado' : 'Disponible'}
-                  </button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => void toggleSoldOut(product)}
+                      className={`rounded-full px-3 py-1 text-xs font-display font-bold transition-colors ${
+                        product.sold_out
+                          ? 'bg-secondary text-muted-foreground border border-border'
+                          : 'bg-red-100 text-[#8F1414] dark:bg-red-950 dark:text-red-300 border border-red-200 dark:border-red-800'
+                      }`}
+                    >
+                      {product.sold_out ? 'Agotado' : 'Disponible'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleDeleteProduct(product.id, product.name)}
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary text-muted-foreground hover:bg-destructive/10 hover:text-destructive border border-border transition-colors"
+                      title="Eliminar snack"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Stock Quick Controls */}

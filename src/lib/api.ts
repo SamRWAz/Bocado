@@ -26,18 +26,32 @@ export async function fetchProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from('products')
     .select('*')
+    .neq('category', 'archived')
     .order('created_at', { ascending: false })
   if (error) {
     console.error(error)
     return []
   }
-  return data ?? []
+  return (data ?? []).filter((p) => p.category !== 'archived')
 }
 
 export async function fetchProduct(id: string): Promise<Product | null> {
   const { data, error } = await supabase.from('products').select('*').eq('id', id).single()
-  if (error) return null
+  if (error || !data || data.category === 'archived') return null
   return data
+}
+
+export async function deleteProduct(id: string): Promise<boolean> {
+  const res = await supabase.from('products').delete().eq('id', id)
+  const fallback = await supabase
+    .from('products')
+    .update({ category: 'archived', sold_out: true, stock: 0 })
+    .eq('id', id)
+  if (fallback.error && res.error) {
+    console.error(fallback.error || res.error)
+    return false
+  }
+  return true
 }
 
 export async function insertProduct(

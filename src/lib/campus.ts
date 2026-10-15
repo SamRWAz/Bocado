@@ -32,7 +32,7 @@ export const PRESENCE_DURATIONS = [
   { label: 'Todo el día', value: 'Hoy' },
 ] as const
 
-const PRESENCE_STORAGE_KEY = 'bocado.seller_presences'
+const PRESENCE_STORAGE_KEY = 'bocado.seller_presences_v2'
 
 export function getAllSellerPresences(): Record<string, SellerPresence> {
   try {

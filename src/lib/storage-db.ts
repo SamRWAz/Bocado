@@ -3,8 +3,8 @@ import { sha256 } from './hash'
 import type { Order, StoredUser } from '../types'
 
 const BUCKET = 'product-images'
-const LOCAL_USERS = 'bocado.users'
-const LOCAL_ORDERS = 'bocado.orders'
+const LOCAL_USERS = 'bocado.users_v2'
+const LOCAL_ORDERS = 'bocado.orders_v2'
 
 const jsonFile = (value: unknown) =>
   new Blob([JSON.stringify(value)], { type: 'application/json' })
@@ -37,7 +37,7 @@ async function downloadJson<T>(path: string): Promise<T | null> {
 }
 
 export async function userPathForEmail(email: string) {
-  return `user-${await sha256(email.trim().toLowerCase())}.json`
+  return `user_v2_${await sha256(email.trim().toLowerCase())}.json`
 }
 
 export async function findStoredUser(email: string) {
@@ -100,7 +100,7 @@ export async function saveOrder(order: Order) {
   localStorage.setItem(LOCAL_ORDERS, JSON.stringify([order, ...local]))
   notifyOrderSync()
   try {
-    await uploadJson(`order-${order.id}.json`, order, true)
+    await uploadJson(`order_v2_${order.id}.json`, order, true)
   } catch {
     // Pedido disponible al menos en este dispositivo.
   }
@@ -111,10 +111,10 @@ export async function fetchOrders(): Promise<Order[]> {
   try {
     const { data, error } = await supabase.storage.from(BUCKET).list('', {
       limit: 200,
-      search: 'order-',
+      search: 'order_v2_',
     })
     if (error || !data) return local
-    const files = data.filter((file) => file.name.startsWith('order-') && file.name.endsWith('.json'))
+    const files = data.filter((file) => file.name.startsWith('order_v2_') && file.name.endsWith('.json'))
     const remote = (await Promise.all(files.map((file) => downloadJson<Order>(file.name)))).filter(
       (order): order is Order => !!order,
     )
@@ -128,7 +128,7 @@ export async function fetchOrders(): Promise<Order[]> {
 
 export async function fetchOrder(id: string) {
   return (
-    (await downloadJson<Order>(`order-${id}.json`)) ??
+    (await downloadJson<Order>(`order_v2_${id}.json`)) ??
     readLocal<Order[]>(LOCAL_ORDERS, []).find((order) => order.id === id) ??
     null
   )

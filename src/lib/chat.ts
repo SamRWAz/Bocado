@@ -1,7 +1,7 @@
 import type { ChatMessage, ConversationSummary } from '../types'
 import { supabase } from './supabase'
 
-const CHAT_STORAGE_KEY = 'bocado.chat_messages'
+const CHAT_STORAGE_KEY = 'bocado.chat_messages_v2'
 const BUCKET = 'product-images'
 const REALTIME_CHANNEL = 'bocado_live_chat'
 

@@ -3,9 +3,9 @@ import { sendMessage } from './chat'
 import { saveOrder } from './storage-db'
 import { supabase } from './supabase'
 
-const LOCKER_STORAGE_KEY = 'bocado.smart_lockers_v2'
+const LOCKER_STORAGE_KEY = 'bocado.smart_lockers_v3'
 const BUCKET = 'product-images'
-const LOCKER_BROADCAST_CHANNEL = 'bocado_lockers_channel_v2'
+const LOCKER_BROADCAST_CHANNEL = 'bocado_lockers_channel_v3'
 
 export const PLATFORM_COMMISSION_RATE = 0.05 // 5% platform commission
 

@@ -36,6 +36,7 @@ alter table public.metrics enable row level security;
 create policy "public read products" on public.products for select using (true);
 create policy "public insert products" on public.products for insert with check (true);
 create policy "public update products" on public.products for update using (true);
+create policy "public delete products" on public.products for delete using (true);
 
 create policy "public read metrics" on public.metrics for select using (true);
 create policy "public update metrics" on public.metrics for update using (true);
