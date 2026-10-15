@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  Bike,
   BookmarkCheck,
   ClipboardList,
   LogOut,
@@ -36,6 +37,7 @@ export function AppShell() {
 
   const links = [
     { to: '/catalogo', label: 'Catálogo', icon: ShoppingBag },
+    { to: '/entregas', label: 'Tendedero (Entregas)', icon: Bike },
     { to: '/mensajes', label: 'Mensajes', icon: MessageSquare, badge: unreadChat },
     ...(seller ? [{ to: '/vender', label: 'Panel Vendedor', icon: Store }] : []),
     { to: '/pedidos', label: 'Mis Pedidos', icon: ClipboardList },

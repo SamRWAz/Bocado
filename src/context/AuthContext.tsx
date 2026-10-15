@@ -77,6 +77,10 @@ export function canBuy(role?: UserRole) {
   return role === 'comprar' || role === 'ambos' || role === 'admin'
 }
 
+export function isTendedero(role?: UserRole) {
+  return role === 'tendedero' || role === 'ambos' || role === 'admin'
+}
+
 export function isAdmin(role?: UserRole) {
   return role === 'admin'
 }

@@ -1,4 +1,4 @@
-export type UserRole = 'comprar' | 'vender' | 'ambos' | 'admin'
+export type UserRole = 'comprar' | 'vender' | 'tendedero' | 'ambos' | 'admin'
 
 export type AuthUser = {
   id: string
@@ -128,9 +128,18 @@ export type CartItem = {
   reservedAt?: string
 }
 
-export type OrderStatus = 'reservado' | 'listo' | 'entregado' | 'cancelado'
+export type OrderStatus =
+  | 'solicitado' // Pedido creado por el comprador, esperando que un tendedero lo tome
+  | 'tomado' // Un tendedero aceptó la solicitud
+  | 'en_camino' // El tendedero recogió el snack y va hacia el comprador
+  | 'entregado_por_tendedero' // El tendedero confirmó entrega
+  | 'entregado' // Entregado
+  | 'completado' // Todas las partes confirmaron
+  | 'reservado' // compatibilidad previa
+  | 'listo' // compatibilidad previa
+  | 'cancelado'
 
-export type PaymentMethod = 'qr_nequi' | 'tarjeta' | 'qr_bancolombia' | 'efectivo_vitrina'
+export type PaymentMethod = 'qr_nequi' | 'tarjeta' | 'qr_bancolombia' | 'efectivo_vitrina' | 'efectivo'
 
 export type OrderItem = {
   productId: string
@@ -149,13 +158,25 @@ export type Order = {
   sellerName: string
   items: OrderItem[]
   total: number
-  pickup: string
+  pickup: string // Lugar de recogida / origen (ej. Edificio D - Plazoleta)
+  deliveryLocation?: string // Lugar exacto donde el cliente recibe (ej. Edificio E - Piso 2)
+  deliveryFee?: number // Tarifa de envío en campus ($200 COP)
   note: string
   status: OrderStatus
   createdAt: string
+  // Tendedero / Mensajería interna en campus
+  tendederoId?: string
+  tendederoName?: string
+  tendederoAcceptedAt?: string
+  tendederoConfirmed?: boolean // Tendedero confirmó entrega
+  tendederoConfirmedAt?: string
+  buyerConfirmed?: boolean // Cliente confirmó recibido
+  buyerConfirmedAt?: string
+  sellerPaidConfirmed?: boolean // Vendedor / receptor confirmó dinero recibido
+  sellerPaidConfirmedAt?: string
+  // Compatibilidad y desglose financiero
   isGuaranteed?: boolean
   reserveFee?: number
-  // Smart Locker & Commission properties
   lockerId?: string
   lockerHubId?: string
   lockerHubName?: string
@@ -165,8 +186,8 @@ export type Order = {
   paymentMethod?: PaymentMethod
   paymentStatus?: 'pendiente' | 'pagado'
   claimedAt?: string
-  platformCommission?: number // 5% fee
-  sellerNetRevenue?: number // 95% to seller
+  platformCommission?: number
+  sellerNetRevenue?: number
 }
 
 export type StoredUser = AuthUser & {

@@ -5,7 +5,7 @@ import { signJwt, verifyJwt } from './jwt'
 import { findStoredUser, saveStoredUser } from './storage-db'
 import { supabase } from './supabase'
 
-const ROLES: UserRole[] = ['comprar', 'vender', 'ambos', 'admin']
+const ROLES: UserRole[] = ['comprar', 'vender', 'tendedero', 'ambos', 'admin']
 
 const asUser = (input: {
   id: string

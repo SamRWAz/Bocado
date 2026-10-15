@@ -17,6 +17,16 @@ function SectionNav() {
       >
         Catálogo de Snacks
       </NavLink>
+      <NavLink
+        to="/entregas"
+        className={({ isActive }) =>
+          isActive
+            ? 'text-primary font-bold'
+            : 'hover:text-foreground font-medium transition-colors'
+        }
+      >
+        🛵 Tendederos (Domicilios)
+      </NavLink>
     </>
   )
 }
@@ -90,7 +100,7 @@ export function PublicFooter() {
         <p className="font-display font-medium text-foreground text-sm tracking-tight">
           Bocado · Micro-comercio universitario
         </p>
-        <p>Universidad Icesi · Snacks frescos y casilleros inteligentes.</p>
+        <p>Universidad Icesi · Snacks frescos y domicilios entre estudiantes (Tendederos en campus).</p>
         <p className="text-xs">Validación de concepto · 2026</p>
       </div>
     </footer>

@@ -12,7 +12,7 @@ import { CatalogPage } from './pages/Catalog'
 import { CheckoutPage } from './pages/Checkout'
 import { LandingPage } from './pages/Landing'
 import { LoginPage } from './pages/Login'
-import { LockerHubPage } from './pages/LockerHub'
+import { DeliveriesPage } from './pages/Deliveries'
 import { MessagesPage } from './pages/Messages'
 import { MetricsPage } from './pages/Metrics'
 import { NotFoundPage } from './pages/NotFound'
@@ -38,11 +38,13 @@ export default function App() {
               <Route path="/registro" element={<RegisterPage />} />
             </Route>
 
-            {/* Catalog & Shop & Locker Showcase views */}
+            {/* Catalog & Shop & Deliveries views */}
             <Route element={<StoreLayout />}>
               <Route path="/catalogo" element={<CatalogPage />} />
-              <Route path="/vitrina" element={<LockerHubPage />} />
-              <Route path="/casilleros" element={<Navigate to="/vitrina" replace />} />
+              <Route path="/entregas" element={<DeliveriesPage />} />
+              <Route path="/tendedero" element={<Navigate to="/entregas" replace />} />
+              <Route path="/vitrina" element={<Navigate to="/entregas" replace />} />
+              <Route path="/casilleros" element={<Navigate to="/entregas" replace />} />
               <Route path="/producto/:id" element={<ProductDetailPage />} />
               <Route path="/tienda/:slug" element={<Navigate to="/catalogo" replace />} />
               <Route

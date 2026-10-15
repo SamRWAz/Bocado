@@ -1,9 +1,11 @@
 import {
   ArrowLeft,
+  Bike,
   BookmarkCheck,
-  CheckCircle2,
   Flame,
+  MapPin,
   MessageCircle,
+  Receipt,
   Store,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -13,6 +15,7 @@ import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { fetchProduct, incrementMetric, updateProduct } from '../lib/api'
 import { sendMessage } from '../lib/chat'
+import { DELIVERY_FEE, PICKUP_POINTS } from '../lib/constants'
 import { displaySeller, initials, money, ownsListing, parseTags, productDescription, sellerUserId } from '../lib/format'
 import { playPaymentSuccess } from '../lib/sounds'
 import { saveOrder } from '../lib/storage-db'
@@ -27,8 +30,10 @@ export function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [qty, setQty] = useState(1)
+  const [deliveryLocation, setDeliveryLocation] = useState<string>(PICKUP_POINTS[0] || 'Edificio D (Plazoleta / Pisos)')
   const [apartadoDone, setApartadoDone] = useState(false)
   const [apartadoOrderId, setApartadoOrderId] = useState<string | null>(null)
+  const [confirmedTotal, setConfirmedTotal] = useState(0)
   const [isApartando, setIsApartando] = useState(false)
 
   useEffect(() => {
@@ -69,9 +74,12 @@ export function ProductDetailPage() {
     try {
       playPaymentSuccess()
       const orderId = crypto.randomUUID()
-      const orderTotal = product.price * qty
-      const commission = Math.round(orderTotal * 0.05)
-      const netRevenue = orderTotal - commission
+      const itemsTotal = product.price * qty
+      const deliveryFee = DELIVERY_FEE // 200 COP
+      const orderTotal = itemsTotal + deliveryFee
+      const commission = Math.round(itemsTotal * 0.05)
+      const netRevenue = itemsTotal - commission
+      const finalLoc = deliveryLocation.trim() || 'Edificio D (Plazoleta / Pisos)'
 
       const order: Order = {
         id: orderId,
@@ -91,12 +99,17 @@ export function ProductDetailPage() {
         ],
         total: orderTotal,
         pickup: `Edificio ${product.preferredBuilding || 'D'}`,
+        deliveryLocation: finalLoc,
+        deliveryFee,
         note: '',
-        status: 'reservado',
+        status: 'solicitado',
         createdAt: new Date().toISOString(),
         isGuaranteed: false,
         platformCommission: commission,
         sellerNetRevenue: netRevenue,
+        tendederoConfirmed: false,
+        buyerConfirmed: false,
+        sellerPaidConfirmed: false,
       }
 
       await saveOrder(order)
@@ -110,7 +123,7 @@ export function ProductDetailPage() {
         orderId,
         productId: product.id,
         productName: product.name,
-        text: `👋 ¡Hola ${sellerName}! He apartado ${qty}x ${product.name} (${money(orderTotal)}). ¿En qué punto o casillero coordinamos la entrega?`,
+        text: `👋 ¡Hola ${sellerName}! He solicitado ${qty}x ${product.name} (${money(itemsTotal)}) con domicilio a ${finalLoc}. Un Tendedero recogerá el snack en Edificio ${product.preferredBuilding || 'D'}.`,
         messageType: 'text',
       })
 
@@ -118,6 +131,7 @@ export function ProductDetailPage() {
       void updateProduct(product.id, { intent_count: product.intent_count + qty })
       void incrementMetric('total_intents')
       setApartadoOrderId(orderId)
+      setConfirmedTotal(orderTotal)
       setApartadoDone(true)
     } finally {
       setIsApartando(false)
@@ -248,7 +262,7 @@ export function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Quantity and Apartar CTAs */}
+          {/* Quantity and Order CTAs */}
           <div className="border-t border-border pt-5 space-y-4">
             <div className="flex items-center gap-4">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground font-mono">
@@ -273,14 +287,55 @@ export function ProductDetailPage() {
               </div>
             </div>
 
+            {/* Delivery Location Selector */}
+            <div className="space-y-1.5 pt-2 border-t border-border/60">
+              <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <MapPin size={14} className="text-primary" /> ¿Dónde te encuentras en el campus para la entrega?
+              </label>
+              <select
+                value={deliveryLocation}
+                onChange={(e) => setDeliveryLocation(e.target.value)}
+                className="w-full rounded-xl border border-border bg-card px-3 py-2.5 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary"
+              >
+                {PICKUP_POINTS.map((pt) => (
+                  <option key={pt} value={pt}>
+                    {pt}
+                  </option>
+                ))}
+                <option value="Biblioteca Central - Piso 2">Biblioteca Central - Piso 2</option>
+                <option value="Edificio E (Ingeniería) - Aulas">Edificio E (Ingeniería) - Aulas</option>
+                <option value="El Samán - Bancas exteriores">El Samán - Bancas exteriores</option>
+              </select>
+            </div>
+
+            {/* Transparent Receipt Breakdown */}
+            <div className="rounded-2xl bg-secondary/60 p-3.5 space-y-1.5 text-xs border border-border/60">
+              <div className="flex justify-between text-muted-foreground">
+                <span>Subtotal snacks ({qty} uds):</span>
+                <span className="font-mono font-semibold">{money(product.price * qty)}</span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
+                <span className="flex items-center gap-1 text-primary font-medium">
+                  <Bike size={13} /> Envío Tendedero en campus:
+                </span>
+                <span className="font-mono font-bold text-primary">+{money(DELIVERY_FEE)} COP</span>
+              </div>
+              <div className="flex justify-between font-bold text-foreground pt-1.5 border-t border-border/60 text-sm">
+                <span>Total a pagar:</span>
+                <span className="font-mono text-primary font-extrabold">
+                  {money(product.price * qty + DELIVERY_FEE)}
+                </span>
+              </div>
+            </div>
+
             {apartadoDone ? (
-              <div className="rounded-2xl border-2 border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 p-4 space-y-3 animate-fadeIn text-center">
-                <div className="flex items-center justify-center gap-2 text-primary font-display font-bold text-sm">
-                  <CheckCircle2 size={18} />
-                  <span>¡Snack apartado con éxito!</span>
+              <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 p-4 space-y-3 animate-fadeIn text-center">
+                <div className="flex items-center justify-center gap-2 text-emerald-600 dark:text-emerald-400 font-display font-bold text-sm">
+                  <Receipt size={18} />
+                  <span>¡Solicitud de Entrega Campus Creada!</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Tu producto quedó reservado y el vendedor ha recibido la solicitud de apartado.
+                  Tu pedido de <strong>{qty}x {product.name}</strong> por <strong>{money(confirmedTotal)}</strong> fue emitido a los Tendederos. Te lo llevarán a <strong>{deliveryLocation}</strong>.
                 </p>
                 <div className="flex gap-2 pt-1">
                   <button
@@ -289,14 +344,14 @@ export function ProductDetailPage() {
                     className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-primary hover:bg-[#751010] py-2.5 text-xs font-display font-bold text-white shadow-xs transition-colors cursor-pointer"
                   >
                     <MessageCircle size={14} />
-                    <span>Chatear con el Vendedor</span>
+                    <span>Chatear con el Cocinero</span>
                   </button>
                   <Link
                     to="/pedidos"
                     className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary py-2.5 text-xs font-display font-semibold text-foreground hover:bg-secondary/80"
                   >
                     <BookmarkCheck size={14} className="text-primary" />
-                    <span>Ver Mis Apartados</span>
+                    <span>Ver Mis Pedidos</span>
                   </Link>
                 </div>
               </div>
@@ -308,8 +363,8 @@ export function ProductDetailPage() {
                   onClick={() => void handleApartar()}
                   className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-primary hover:bg-[#751010] py-4 font-display text-sm font-bold text-white shadow-md transition-transform active:scale-95 disabled:opacity-40 cursor-pointer"
                 >
-                  <BookmarkCheck size={18} />
-                  {isApartando ? 'Apartando snack...' : 'Apartar Snack para Retiro'}
+                  <Bike size={18} />
+                  {isApartando ? 'Creando pedido...' : `Pedir con Domicilio (${money(product.price * qty + DELIVERY_FEE)})`}
                 </button>
                 <button
                   type="button"

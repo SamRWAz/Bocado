@@ -147,10 +147,11 @@ export function SellPage() {
       }
 
       const allCategoryTags = [...tags, ...dietary]
+      const finalCatalogPrice = numPrice + 200
 
       const created = await insertProduct({
         name: name.trim(),
-        price: numPrice,
+        price: finalCatalogPrice,
         stock: numStock,
         sold_out: false,
         seller: encodeSeller(user.name, user.id),
@@ -288,7 +289,7 @@ export function SellPage() {
                   ¡Tienes {pendingApartados.length} apartado(s) nuevo(s) de compradores!
                 </h3>
                 <p className="text-xs text-foreground/80 font-medium">
-                  Los estudiantes han apartado tus snacks. Revisa los detalles y coordina la entrega o el depósito en casillero.
+                  Los estudiantes han solicitado tus snacks. Un Tendedero recogerá el pedido en tu punto de entrega para llevarlo al comprador.
                 </p>
               </div>
             </div>
@@ -411,10 +412,15 @@ export function SellPage() {
                   />
                   {price && !isNaN(parseInt(price, 10)) && (
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md bg-primary/20 px-2 py-0.5 text-[10px] font-mono font-bold text-primary">
-                      {money(parseInt(price, 10))} COP
+                      {money(parseInt(price, 10) + 200)} COP
                     </span>
                   )}
                 </div>
+                {price && !isNaN(parseInt(price, 10)) && (
+                  <p className="mt-1.5 text-[11px] text-muted-foreground">
+                    Recibes: <strong className="text-foreground">{money(parseInt(price, 10))}</strong> + $200 (logística domiciliario en campus) = <strong className="text-primary font-bold">{money(parseInt(price, 10) + 200)}</strong> precio en catálogo.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -665,7 +671,7 @@ export function SellPage() {
                       Precio
                     </span>
                     <p className="font-mono text-lg font-black text-primary">
-                      {price && !isNaN(parseInt(price, 10)) ? money(parseInt(price, 10)) : '$0'}
+                      {price && !isNaN(parseInt(price, 10)) ? money(parseInt(price, 10) + 200) : '$0'}
                     </p>
                   </div>
 

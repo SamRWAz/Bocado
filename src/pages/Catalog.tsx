@@ -1,8 +1,9 @@
 import {
-  BookmarkCheck,
-  CheckCircle2,
+  Bike,
   Filter,
+  MapPin,
   MessageCircle,
+  Receipt,
   Search,
   ShoppingBag,
   Sparkles,
@@ -16,7 +17,7 @@ import { useCart } from '../context/CartContext'
 import { fetchProducts, incrementMetric, updateProduct } from '../lib/api'
 import { DIETARY_OPTIONS } from '../lib/campus'
 import { sendMessage } from '../lib/chat'
-import { FILTERS } from '../lib/constants'
+import { DELIVERY_FEE, FILTERS, PICKUP_POINTS } from '../lib/constants'
 import { displaySeller, hasTag, money, sellerUserId } from '../lib/format'
 import { playKeyBeep, playPaymentSuccess } from '../lib/sounds'
 import { saveOrder } from '../lib/storage-db'
@@ -35,7 +36,8 @@ export function CatalogPage() {
 
   // Confirmation Modal State
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [apartadoSuccess, setApartadoSuccess] = useState<{ product: Product; orderId: string } | null>(null)
+  const [deliveryLocation, setDeliveryLocation] = useState<string>('Edificio D (Plazoleta / Pisos)')
+  const [apartadoSuccess, setApartadoSuccess] = useState<{ product: Product; orderId: string; total: number; location: string } | null>(null)
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -70,9 +72,10 @@ export function CatalogPage() {
       const sId = sellerUserId(selectedProduct.seller)
       const sName = displaySeller(selectedProduct.seller)
       const orderId = crypto.randomUUID()
-      const orderTotal = selectedProduct.price
-      const commission = Math.round(orderTotal * 0.05)
-      const netRevenue = orderTotal - commission
+      const deliveryFee = DELIVERY_FEE // 200 COP
+      const orderTotal = selectedProduct.price + deliveryFee
+      const commission = Math.round(selectedProduct.price * 0.05)
+      const netRevenue = selectedProduct.price - commission
 
       const order: Order = {
         id: orderId,
@@ -92,15 +95,20 @@ export function CatalogPage() {
         ],
         total: orderTotal,
         pickup: `Edificio ${selectedProduct.preferredBuilding || 'D'}`,
+        deliveryLocation: deliveryLocation.trim() || 'Edificio D (Plazoleta / Pisos)',
+        deliveryFee,
         note: '',
-        status: 'reservado',
+        status: 'solicitado',
         createdAt: new Date().toISOString(),
         isGuaranteed: false,
         platformCommission: commission,
         sellerNetRevenue: netRevenue,
+        tendederoConfirmed: false,
+        buyerConfirmed: false,
+        sellerPaidConfirmed: false,
       }
 
-      // 1. Save order in storage DB for the seller
+      // 1. Save order in storage DB for seller and tendederos
       await saveOrder(order)
 
       // 2. Notify seller via live chat message
@@ -113,7 +121,7 @@ export function CatalogPage() {
         orderId,
         productId: selectedProduct.id,
         productName: selectedProduct.name,
-        text: `👋 ¡Hola ${sName}! Acabo de apartar 1x ${selectedProduct.name} (${money(selectedProduct.price)}). ¿En qué punto o casillero nos vemos / coordinamos la entrega?`,
+        text: `👋 ¡Hola ${sName}! He solicitado 1x ${selectedProduct.name} (${money(selectedProduct.price)}) con domicilio a ${order.deliveryLocation}. Un Tendedero recogerá el snack en Edificio ${selectedProduct.preferredBuilding || 'D'}.`,
         messageType: 'text',
       })
 
@@ -125,14 +133,15 @@ export function CatalogPage() {
       void incrementMetric('total_intents')
 
       const confirmed = selectedProduct
+      const chosenLoc = order.deliveryLocation || 'Edificio D (Plazoleta / Pisos)'
       setSelectedProduct(null)
-      setApartadoSuccess({ product: confirmed, orderId })
+      setApartadoSuccess({ product: confirmed, orderId, total: orderTotal, location: chosenLoc })
     } finally {
       setIsProcessing(false)
     }
   }
 
-  const handleGoToChat = (item: { product: Product; orderId: string }) => {
+  const handleGoToChat = (item: { product: Product; orderId: string; total: number; location: string }) => {
     const sId = sellerUserId(item.product.seller)
     const sName = displaySeller(item.product.seller)
     if (!user) {
@@ -183,7 +192,7 @@ export function CatalogPage() {
             Snacks y Postres Disponibles
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Explora las preparaciones de hoy, aparta tu favorito y recíbelo sin esperas en los casilleros inteligentes.
+            Explora las preparaciones de hoy, pide tu favorito y recíbelo directo donde estés con los Tendederos de Icesi.
           </p>
         </div>
 
@@ -323,7 +332,7 @@ export function CatalogPage() {
       )}
 
       {/* ========================================================= */}
-      {/* MODAL 1: CONFIRMACIÓN DE APARTADO                         */}
+      {/* MODAL 1: CONFIRMACIÓN DE PEDIDO Y DOMICILIO EN CAMPUS       */}
       {/* ========================================================= */}
       {selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-fadeIn">
@@ -339,14 +348,14 @@ export function CatalogPage() {
             {/* Header */}
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/20 text-primary">
-                <BookmarkCheck size={26} />
+                <Bike size={26} />
               </div>
               <div>
                 <span className="text-[10px] font-mono font-bold uppercase text-primary">
-                  Confirmación de Apartado
+                  Domicilio en Campus Universitario
                 </span>
                 <h3 className="font-display text-lg font-bold text-foreground">
-                  ¿Deseas apartar este producto?
+                  Solicitar Snack con Tendedero
                 </h3>
               </div>
             </div>
@@ -364,17 +373,55 @@ export function CatalogPage() {
                     {selectedProduct.name}
                   </h4>
                   <p className="text-xs text-muted-foreground">
-                    Cocinero: {displaySeller(selectedProduct.seller)}
+                    Cocinero: {displaySeller(selectedProduct.seller)} · Punto recogida: Edificio {selectedProduct.preferredBuilding || 'D'}
                   </p>
-                  <p className="font-mono text-sm font-extrabold text-primary mt-0.5">
-                    {money(selectedProduct.price)}
-                  </p>
+                </div>
+              </div>
+
+              {/* Selector de Punto de Entrega en el campus */}
+              <div className="space-y-1.5 pt-2 border-t border-border/60">
+                <label className="text-[11px] font-bold text-foreground flex items-center gap-1.5">
+                  <MapPin size={13} className="text-primary" /> ¿Dónde te encuentras en la U para la entrega?
+                </label>
+                <select
+                  value={deliveryLocation}
+                  onChange={(e) => setDeliveryLocation(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-card px-3 py-2.5 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary"
+                >
+                  {PICKUP_POINTS.map((pt) => (
+                    <option key={pt} value={pt}>
+                      {pt}
+                    </option>
+                  ))}
+                  <option value="Biblioteca Central - Piso 2">Biblioteca Central - Piso 2</option>
+                  <option value="Edificio E (Ingeniería) - Aulas">Edificio E (Ingeniería) - Aulas</option>
+                  <option value="El Samán - Bancas exteriores">El Samán - Bancas exteriores</option>
+                </select>
+              </div>
+
+              {/* Desglose Transparente del Recibo */}
+              <div className="rounded-xl bg-card p-3 space-y-1.5 text-xs border border-border/60">
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Precio del snack:</span>
+                  <span className="font-mono">{money(selectedProduct.price)}</span>
+                </div>
+                <div className="flex justify-between text-muted-foreground">
+                  <span className="flex items-center gap-1 text-primary font-medium">
+                    <Bike size={12} /> Costo de envío (Tendedero):
+                  </span>
+                  <span className="font-mono font-bold text-primary">+$200 COP</span>
+                </div>
+                <div className="flex justify-between font-bold text-foreground pt-1.5 border-t border-border/40 text-sm">
+                  <span>Total a pagar:</span>
+                  <span className="font-mono text-primary font-extrabold">
+                    {money(selectedProduct.price + 200)}
+                  </span>
                 </div>
               </div>
             </div>
 
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Al apartar, el producto se reserva para ti en tu lista de <strong>Apartados</strong>. El vendedor recibirá la solicitud y te asignará el casillero de entrega correspondiente.
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              💡 Un <strong>Tendedero</strong> (mensajero universitario) verá tu solicitud, irá por el producto con el cocinero y te lo entregará en <strong>{deliveryLocation}</strong>.
             </p>
 
             {/* Action Buttons */}
@@ -391,10 +438,10 @@ export function CatalogPage() {
                 type="button"
                 disabled={isProcessing}
                 onClick={handleConfirmApartar}
-                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#8F1414] hover:bg-[#751010] py-3 text-xs font-display font-bold text-white shadow-xs active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-primary hover:opacity-90 py-3 text-xs font-display font-bold text-primary-foreground shadow-xs active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
               >
-                <BookmarkCheck size={15} />
-                <span>{isProcessing ? 'Apartando...' : 'Confirmar Apartado'}</span>
+                <Bike size={15} />
+                <span>{isProcessing ? 'Creando pedido...' : `Pedir (${money(selectedProduct.price + 200)})`}</span>
               </button>
             </div>
           </div>
@@ -402,37 +449,69 @@ export function CatalogPage() {
       )}
 
       {/* ========================================================= */}
-      {/* MODAL 2: ÉXITO DE APARTADO & ACCIONES (CHAT / APARTADOS)  */}
+      {/* MODAL 2: RECIBO DE CONFIRMACIÓN & ESTADO DE SOLICITUD     */}
       {/* ========================================================= */}
       {apartadoSuccess && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-fadeIn">
           <div className="relative w-full max-w-md rounded-3xl border-2 border-border bg-card p-6 shadow-2xl space-y-5 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-950 text-[#8F1414] dark:text-red-300">
-              <CheckCircle2 size={36} />
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400">
+              <Receipt size={32} />
             </div>
 
             <div className="space-y-1">
-              <span className="text-[10px] font-mono font-bold uppercase text-[#8F1414] dark:text-red-400">
-                ¡Producto Apartado con Éxito!
+              <span className="text-[10px] font-mono font-bold uppercase text-emerald-600 dark:text-emerald-400">
+                ¡Solicitud de Pedido Creada!
               </span>
               <h3 className="font-display text-xl font-bold text-foreground">
-                {apartadoSuccess.product.name}
+                Recibo de Entrega Campus
               </h3>
               <p className="text-xs text-muted-foreground">
-                Tu apartado ha sido enviado al vendedor. Puedes chatear para coordinar o ver tus pases en <strong>Mis Apartados</strong>.
+                Tu solicitud ya está en la bandeja de los Tendederos en campus.
               </p>
             </div>
 
-            <div className="rounded-2xl bg-secondary p-4 text-xs text-muted-foreground text-left space-y-2 border border-border">
-              <p className="font-semibold text-foreground flex items-center gap-1.5">
-                <Sparkles size={14} className="text-[#8F1414]" /> ¿Qué deseas hacer ahora?
-              </p>
-              <p className="text-[11px]">
-                Puedes chatear directamente con <strong>{displaySeller(apartadoSuccess.product.seller)}</strong> o revisar tu pase de retiro.
-              </p>
+            {/* Ticket del Recibo */}
+            <div className="rounded-2xl bg-secondary/80 p-4 text-xs text-left space-y-2.5 border border-border">
+              <div className="flex justify-between items-center pb-2 border-b border-border/60">
+                <span className="font-mono font-semibold text-muted-foreground">Snack:</span>
+                <span className="font-bold text-foreground">{apartadoSuccess.product.name}</span>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Cocinero:</span>
+                <span className="font-medium text-foreground">{displaySeller(apartadoSuccess.product.seller)}</span>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Punto de Entrega:</span>
+                <span className="font-semibold text-foreground">{apartadoSuccess.location}</span>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Costo de Domicilio:</span>
+                <span className="font-mono font-bold text-emerald-600">+$200 COP</span>
+              </div>
+
+              <div className="flex justify-between items-center pt-2 border-t border-border/60 font-bold text-sm">
+                <span>Total a Pagar:</span>
+                <span className="font-mono text-primary font-black">{money(apartadoSuccess.total)}</span>
+              </div>
+
+              <div className="rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 p-2.5 text-[11px] text-amber-800 dark:text-amber-300 flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-amber-500 animate-ping shrink-0" />
+                <span>Estado: Esperando que un Tendedero acepte tu entrega...</span>
+              </div>
             </div>
 
             <div className="space-y-2.5">
+              <Link
+                to="/pedidos"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary hover:opacity-90 py-3.5 text-xs font-display font-bold text-primary-foreground shadow-xs active:scale-95 transition-all cursor-pointer"
+              >
+                <Bike size={16} />
+                <span>Seguir Pedido en Mis Pedidos</span>
+              </Link>
+
               <button
                 type="button"
                 onClick={() => {
@@ -440,28 +519,11 @@ export function CatalogPage() {
                   setApartadoSuccess(null)
                   handleGoToChat(item)
                 }}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#8F1414] hover:bg-[#751010] py-3.5 text-xs font-display font-bold text-white shadow-xs active:scale-95 transition-all cursor-pointer"
+                className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary py-3 text-xs font-display font-semibold text-foreground hover:bg-secondary/80 transition-colors"
               >
-                <MessageCircle size={16} />
-                <span>Chatear con el Vendedor</span>
+                <MessageCircle size={15} className="text-primary" />
+                <span>Chatear con el Cocinero</span>
               </button>
-
-              <div className="flex gap-2">
-                <Link
-                  to="/pedidos"
-                  className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary py-3 text-xs font-display font-semibold text-foreground hover:bg-secondary/80 transition-colors"
-                >
-                  <BookmarkCheck size={14} className="text-[#8F1414]" />
-                  <span>Ver Mis Apartados</span>
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => setApartadoSuccess(null)}
-                  className="rounded-xl border border-border bg-secondary px-4 py-3 text-xs font-display font-semibold text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Seguir Explorando
-                </button>
-              </div>
             </div>
           </div>
         </div>

@@ -105,9 +105,10 @@ export function RegisterPage() {
                   onChange={(e) => setRole(e.target.value as UserRole)}
                   className={inputClass}
                 >
-                  <option value="ambos">Comprar y vender</option>
-                  <option value="comprar">Solo comprar</option>
-                  <option value="vender">Solo vender</option>
+                  <option value="ambos">Comprar, vender y repartir</option>
+                  <option value="tendedero">🛵 Tendedero (Repartidor en campus)</option>
+                  <option value="comprar">Solo comprar snacks</option>
+                  <option value="vender">Solo vender snacks</option>
                 </select>
               </div>
             </div>

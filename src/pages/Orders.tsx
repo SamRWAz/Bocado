@@ -1,39 +1,37 @@
 import {
-  Boxes,
-  Building2,
+  Bike,
   CheckCircle2,
-  Copy,
-  KeyRound,
-  MessageSquare,
-  QrCode,
-  ShieldCheck,
-  Sparkles,
-  Unlock,
-  Zap,
+  DollarSign,
+  MapPin,
+  MessageCircle,
+  Package,
 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { AssignLockerModal } from '../components/lockers/AssignLockerModal'
 import { useAuth } from '../context/AuthContext'
-import { formatTime, money, ownsListing, sellerUserId } from '../lib/format'
-import { playKeyBeep } from '../lib/sounds'
+import { money, ownsListing, sellerUserId } from '../lib/format'
+import { playPaymentSuccess } from '../lib/sounds'
 import { fetchOrders, saveOrder, subscribeToOrderUpdates } from '../lib/storage-db'
-import type { Order, OrderStatus } from '../types'
+import type { Order } from '../types'
 
-const labels: Record<OrderStatus, { label: string; color: string }> = {
-  reservado: { label: 'Apartado / Pendiente', color: 'bg-red-50 text-[#8F1414] border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800' },
-  listo: { label: 'Listo en Casillero', color: 'bg-red-100 text-[#8F1414] border-red-300 dark:bg-red-900/60 dark:text-red-200 dark:border-red-700' },
-  entregado: { label: 'Retirado / Completado', color: 'bg-secondary text-muted-foreground border-border' },
-  cancelado: { label: 'Cancelado', color: 'bg-secondary text-muted-foreground/60 border-border' },
+const statusLabels: Record<string, { label: string; color: string }> = {
+  solicitado: { label: 'Buscando Tendedero', color: 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/60 dark:text-amber-200 dark:border-amber-700' },
+  tomado: { label: 'Tendedero en camino', color: 'bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950/60 dark:text-blue-200 dark:border-blue-700' },
+  en_camino: { label: 'En camino a tu punto', color: 'bg-indigo-100 text-indigo-900 border-indigo-300 dark:bg-indigo-950/60 dark:text-indigo-200 dark:border-indigo-700' },
+  entregado_por_tendedero: { label: 'Entregado por Tendedero', color: 'bg-purple-100 text-purple-900 border-purple-300 dark:bg-purple-950/60 dark:text-purple-200 dark:border-purple-700' },
+  entregado: { label: 'Entregado', color: 'bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-700' },
+  completado: { label: 'Completado 🎉', color: 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-700' },
+  reservado: { label: 'Pendiente de entrega', color: 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/60 dark:text-amber-200 dark:border-amber-700' },
+  listo: { label: 'Listo para entrega', color: 'bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950/60 dark:text-blue-200 dark:border-blue-700' },
+  cancelado: { label: 'Cancelado', color: 'bg-secondary text-muted-foreground border-border' },
 }
 
 export function OrdersPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [orders, setOrders] = useState<Order[]>([])
-  const [tab, setTab] = useState<'compras' | 'ventas' | 'historial'>('compras')
-  const [copiedPin, setCopiedPin] = useState<string | null>(null)
-  const [orderToAssign, setOrderToAssign] = useState<Order | null>(null)
+  const [tab, setTab] = useState<'compras' | 'ventas' | 'domicilios' | 'historial'>('compras')
+  const [feedback, setFeedback] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
     const all = await fetchOrders()
@@ -49,6 +47,7 @@ export function OrdersPage() {
   }, [refresh])
 
   const mine = orders.filter((order) => order.buyerId === user?.id)
+
   const allSellerOrders = orders.filter((order) => {
     if (!user) return false
     const sKey = order.sellerKey || ''
@@ -65,45 +64,86 @@ export function OrdersPage() {
     )
   })
 
-  // Active sales vs completed sales
-  const activeSelling = allSellerOrders.filter((o) => o.status !== 'entregado' && o.status !== 'cancelado')
-  const historySelling = allSellerOrders.filter((o) => o.status === 'entregado')
+  // Domicilios tomados por el usuario
+  const myDeliveries = orders.filter((order) => order.tendederoId === user?.id)
 
-  // Financial statistics for seller history
+  const activeSelling = allSellerOrders.filter((o) => o.status !== 'completado' && o.status !== 'cancelado')
+  const historySelling = allSellerOrders.filter((o) => o.status === 'completado' || o.status === 'entregado')
+
+  // Métricas financieras
   const totalGross = historySelling.reduce((sum, o) => sum + o.total, 0)
   const totalNet = historySelling.reduce(
     (sum, o) => sum + (o.sellerNetRevenue || o.total - (o.platformCommission || Math.round(o.total * 0.05))),
     0,
   )
-  const totalCommission = historySelling.reduce(
-    (sum, o) => sum + (o.platformCommission || Math.round(o.total * 0.05)),
-    0,
-  )
-  const totalItemsSold = historySelling.reduce(
-    (sum, o) => sum + o.items.reduce((s, it) => s + it.qty, 0),
-    0,
-  )
 
-  const setStatus = async (order: Order, status: OrderStatus) => {
-    await saveOrder({ ...order, status })
+  // 1. Confirmación del CLIENTE (Comprador)
+  const handleConfirmarCliente = async (order: Order) => {
+    playPaymentSuccess()
+    const isCompleted = order.tendederoConfirmed && order.sellerPaidConfirmed
+    const updated: Order = {
+      ...order,
+      buyerConfirmed: true,
+      buyerConfirmedAt: new Date().toISOString(),
+      status: isCompleted ? 'completado' : 'entregado',
+    }
+    await saveOrder(updated)
     await refresh()
+    setFeedback('¡Confirmaste que recibiste tu pedido con éxito!')
+    setTimeout(() => setFeedback(null), 3500)
   }
 
-  const handleCopyPin = (pin: string) => {
-    playKeyBeep(880)
-    void navigator.clipboard.writeText(pin)
-    setCopiedPin(pin)
-    setTimeout(() => setCopiedPin(null), 2000)
+  // 2. Confirmación del VENDEDOR (Pago / dinero recibido)
+  const handleConfirmarVendedorPago = async (order: Order) => {
+    playPaymentSuccess()
+    const isCompleted = order.tendederoConfirmed && order.buyerConfirmed
+    const updated: Order = {
+      ...order,
+      sellerPaidConfirmed: true,
+      sellerPaidConfirmedAt: new Date().toISOString(),
+      status: isCompleted ? 'completado' : order.status,
+    }
+    await saveOrder(updated)
+    await refresh()
+    setFeedback('¡Confirmaste que recibiste el dinero del pedido!')
+    setTimeout(() => setFeedback(null), 3500)
   }
 
-  const openChatForOrder = (order: Order) => {
-    const isBuyer = tab === 'compras'
-    const partnerId = isBuyer ? sellerUserId(order.sellerKey) : order.buyerId
-    const partnerName = isBuyer ? order.sellerName : order.buyerName
+  // 3. Confirmación del TENDEDERO (Entrega realizada)
+  const handleConfirmarTendedero = async (order: Order) => {
+    playPaymentSuccess()
+    const isCompleted = order.buyerConfirmed && order.sellerPaidConfirmed
+    const updated: Order = {
+      ...order,
+      tendederoConfirmed: true,
+      tendederoConfirmedAt: new Date().toISOString(),
+      status: isCompleted ? 'completado' : 'entregado_por_tendedero',
+    }
+    await saveOrder(updated)
+    await refresh()
+    setFeedback('¡Confirmaste que entregaste el pedido al comprador!')
+    setTimeout(() => setFeedback(null), 3500)
+  }
+
+  // Navegación de chats
+  const openChatWith = (order: Order, role: 'seller' | 'buyer' | 'tendedero') => {
     const firstItem = order.items[0]?.name ?? 'Snack'
+    let partnerId = order.buyerId
+    let partnerName = order.buyerName
+    let convSuffix = 'buyer'
+
+    if (role === 'seller') {
+      partnerId = sellerUserId(order.sellerKey)
+      partnerName = order.sellerName
+      convSuffix = 'seller'
+    } else if (role === 'tendedero') {
+      partnerId = order.tendederoId || ''
+      partnerName = order.tendederoName || 'Tendedero'
+      convSuffix = 'tendedero'
+    }
 
     navigate(
-      `/mensajes?conv=order_${order.id}&partnerId=${encodeURIComponent(
+      `/mensajes?conv=order_${order.id}_${convSuffix}&partnerId=${encodeURIComponent(
         partnerId,
       )}&partnerName=${encodeURIComponent(partnerName)}&orderId=${order.id}&productName=${encodeURIComponent(
         firstItem,
@@ -111,27 +151,34 @@ export function OrdersPage() {
     )
   }
 
-  const displayedList = tab === 'compras' ? mine : tab === 'ventas' ? activeSelling : historySelling
+  const displayedList =
+    tab === 'compras'
+      ? mine
+      : tab === 'ventas'
+      ? activeSelling
+      : tab === 'domicilios'
+      ? myDeliveries
+      : historySelling
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-16">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-1.5 text-xs font-mono font-bold uppercase tracking-wider text-primary">
-            <Sparkles size={13} />
-            <span>Pases Digitales & Vitrina Icesi</span>
+            <Bike size={14} />
+            <span>Domicilios y Entregas en Campus Icesi</span>
           </div>
           <h1 className="mt-1 font-display text-2xl font-black tracking-tight sm:text-3xl text-foreground">
-            Tus Pases y Apartados
+            Gestión de Pedidos & Entregas
           </h1>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            Digita tu PIN en el teclado de la vitrina del <strong>Edificio D, M o L</strong> para retirar tus preparaciones.
+            Monitorea el estado de tus snacks, chatea con el comprador, vendedor o tendedero y confirma recepciones.
           </p>
         </div>
 
         {/* Tab switcher */}
-        <div className="flex flex-wrap rounded-2xl bg-secondary p-1 border border-border self-start sm:self-auto gap-1">
+        <div className="flex flex-wrap rounded-2xl bg-secondary p-1 border border-border gap-1">
           <button
             type="button"
             onClick={() => setTab('compras')}
@@ -141,8 +188,9 @@ export function OrdersPage() {
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            Mis Pases de Retiro ({mine.length})
+            Mis Compras ({mine.length})
           </button>
+
           <button
             type="button"
             onClick={() => setTab('ventas')}
@@ -152,8 +200,21 @@ export function OrdersPage() {
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            Pases de Depósito ({activeSelling.length})
+            Mis Ventas ({activeSelling.length})
           </button>
+
+          <button
+            type="button"
+            onClick={() => setTab('domicilios')}
+            className={`rounded-xl px-3.5 py-2 text-xs font-display font-bold transition-all cursor-pointer ${
+              tab === 'domicilios'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Mis Entregas ({myDeliveries.length})
+          </button>
+
           <button
             type="button"
             onClick={() => setTab('historial')}
@@ -163,14 +224,21 @@ export function OrdersPage() {
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            Historial de Ventas ({historySelling.length})
+            Historial ({historySelling.length})
           </button>
         </div>
       </div>
 
-      {/* Historial de Ventas - Metrics Summary Box */}
+      {feedback && (
+        <div className="rounded-2xl bg-emerald-50 border border-emerald-200 dark:bg-emerald-950/60 dark:border-emerald-800 p-4 text-xs font-medium text-emerald-800 dark:text-emerald-300 flex items-center gap-2 animate-fadeIn">
+          <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <span>{feedback}</span>
+        </div>
+      )}
+
+      {/* Historial Resumen Financiero */}
       {tab === 'historial' && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono block">
               Ventas Totales
@@ -181,295 +249,252 @@ export function OrdersPage() {
 
           <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono block">
-              Ganancias Netas (95%)
+              Ingreso Neto Vendedor
             </span>
-            <p className="mt-1 font-mono text-xl font-black text-primary">
-              {money(totalNet)}
+            <p className="mt-1 font-mono text-xl font-black text-primary">{money(totalNet)}</p>
+            <span className="text-[11px] text-muted-foreground mt-0.5 block">Ganancia limpia</span>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm col-span-2 sm:col-span-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono block">
+              Domicilios en Campus
+            </span>
+            <p className="mt-1 font-mono text-xl font-black text-emerald-600">
+              {historySelling.length * 200 > 0 ? money(historySelling.length * 200) : '$0'}
             </p>
-            <span className="text-[11px] text-muted-foreground mt-0.5 block">Liquidado al cocinero</span>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono block">
-              Snacks Entregados
-            </span>
-            <p className="mt-1 font-mono text-xl font-black text-primary">{totalItemsSold}</p>
-            <span className="text-[11px] text-muted-foreground mt-0.5 block">Unidades retiradas</span>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono block">
-              Comisión Bocado (5%)
-            </span>
-            <p className="mt-1 font-mono text-xl font-black text-zinc-700 dark:text-zinc-300">{money(totalCommission)}</p>
-            <span className="text-[11px] text-muted-foreground mt-0.5 block">Uso de vitrina & app</span>
+            <span className="text-[11px] text-muted-foreground mt-0.5 block">Generado para Tendederos ($200 c/u)</span>
           </div>
         </div>
       )}
 
+      {/* Listado de Pedidos */}
       {displayedList.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-border bg-card p-12 text-center text-muted-foreground">
-          <Boxes size={44} className="mx-auto mb-3 opacity-30 text-primary" />
-          <p className="font-display font-bold text-foreground">
+        <div className="rounded-3xl border border-dashed border-border bg-card/40 p-12 text-center text-muted-foreground space-y-3">
+          <Package size={40} className="mx-auto opacity-30 text-primary" />
+          <p className="font-display font-bold text-foreground text-sm">
             {tab === 'compras'
-              ? 'No tienes pases de retiro activos'
+              ? 'No tienes pedidos de snacks en este momento.'
               : tab === 'ventas'
-              ? 'No tienes depósitos pendientes'
-              : 'Aún no tienes ventas completadas en el historial'}
+              ? 'No tienes ventas activas en proceso.'
+              : tab === 'domicilios'
+              ? 'Aún no has tomado entregas como Tendedero.'
+              : 'No hay pedidos en el historial.'}
           </p>
-          <p className="mt-1 text-xs max-w-sm mx-auto">
-            {tab === 'compras'
-              ? 'Explora el catálogo, aparta tus snacks y retíralos con PIN en los Edificios D, M o L.'
-              : tab === 'ventas'
-              ? 'Cuando recibas una solicitud de compra, te aparecerá aquí para asignar automáticamente un casillero.'
-              : 'Cuando tus compradores retiren sus snacks en los casilleros inteligentes, aparecerán registrados aquí.'}
-          </p>
-          <div className="mt-4">
-            <Link
-              to={tab === 'compras' ? '/catalogo' : '/vender'}
-              className="inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90"
-            >
-              {tab === 'compras' ? 'Ver Catálogo' : 'Publicar Snack'}
-            </Link>
+          <div className="pt-2">
+            {tab === 'compras' ? (
+              <Link
+                to="/catalogo"
+                className="rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground shadow-xs hover:opacity-90 inline-block"
+              >
+                Explorar Catálogo
+              </Link>
+            ) : tab === 'domicilios' ? (
+              <Link
+                to="/entregas"
+                className="rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground shadow-xs hover:opacity-90 inline-block"
+              >
+                Ver Solicitudes de Tendedero
+              </Link>
+            ) : null}
           </div>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {displayedList.map((order) => {
-            const statusConfig = labels[order.status] ?? labels.reservado
-            const claimPin = order.claimPin
-            const depositPin = order.depositPin || `DEP-${claimPin || '1234'}`
-            const hubName = order.lockerHubName || order.pickup || 'Edificio D'
-            const slotNum = order.lockerNumber
-            const hasAssignedLocker = Boolean(slotNum)
-            const commission = order.platformCommission || Math.round(order.total * 0.05)
-            const netRevenue = order.sellerNetRevenue || order.total - commission
+            const statusInfo = statusLabels[order.status] || {
+              label: order.status,
+              color: 'bg-secondary text-foreground border-border',
+            }
 
             return (
               <article
                 key={order.id}
-                className="flex flex-col rounded-3xl border border-border bg-card p-6 shadow-sm transition-all hover:border-primary/40 relative overflow-hidden"
+                className="flex flex-col justify-between rounded-3xl border border-border/80 bg-card p-5 shadow-sm space-y-4 hover:border-primary/40 transition-colors"
               >
-                {/* Header */}
-                <div className="flex items-start justify-between gap-3 pb-3 border-b border-border">
-                  <div>
-                    <span className="text-[10px] uppercase tracking-wider font-mono font-bold text-muted-foreground">
-                      {tab === 'compras' ? 'Cocinero:' : 'Comprador:'}
+                <div className="space-y-3">
+                  {/* Status & Delivery badge */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span
+                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-mono font-bold border ${statusInfo.color}`}
+                    >
+                      {statusInfo.label}
                     </span>
+                    <span className="font-mono text-xs font-extrabold text-primary">{money(order.total)}</span>
+                  </div>
+
+                  {/* Items list */}
+                  <div>
                     <h3 className="font-display text-base font-bold text-foreground">
-                      {tab === 'compras' ? order.sellerName : order.buyerName}
+                      {order.items.map((i) => `${i.qty}x ${i.name}`).join(', ')}
                     </h3>
-                    <p className="flex items-center gap-1.5 text-xs text-foreground font-mono font-semibold mt-0.5">
-                      <Building2 size={13} className="shrink-0 text-[#8F1414]" />
-                      <span>
-                        {hasAssignedLocker
-                          ? `${hubName} · Casillero #${slotNum}`
-                          : 'Casillero en proceso de asignación'}
-                      </span>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Cocinero: <strong>{order.sellerName}</strong> · Cliente: <strong>{order.buyerName}</strong>
                     </p>
                   </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span
-                      className={`rounded-full border px-3 py-0.5 text-[11px] font-mono font-bold ${statusConfig.color}`}
-                    >
-                      {statusConfig.label}
+
+                  {/* Detalles de Entrega en Campus */}
+                  <div className="rounded-2xl bg-secondary/60 p-3 text-xs space-y-2 border border-border/60">
+                    <div className="flex items-start gap-2">
+                      <MapPin size={13} className="text-primary shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-[10px] uppercase font-mono text-muted-foreground block">Recogida:</span>
+                        <span className="font-semibold text-foreground">{order.pickup}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <Bike size={13} className="text-emerald-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-[10px] uppercase font-mono text-muted-foreground block">Entrega en U:</span>
+                        <span className="font-semibold text-foreground">
+                          {order.deliveryLocation || 'Punto acordado en campus'}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground block">
+                          Envío: +$200 COP {order.tendederoName ? `(Asignado a: ${order.tendederoName})` : '(Buscando Tendedero...)'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Matriz de las 3 Confirmaciones Clave */}
+                  <div className="rounded-2xl border border-border bg-card p-3 space-y-2 text-xs">
+                    <span className="font-mono text-[10px] font-bold uppercase text-muted-foreground block">
+                      Confirmaciones del Pedido:
                     </span>
-                    <span className="text-[10px] text-muted-foreground font-mono">{formatTime(order.createdAt)}</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px]">1. Tendedero entregó:</span>
+                      <span className={`font-bold ${order.tendederoConfirmed ? 'text-emerald-600' : 'text-amber-600'}`}>
+                        {order.tendederoConfirmed ? '✓ Confirmado' : '⏳ Pendiente'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px]">2. Cliente recibió:</span>
+                      <span className={`font-bold ${order.buyerConfirmed ? 'text-emerald-600' : 'text-amber-600'}`}>
+                        {order.buyerConfirmed ? '✓ Confirmado' : '⏳ Pendiente'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px]">3. Dinero / pago recibido:</span>
+                      <span className={`font-bold ${order.sellerPaidConfirmed ? 'text-emerald-600' : 'text-amber-600'}`}>
+                        {order.sellerPaidConfirmed ? '✓ Confirmado' : '⏳ Pendiente'}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Buyer Digital Claim Pass */}
-                {tab === 'compras' && (
-                  <div className="my-4 rounded-2xl border-2 border-border/80 bg-secondary/50 p-4 relative overflow-hidden space-y-3">
-                    <div className="flex items-center justify-between text-xs font-mono">
-                      <span className="flex items-center gap-1.5 text-foreground font-bold font-mono">
-                        <KeyRound size={14} className="text-[#8F1414]" /> PIN DE RETIRO EN VITRINA
-                      </span>
-                      <span className="text-[11px] font-bold text-foreground font-mono bg-card px-2.5 py-0.5 rounded-lg border border-border">
-                        {hasAssignedLocker ? `${hubName} · Casillero #${slotNum}` : 'EN PREPARACIÓN'}
-                      </span>
-                    </div>
-
-                    {claimPin ? (
-                      <div className="flex items-center justify-between rounded-xl bg-card p-3.5 border border-border shadow-xs">
-                        <div className="flex items-center gap-3">
-                          <span className="font-mono text-3xl font-black tracking-widest text-foreground">
-                            {claimPin}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleCopyPin(claimPin)}
-                            className="rounded-lg bg-secondary p-2 text-xs text-foreground hover:bg-secondary/80 border border-border transition-colors cursor-pointer"
-                            title="Copiar PIN"
-                          >
-                            <Copy size={15} />
-                          </button>
-                        </div>
-
-                        <div className="flex flex-col items-center">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white p-1 border border-border shadow-xs">
-                            <QrCode size={32} className="text-black" />
-                          </div>
-                          <span className="text-[9px] font-mono font-bold text-foreground/80 mt-0.5">PAGO QR</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="py-3 px-2 text-center rounded-xl bg-card border border-border">
-                        <p className="text-xs text-foreground font-medium">
-                          ⏳ El cocinero está preparando tu pedido y asignando el casillero.
-                        </p>
-                      </div>
-                    )}
-
-                    {copiedPin === claimPin && (
-                      <p className="text-xs font-mono font-bold text-foreground text-center">
-                        ✓ PIN copiado al portapapeles
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Seller Active Deposit Pass / Action Box */}
-                {tab === 'ventas' && (
-                  <div className="my-4 rounded-2xl border-2 border-border/80 bg-secondary/50 p-4 space-y-3">
-                    {hasAssignedLocker ? (
-                      <>
-                        <div className="flex items-center justify-between text-xs font-mono">
-                          <span className="text-foreground font-bold flex items-center gap-1.5 font-mono">
-                            <Zap size={14} className="text-[#8F1414]" /> CASILLERO ASIGNADO
-                          </span>
-                          <span className="font-bold text-foreground font-mono text-[11px] bg-card px-2.5 py-0.5 rounded-lg border border-border">
-                            {hubName} · #{slotNum}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between rounded-xl bg-card p-3.5 border border-border shadow-xs">
-                          <div>
-                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono font-bold block">
-                              Tu PIN de Depósito:
-                            </span>
-                            <span className="font-mono text-2xl font-black text-foreground">
-                              {depositPin}
-                            </span>
-                          </div>
-
-                          <div className="text-right">
-                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono font-bold block">
-                              PIN del Comprador:
-                            </span>
-                            <span className="font-mono text-base font-black text-foreground">
-                              {claimPin || 'Automático'}
-                            </span>
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="space-y-3 text-center sm:text-left">
-                        <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-foreground">
-                          <Zap size={14} className="text-[#8F1414]" />
-                          <span>Solicitud de compra recibida</span>
-                        </div>
-                        <p className="text-xs text-foreground/80 font-medium">
-                          El comprador apartó este snack. Asígnale un casillero automático en el <strong>Edificio D, M o L</strong> para generar el PIN de entrega.
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => setOrderToAssign(order)}
-                          className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-[#8F1414] hover:bg-[#751010] py-3 px-4 text-xs font-display font-bold text-white shadow-sm active:scale-95 transition-all cursor-pointer"
-                        >
-                          <Zap size={14} />
-                          <span>Asignar Casillero Automático</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Items */}
-                <ul className="my-2 space-y-1.5 text-xs divide-y divide-border/40">
-                  {order.items.map((item) => (
-                    <li key={item.productId} className="flex justify-between items-center pt-1.5 first:pt-0">
-                      <span className="text-foreground">
-                        <strong>{item.qty}×</strong> {item.name}
-                      </span>
-                      <span className="font-mono text-muted-foreground">{money(item.price * item.qty)}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                {/* Seller Financial Breakdown for Historial */}
-                {tab === 'historial' && (
-                  <div className="mt-2 rounded-xl bg-secondary/50 p-2.5 text-[11px] font-mono space-y-1 border border-border/60">
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>Total venta cobrada:</span>
-                      <span className="font-bold text-foreground">{money(order.total)}</span>
-                    </div>
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>Comisión Bocado (5%):</span>
-                      <span>-{money(commission)}</span>
-                    </div>
-                    <div className="flex justify-between font-bold text-primary pt-1 border-t border-border/40">
-                      <span>Neto pagado a ti:</span>
-                      <span>{money(netRevenue)}</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Protection note */}
-                {order.isGuaranteed && (
-                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground my-1 font-mono">
-                    <ShieldCheck size={13} className="text-primary" />
-                    <span>Control de frescura garantizado</span>
-                  </div>
-                )}
-
-                {/* Total & Action Bar */}
-                <div className="mt-auto pt-4 flex flex-col gap-3 border-t border-border">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Total:</span>
-                    <span className="font-mono text-lg font-bold text-primary">{money(order.total)}</span>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {hasAssignedLocker && (
-                      <Link
-                        to="/vitrina"
-                        className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-xs font-display font-bold text-primary-foreground shadow-sm hover:opacity-90 transition-all"
-                      >
-                        <Unlock size={14} />
-                        <span>{tab === 'compras' ? 'Abrir en Vitrina' : 'Ir a Vitrina'}</span>
-                      </Link>
-                    )}
-
-                    {tab === 'ventas' && hasAssignedLocker && (
-                      <button
-                        type="button"
-                        onClick={() => setOrderToAssign(order)}
-                        className="flex items-center justify-center gap-1 rounded-xl border border-border bg-secondary px-2.5 py-2.5 text-xs font-display font-semibold text-muted-foreground hover:text-foreground transition-all cursor-pointer"
-                        title="Reasignar a otro edificio"
-                      >
-                        <Building2 size={13} />
-                        <span>Reasignar</span>
-                      </button>
-                    )}
-
+                {/* Acciones y Botones de Confirmación según el Rol */}
+                <div className="space-y-2 pt-2 border-t border-border/60">
+                  {/* Botón de Confirmación para el CLIENTE */}
+                  {tab === 'compras' && !order.buyerConfirmed && (
                     <button
                       type="button"
-                      onClick={() => openChatForOrder(order)}
-                      className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary px-3 py-2.5 text-xs font-display font-semibold text-foreground hover:bg-secondary/80 transition-all cursor-pointer"
+                      onClick={() => void handleConfirmarCliente(order)}
+                      className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-3 text-xs font-display font-bold text-white shadow-xs active:scale-95 transition-all cursor-pointer"
                     >
-                      <MessageSquare size={14} />
-                      <span>Chat</span>
+                      <CheckCircle2 size={15} />
+                      <span>Confirmar que recibí mi pedido</span>
                     </button>
+                  )}
 
-                    {tab === 'ventas' && order.status !== 'entregado' && order.status !== 'cancelado' && (
-                      <button
-                        type="button"
-                        onClick={() => void setStatus(order, 'entregado')}
-                        className="flex items-center gap-1 rounded-xl bg-[#8F1414] hover:bg-[#751010] text-white px-3 py-2 text-xs font-bold transition-colors cursor-pointer"
-                      >
-                        <CheckCircle2 size={14} /> Marcar Retirado
-                      </button>
+                  {/* Botón de Confirmación para el VENDEDOR (Pago recibido) */}
+                  {tab === 'ventas' && !order.sellerPaidConfirmed && (
+                    <button
+                      type="button"
+                      onClick={() => void handleConfirmarVendedorPago(order)}
+                      className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-3 text-xs font-display font-bold text-white shadow-xs active:scale-95 transition-all cursor-pointer"
+                    >
+                      <DollarSign size={15} />
+                      <span>Confirmar dinero / pago recibido</span>
+                    </button>
+                  )}
+
+                  {/* Botón de Confirmación para el TENDEDERO */}
+                  {tab === 'domicilios' && !order.tendederoConfirmed && (
+                    <button
+                      type="button"
+                      onClick={() => void handleConfirmarTendedero(order)}
+                      className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary hover:opacity-90 py-3 text-xs font-display font-bold text-primary-foreground shadow-xs active:scale-95 transition-all cursor-pointer"
+                    >
+                      <CheckCircle2 size={15} />
+                      <span>Confirmar que entregué el pedido</span>
+                    </button>
+                  )}
+
+                  {/* Chats directos para coordinar entrega en campus */}
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    {tab === 'compras' && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => openChatWith(order, 'seller')}
+                          className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary py-2.5 text-xs font-semibold hover:bg-secondary/80 transition-colors"
+                        >
+                          <MessageCircle size={13} className="text-primary" />
+                          <span>Chat Cocinero</span>
+                        </button>
+                        {order.tendederoId ? (
+                          <button
+                            type="button"
+                            onClick={() => openChatWith(order, 'tendedero')}
+                            className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary py-2.5 text-xs font-semibold hover:bg-secondary/80 transition-colors"
+                          >
+                            <Bike size={13} className="text-emerald-600" />
+                            <span>Chat Tendedero</span>
+                          </button>
+                        ) : (
+                          <span className="flex items-center justify-center text-[10px] text-muted-foreground bg-secondary/40 rounded-xl py-2 text-center">
+                            Sin tendedero aún
+                          </span>
+                        )}
+                      </>
+                    )}
+
+                    {tab === 'ventas' && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => openChatWith(order, 'buyer')}
+                          className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary py-2.5 text-xs font-semibold hover:bg-secondary/80 transition-colors"
+                        >
+                          <MessageCircle size={13} className="text-primary" />
+                          <span>Chat Comprador</span>
+                        </button>
+                        {order.tendederoId ? (
+                          <button
+                            type="button"
+                            onClick={() => openChatWith(order, 'tendedero')}
+                            className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary py-2.5 text-xs font-semibold hover:bg-secondary/80 transition-colors"
+                          >
+                            <Bike size={13} className="text-emerald-600" />
+                            <span>Chat Tendedero</span>
+                          </button>
+                        ) : (
+                          <span className="flex items-center justify-center text-[10px] text-muted-foreground bg-secondary/40 rounded-xl py-2 text-center">
+                            Esperando Tendedero
+                          </span>
+                        )}
+                      </>
+                    )}
+
+                    {tab === 'domicilios' && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => openChatWith(order, 'seller')}
+                          className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary py-2.5 text-xs font-semibold hover:bg-secondary/80 transition-colors"
+                        >
+                          <MessageCircle size={13} className="text-primary" />
+                          <span>Chat Vendedor</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openChatWith(order, 'buyer')}
+                          className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary py-2.5 text-xs font-semibold hover:bg-secondary/80 transition-colors"
+                        >
+                          <MessageCircle size={13} className="text-primary" />
+                          <span>Chat Comprador</span>
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -477,18 +502,6 @@ export function OrdersPage() {
             )
           })}
         </div>
-      )}
-
-      {/* Assignment Modal for Seller */}
-      {orderToAssign && (
-        <AssignLockerModal
-          order={orderToAssign}
-          isOpen={Boolean(orderToAssign)}
-          onClose={() => setOrderToAssign(null)}
-          onSuccess={() => {
-            void refresh()
-          }}
-        />
       )}
     </div>
   )

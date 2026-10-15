@@ -24,7 +24,8 @@ export const PICKUP_POINTS = [
   'Portería Principal',
 ] as const
 
-export const GUARANTEED_RESERVE_FEE = 300
+export const DELIVERY_FEE = 200
+export const GUARANTEED_RESERVE_FEE = 200
 
 export const CAMPUSES = ['Universidad Icesi', 'Javeriana Cali', 'Univalle', 'USC', 'Autónoma'] as const
 

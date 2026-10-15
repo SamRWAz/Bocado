@@ -1,13 +1,14 @@
 import {
   ArrowLeft,
+  Bike,
   BookmarkCheck,
-  Lock,
   MessageCircle,
   Trash2,
 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
+import { DELIVERY_FEE } from '../lib/constants'
 import { displaySeller, money, sellerUserId } from '../lib/format'
 import { playKeyBeep } from '../lib/sounds'
 
@@ -37,9 +38,9 @@ export function CartPage() {
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary text-primary">
           <BookmarkCheck size={32} />
         </div>
-        <h1 className="font-display text-2xl font-bold">No tienes productos apartados</h1>
+        <h1 className="font-display text-2xl font-bold">No tienes productos en tu carrito</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Explora los snacks disponibles hoy en el campus y apártalos para retirarlos en los casilleros de los Edificios D, M y L.
+          Explora los snacks disponibles hoy en el campus y pídelos para que un Tendedero te los lleve a tu salón o plazoleta en Icesi.
         </p>
         <Link
           to="/catalogo"
@@ -57,14 +58,14 @@ export function CartPage() {
         <div className="flex items-center justify-between">
           <div>
             <div className="inline-flex items-center gap-1.5 text-xs font-mono font-bold uppercase tracking-wider text-primary mb-1">
-              <BookmarkCheck size={14} />
-              <span>Reserva Activa en Campus</span>
+              <Bike size={14} />
+              <span>Pedidos a Domicilio en Campus</span>
             </div>
             <h1 className="font-display text-2xl font-black tracking-tight sm:text-3xl text-foreground">
-              Productos Apartados
+              Snacks en tu Carrito
             </h1>
             <p className="text-xs text-muted-foreground">
-              {items.length} producto(s) apartados listos para coordinar y retirar de la máquina.
+              {items.length} producto(s) listos para pedir y recibir con un Tendedero universitario.
             </p>
           </div>
           <Link
@@ -161,38 +162,40 @@ export function CartPage() {
       {/* Summary Sidebar */}
       <aside className="h-fit space-y-4 rounded-3xl border border-border bg-card p-6 shadow-xl backdrop-blur-md">
         <h2 className="font-display text-base font-bold text-foreground flex items-center gap-2">
-          <Lock size={16} className="text-primary" /> Resumen de Retiro en Casillero
+          <Bike size={16} className="text-primary" /> Resumen de Entrega con Tendedero
         </h2>
 
         <div className="space-y-2 border-y border-border py-4 text-xs font-mono">
           <div className="flex justify-between text-muted-foreground">
-            <span>Total snacks apartados:</span>
-            <span className="font-semibold text-foreground">{items.reduce((s, i) => s + i.qty, 0)} unidades</span>
+            <span>Subtotal snacks ({items.reduce((s, i) => s + i.qty, 0)} uds):</span>
+            <span className="font-semibold text-foreground">{money(total)}</span>
           </div>
           <div className="flex justify-between text-muted-foreground">
-            <span>Puntos de entrega:</span>
-            <span className="font-semibold text-primary">Casilleros Icesi (D·M·L)</span>
+            <span className="flex items-center gap-1 text-primary font-medium">
+              <Bike size={12} /> Envío Tendedero (fijo):
+            </span>
+            <span className="font-bold text-primary">+{money(DELIVERY_FEE)}</span>
           </div>
           <div className="flex justify-between text-muted-foreground">
-            <span>Pago virtual:</span>
-            <span className="font-semibold text-foreground">QR Nequi / Bancolombia</span>
+            <span>Zona de cobertura:</span>
+            <span className="font-semibold text-foreground">Universidad Icesi</span>
           </div>
         </div>
 
         <div className="flex items-baseline justify-between pt-1 font-display">
-          <span className="text-sm font-semibold text-muted-foreground">Total a pagar:</span>
-          <span className="text-2xl font-black text-primary">{money(total)}</span>
+          <span className="text-sm font-semibold text-muted-foreground">Total con domicilio:</span>
+          <span className="text-2xl font-black text-primary">{money(total + DELIVERY_FEE)}</span>
         </div>
 
         <p className="text-[11px] text-muted-foreground leading-relaxed">
-          En el siguiente paso se confirmará la asignación del casillero y se generará tu <strong>PIN de 4 dígitos</strong> para retirar de la máquina.
+          En el checkout ingresarás tu ubicación en campus (salón, piso o plazoleta) y se abrirá la solicitud para los <strong>Tendederos</strong> disponibles.
         </p>
 
         <Link
           to="/checkout"
           className="block w-full rounded-2xl bg-primary hover:bg-[#751010] py-4 text-center font-display text-xs font-extrabold text-white shadow-md active:scale-95 transition-all"
         >
-          Confirmar Apartados y Obtener PIN →
+          Confirmar y Pedir Domicilio →
         </Link>
       </aside>
     </div>

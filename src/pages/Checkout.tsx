@@ -1,11 +1,9 @@
 import {
-  Boxes,
-  Building2,
+  Bike,
   CreditCard,
-  Lock,
+  MapPin,
   QrCode,
-  ShieldCheck,
-  Sparkles,
+  Receipt,
 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -13,15 +11,8 @@ import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { fetchProduct, incrementMetric, updateProduct } from '../lib/api'
 import { sendMessage } from '../lib/chat'
-import { GUARANTEED_RESERVE_FEE, inputClass, labelClass } from '../lib/constants'
+import { DELIVERY_FEE, PICKUP_POINTS, inputClass, labelClass } from '../lib/constants'
 import { displaySeller, money, sellerUserId } from '../lib/format'
-import {
-  LOCKER_HUBS,
-  PLATFORM_COMMISSION_RATE,
-  assignLocker,
-  generatePin,
-  getLockersByHub,
-} from '../lib/lockers'
 import { playPaymentSuccess } from '../lib/sounds'
 import { saveOrder } from '../lib/storage-db'
 import type { Order, PaymentMethod } from '../types'
@@ -31,22 +22,15 @@ export function CheckoutPage() {
   const { items, total, clear } = useCart()
   const navigate = useNavigate()
 
-  const [selectedHubId, setSelectedHubId] = useState('hub_edificio_d')
+  const [selectedSpot, setSelectedSpot] = useState<string>(PICKUP_POINTS[0])
+  const [detailLocation, setDetailLocation] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('qr_nequi')
-  const [cardNumber, setCardNumber] = useState('4532 •••• •••• 9012')
-  const [cardHolder] = useState(user?.name || 'Estudiante Icesi')
-  const [cardExp, setCardExp] = useState('08/28')
-  const [cardCvv, setCardCvv] = useState('834')
-  const [note] = useState('')
-  const [guaranteedReserve, setGuaranteedReserve] = useState(true)
+  const [note, setNote] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const activeHub = LOCKER_HUBS.find((h) => h.id === selectedHubId) ?? LOCKER_HUBS[0]
-  const hubLockers = getLockersByHub(selectedHubId)
-  const finalTotal = total + (guaranteedReserve ? GUARANTEED_RESERVE_FEE : 0)
-
-  const targetLocker = hubLockers.find((l) => l.status === 'disponible') || hubLockers[0]
+  const deliveryFee = DELIVERY_FEE // 200 COP
+  const finalTotal = total + deliveryFee
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -55,7 +39,7 @@ export function CheckoutPage() {
     setError('')
 
     try {
-      // 1. Verify stock
+      // 1. Verificar stock
       for (const item of items) {
         const product = await fetchProduct(item.productId)
         if (!product || product.sold_out || product.stock < item.qty) {
@@ -69,26 +53,26 @@ export function CheckoutPage() {
         })
       }
 
-      // 2. Group by seller
+      // 2. Agrupar por vendedor
       const groups = new Map<string, typeof items>()
       items.forEach((item) => {
         const current = groups.get(item.seller) ?? []
         groups.set(item.seller, [...current, item])
       })
 
-      const generatedClaimPin = generatePin(4)
+      const fullDeliveryLocation = detailLocation.trim()
+        ? `${selectedSpot} · ${detailLocation.trim()}`
+        : selectedSpot
 
       for (const [sellerKey, group] of groups) {
         const orderId = crypto.randomUUID()
         const sId = sellerUserId(sellerKey)
         const sName = displaySeller(sellerKey)
 
-        const orderTotal =
-          group.reduce((sum, item) => sum + item.price * item.qty, 0) +
-          (guaranteedReserve ? GUARANTEED_RESERVE_FEE : 0)
-
-        const commission = Math.round(orderTotal * PLATFORM_COMMISSION_RATE)
-        const netRevenue = orderTotal - commission
+        const subtotalGroup = group.reduce((sum, item) => sum + item.price * item.qty, 0)
+        const orderTotal = subtotalGroup + deliveryFee
+        const commission = Math.round(subtotalGroup * 0.05)
+        const netRevenue = subtotalGroup - commission
 
         const order: Order = {
           id: orderId,
@@ -105,47 +89,24 @@ export function CheckoutPage() {
             image_url: item.image_url,
           })),
           total: orderTotal,
-          pickup: activeHub.name,
+          pickup: `Edificio de ${sName}`,
+          deliveryLocation: fullDeliveryLocation,
+          deliveryFee,
           note,
-          status: 'listo',
+          status: 'solicitado',
           createdAt: new Date().toISOString(),
-          isGuaranteed: guaranteedReserve,
-          reserveFee: guaranteedReserve ? GUARANTEED_RESERVE_FEE : 0,
-          lockerId: targetLocker?.id || 'lck_d_01',
-          lockerHubId: activeHub.id,
-          lockerHubName: activeHub.name,
-          lockerNumber: targetLocker?.code || 'D-01',
-          claimPin: generatedClaimPin,
           paymentMethod,
-          paymentStatus: 'pagado',
+          paymentStatus: 'pendiente',
           platformCommission: commission,
           sellerNetRevenue: netRevenue,
+          tendederoConfirmed: false,
+          buyerConfirmed: false,
+          sellerPaidConfirmed: false,
         }
 
         await saveOrder(order)
 
-        // Assign and prime locker in system
-        const primaryProduct = group[0]
-        try {
-          assignLocker({
-            hubId: activeHub.id,
-            productId: primaryProduct.productId,
-            productName: primaryProduct.name,
-            productPrice: primaryProduct.price,
-            productImage: primaryProduct.image_url,
-            sellerId: sId,
-            sellerName: sName,
-            buyerId: user.id,
-            buyerName: user.name,
-            orderId,
-            preferredBuilding: (primaryProduct.building as 'D' | 'M' | 'L') || 'D',
-            preferredLockerId: targetLocker?.id,
-          })
-        } catch {
-          // Continue if already assigned
-        }
-
-        // Send confirmation chat message with digital PIN pass
+        // Notificar en el chat
         const itemsSummary = group.map((i) => `${i.qty}x ${i.name}`).join(', ')
         await sendMessage({
           conversationId: `order_${orderId}`,
@@ -155,11 +116,11 @@ export function CheckoutPage() {
           recipientName: sName,
           orderId,
           productName: itemsSummary,
-          text: `🎉 ¡Snack Apartado en ${activeHub.name}!\n` +
+          text: `🎉 ¡Nuevo pedido solicitado!\n` +
             `📦 Producto(s): ${itemsSummary}\n` +
-            `📍 Casillero #${targetLocker?.code || 'D-01'}\n` +
-            `🔑 PIN de Retiro: ${generatedClaimPin}\n` +
-            `💵 Total: ${money(orderTotal)} (Comisión Bocado 5%: ${money(commission)} · Neto Vendedor: ${money(netRevenue)})`,
+            `📍 Entrega en: ${fullDeliveryLocation}\n` +
+            `🛵 Domicilio Tendedero: +$200 COP\n` +
+            `💵 Total: ${money(orderTotal)}`,
           messageType: 'text',
         })
       }
@@ -167,11 +128,9 @@ export function CheckoutPage() {
       await incrementMetric('inventory_updates')
       playPaymentSuccess()
       clear()
-
-      // Redirect directly to orders / claim passes
       navigate('/pedidos')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo procesar el apartado')
+      setError(err instanceof Error ? err.message : 'No se pudo procesar la solicitud')
     } finally {
       setLoading(false)
     }
@@ -180,7 +139,7 @@ export function CheckoutPage() {
   if (items.length === 0) {
     return (
       <div className="py-24 text-center">
-        <p className="text-sm text-muted-foreground">Tu lista de apartados está vacía.</p>
+        <p className="text-sm text-muted-foreground">Tu carrito está vacío.</p>
       </div>
     )
   }
@@ -189,67 +148,77 @@ export function CheckoutPage() {
     <form onSubmit={(e) => void onSubmit(e)} className="mx-auto max-w-2xl space-y-6 px-4 py-6 sm:px-6">
       <div>
         <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-mono font-bold text-primary mb-2">
-          <Sparkles size={13} />
-          <span>Generación de Pase Digital & Asignación de Casillero</span>
+          <Bike size={14} />
+          <span>Servicio de Mensajería y Domicilio Universitario</span>
         </div>
         <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-          Confirmar Apartados y Generar PIN
+          Confirmar Pedido y Entrega
         </h1>
         <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-          Al confirmar recibirás tu <strong>PIN de 4 dígitos</strong> para retirar sin contacto en los casilleros de los <strong>Edificios D, M o L</strong>.
+          Un <strong>Tendedero</strong> (estudiante repartidor) tomará tu solicitud, irá con el cocinero y te entregará el snack en tu ubicación en la U.
         </p>
       </div>
 
-      {/* 1. Building / Hub Selector */}
-      <div className="rounded-3xl border border-border/80 bg-card/80 p-5 backdrop-blur-md shadow-sm space-y-4">
+      {/* 1. Selector de Punto de Entrega en el Campus */}
+      <div className="rounded-3xl border border-border/80 bg-card/80 p-5 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold font-mono uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-            <Building2 size={14} className="text-primary" />
-            1. Selecciona el Edificio de Retiro
+            <MapPin size={14} className="text-primary" />
+            1. ¿Dónde estás en el campus para recibir?
           </span>
-          <span className="text-xs font-mono text-primary font-bold">20 Casilleros por Edificio</span>
+          <span className="text-xs font-mono text-emerald-600 font-bold">Entrega directa en la U</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {LOCKER_HUBS.map((hub) => {
-            const isSel = hub.id === selectedHubId
-            const lks = getLockersByHub(hub.id)
-            const availableCount = lks.filter((l) => l.status === 'disponible').length
+        <div className="space-y-3">
+          <div>
+            <label className={labelClass}>Edificio / Zona de entrega</label>
+            <select
+              value={selectedSpot}
+              onChange={(e) => setSelectedSpot(e.target.value)}
+              className={inputClass}
+            >
+              {PICKUP_POINTS.map((spot) => (
+                <option key={spot} value={spot}>
+                  {spot}
+                </option>
+              ))}
+              <option value="Biblioteca Central">Biblioteca Central</option>
+              <option value="Edificio E (Ingeniería)">Edificio E (Ingeniería)</option>
+              <option value="Cafetería Central">Cafetería Central</option>
+              <option value="El Samán">El Samán</option>
+              <option value="Plazoleta Las Palmas">Plazoleta Las Palmas</option>
+            </select>
+          </div>
 
-            return (
-              <button
-                key={hub.id}
-                type="button"
-                onClick={() => setSelectedHubId(hub.id)}
-                className={`rounded-2xl p-4 text-left border transition-all ${
-                  isSel
-                    ? 'border-primary bg-primary/15 shadow-md shadow-primary/10 ring-1 ring-primary'
-                    : 'border-border/70 bg-secondary/30 hover:border-primary/40'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <p className="font-display text-sm font-bold text-foreground flex items-center gap-1.5">
-                    <span>{hub.icon}</span>
-                    {hub.name}
-                  </p>
-                  <span className="h-2 w-2 rounded-full bg-[#8F1414]" />
-                </div>
-                <p className="mt-1 text-[10px] text-muted-foreground">{hub.zone}</p>
-                <div className="mt-3 flex items-center gap-1 text-[10px] font-mono text-primary font-bold">
-                  <Boxes size={12} />
-                  <span>{availableCount} casilleros libres</span>
-                </div>
-              </button>
-            )
-          })}
+          <div>
+            <label className={labelClass}>Detalle de ubicación (Opcional)</label>
+            <input
+              type="text"
+              placeholder="Ej: Piso 2, Mesa cerca a la ventana o Salón 204"
+              value={detailLocation}
+              onChange={(e) => setDetailLocation(e.target.value)}
+              className={inputClass}
+            />
+          </div>
+
+          <div>
+            <label className={labelClass}>Nota o instrucción para el Tendedero (Opcional)</label>
+            <input
+              type="text"
+              placeholder="Ej: Avisar por chat cuando llegues al edificio"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              className={inputClass}
+            />
+          </div>
         </div>
       </div>
 
-      {/* 2. Virtual Payment Method Selector */}
-      <div className="rounded-3xl border border-border/80 bg-card/80 p-5 backdrop-blur-md shadow-sm space-y-5">
+      {/* 2. Método de Pago */}
+      <div className="rounded-3xl border border-border/80 bg-card/80 p-5 shadow-sm space-y-4">
         <span className="text-xs font-bold font-mono uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
           <CreditCard size={14} className="text-primary" />
-          2. Método de Pago Virtual para Retiro
+          2. Método de Pago Acordado
         </span>
 
         <div className="grid grid-cols-2 gap-3">
@@ -258,168 +227,70 @@ export function CheckoutPage() {
             onClick={() => setPaymentMethod('qr_nequi')}
             className={`flex items-center justify-center gap-2 rounded-2xl py-3 px-4 text-xs font-display font-bold border transition-all ${
               paymentMethod === 'qr_nequi'
-                ? 'border-primary bg-primary/15 text-primary shadow-sm'
-                : 'border-border bg-secondary/30 text-muted-foreground hover:text-foreground'
+                ? 'border-primary bg-primary/15 text-primary'
+                : 'border-border bg-secondary/40 text-foreground hover:bg-secondary'
             }`}
           >
-            <QrCode size={16} />
-            QR Nequi / Bancolombia
+            <QrCode size={16} /> Nequi / Dale
           </button>
+
           <button
             type="button"
-            onClick={() => setPaymentMethod('tarjeta')}
+            onClick={() => setPaymentMethod('efectivo')}
             className={`flex items-center justify-center gap-2 rounded-2xl py-3 px-4 text-xs font-display font-bold border transition-all ${
-              paymentMethod === 'tarjeta'
-                ? 'border-primary bg-primary/15 text-primary shadow-sm'
-                : 'border-border bg-secondary/30 text-muted-foreground hover:text-foreground'
+              paymentMethod === 'efectivo'
+                ? 'border-primary bg-primary/15 text-primary'
+                : 'border-border bg-secondary/40 text-foreground hover:bg-secondary'
             }`}
           >
-            <CreditCard size={16} />
-            Tarjeta Débito / Crédito
+            💵 Efectivo al recibir
           </button>
         </div>
-
-        {paymentMethod === 'qr_nequi' ? (
-          <div className="rounded-2xl border border-border/80 bg-zinc-950/80 p-6 text-center space-y-3">
-            <p className="text-xs text-muted-foreground">
-              Al retirar en la vitrina del <strong>{activeHub.name}</strong>, escanearás el QR en pantalla para pagar con <strong>Nequi</strong> o <strong>Bancolombia</strong>.
-            </p>
-            <div className="mx-auto flex h-36 w-36 items-center justify-center rounded-2xl border-2 border-dashed border-primary/50 bg-white p-2 shadow-xl">
-              <div className="h-full w-full bg-slate-900 rounded-lg flex flex-col items-center justify-center text-white p-2">
-                <QrCode size={72} className="text-primary animate-pulse" />
-                <span className="mt-1 text-[8px] font-mono text-zinc-300">PAGO CASILLERO ICESI</span>
-              </div>
-            </div>
-            <p className="font-mono text-xs text-primary font-bold">
-              Monto a Transferir: {money(finalTotal)}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-[#1C1917] p-5 text-white shadow-2xl">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-xs tracking-widest text-red-300 font-bold">BOCADO PASS</span>
-                <span className="font-display text-xs font-bold opacity-80">CAMPUS ICESI</span>
-              </div>
-              <p className="font-mono text-base tracking-widest sm:text-lg my-4">{cardNumber}</p>
-              <div className="flex items-center justify-between text-xs font-mono">
-                <div>
-                  <span className="text-[9px] uppercase text-zinc-400 block">Titular</span>
-                  <span className="font-semibold">{cardHolder}</span>
-                </div>
-                <div>
-                  <span className="text-[9px] uppercase text-zinc-400 block">Expira</span>
-                  <span className="font-semibold">{cardExp}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="col-span-2">
-                <label className={labelClass}>Número de Tarjeta</label>
-                <input
-                  type="text"
-                  value={cardNumber}
-                  onChange={(e) => setCardNumber(e.target.value)}
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Vencimiento</label>
-                <input
-                  type="text"
-                  value={cardExp}
-                  onChange={(e) => setCardExp(e.target.value)}
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>CVV</label>
-                <input
-                  type="password"
-                  maxLength={4}
-                  value={cardCvv}
-                  onChange={(e) => setCardCvv(e.target.value)}
-                  className={inputClass}
-                />
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* 3. Snacks & Order Summary */}
-      <div className="rounded-3xl border border-border/80 bg-card/80 p-5 backdrop-blur-md shadow-sm space-y-3">
-        <span className="text-xs font-bold font-mono uppercase tracking-wider text-muted-foreground">
-          Resumen de Apartados ({items.length})
-        </span>
-        <ul className="space-y-2 text-sm divide-y divide-border/40">
-          {items.map((item) => (
-            <li key={item.productId} className="flex justify-between items-center pt-2 first:pt-0">
-              <div className="flex items-center gap-3">
-                {item.image_url && (
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    className="h-10 w-10 rounded-xl object-cover border border-border"
-                  />
-                )}
-                <div>
-                  <span className="font-medium text-foreground text-xs sm:text-sm">{item.name}</span>
-                  <p className="text-[11px] text-muted-foreground">Cocinero: {displaySeller(item.seller)}</p>
-                </div>
-              </div>
-              <span className="font-mono font-bold text-primary text-xs sm:text-sm">
-                {item.qty} × {money(item.price)}
-              </span>
-            </li>
+      {/* 3. Recibo y Resumen Financiero con +$200 de Domicilio */}
+      <div className="rounded-3xl border border-border/80 bg-secondary/40 p-5 space-y-3">
+        <div className="flex items-center gap-2 font-display text-sm font-bold text-foreground">
+          <Receipt size={16} className="text-primary" />
+          <span>Resumen de tu Pedido</span>
+        </div>
+
+        <div className="divide-y divide-border/60 text-xs">
+          {items.map((it) => (
+            <div key={it.productId} className="flex justify-between py-2 text-muted-foreground">
+              <span>{it.qty}x {it.name}</span>
+              <span className="font-mono">{money(it.price * it.qty)}</span>
+            </div>
           ))}
-        </ul>
 
-        {/* Protection */}
-        <div className="pt-3 border-t border-border/60">
-          <label className="flex items-start gap-3 rounded-2xl bg-secondary/50 p-3.5 cursor-pointer hover:bg-secondary/70 transition-colors">
-            <input
-              type="checkbox"
-              checked={guaranteedReserve}
-              onChange={(e) => setGuaranteedReserve(e.target.checked)}
-              className="mt-1 rounded text-primary focus:ring-primary h-4 w-4"
-            />
-            <div className="flex-1 text-xs">
-              <div className="flex items-center justify-between font-display font-semibold text-foreground">
-                <span className="flex items-center gap-1">
-                  <ShieldCheck size={14} className="text-primary" /> Mantenimiento & Sensor de Casillero
-                </span>
-                <span className="text-primary font-bold">+{money(GUARANTEED_RESERVE_FEE)}</span>
-              </div>
-              <p className="mt-1 text-muted-foreground leading-relaxed text-[11px]">
-                Garantiza compartimento con ventilación o refrigeración activa para conservar tu snack fresco.
-              </p>
-            </div>
-          </label>
-        </div>
+          <div className="flex justify-between py-2 text-muted-foreground">
+            <span>Subtotal snacks:</span>
+            <span className="font-mono">{money(total)}</span>
+          </div>
 
-        <div className="pt-3 flex justify-between items-baseline border-t border-border font-display">
-          <span className="text-sm font-semibold text-foreground">Total a pagar al retirar:</span>
-          <span className="text-2xl font-black text-primary">{money(finalTotal)}</span>
+          <div className="flex justify-between py-2 text-primary font-semibold">
+            <span className="flex items-center gap-1">
+              <Bike size={13} /> Domicilio Tendedero en Campus:
+            </span>
+            <span className="font-mono">+$200 COP</span>
+          </div>
+
+          <div className="flex justify-between pt-3 font-display font-extrabold text-base text-foreground">
+            <span>Total a Pagar:</span>
+            <span className="font-mono text-primary text-lg">{money(finalTotal)}</span>
+          </div>
         </div>
       </div>
 
-      {error && <p className="rounded-2xl bg-destructive/10 p-3 text-xs text-destructive">{error}</p>}
+      {error && <p className="text-xs text-destructive">{error}</p>}
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-2xl bg-primary hover:bg-[#751010] py-4 font-display text-sm font-extrabold text-white shadow-md active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer"
+        className="w-full flex items-center justify-center gap-2 rounded-2xl bg-primary hover:opacity-90 py-4 font-display text-sm font-bold text-primary-foreground shadow-md transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
       >
-        {loading ? (
-          'Confirmando apartado y asignando casillero...'
-        ) : (
-          <>
-            <Lock size={16} />
-            Confirmar Apartado en {activeHub.name} & Obtener PIN
-          </>
-        )}
+        <Bike size={18} />
+        <span>{loading ? 'Generando solicitud...' : `Confirmar y Pedir (${money(finalTotal)})`}</span>
       </button>
     </form>
   )

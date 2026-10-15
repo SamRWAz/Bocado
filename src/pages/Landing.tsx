@@ -1,18 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Boxes,
+  Bike,
   ChefHat,
   ChevronDown,
   Clock,
-  MapPin,
+  DollarSign,
+  Package,
   ShieldCheck,
   Sparkles,
-  Store,
   Users,
 } from 'lucide-react'
-import { ProcessConsoleDemo } from '../components/landing/ProcessConsoleDemo'
-import { LOCKER_HUBS, getLockersByHub } from '../lib/lockers'
 import { playKeyBeep } from '../lib/sounds'
 
 const SLIDES = [
@@ -20,12 +18,11 @@ const SLIDES = [
   { id: 'metricas', label: 'Cifras Clave' },
   { id: 'negocio', label: 'Cómo Funciona' },
   { id: 'consola', label: 'Paso a Paso' },
-  { id: 'casilleros', label: 'Casilleros Icesi' },
+  { id: 'tendederos', label: 'Tendederos Campus' },
 ]
 
 export function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [selectedHubId, setSelectedHubId] = useState('hub_edificio_d')
   const sectionRefs = useRef<(HTMLElement | null)[]>([])
 
   const scrollToSlide = (index: number) => {
@@ -95,7 +92,7 @@ export function LandingPage() {
       </nav>
 
       {/* ========================================================= */}
-      {/* SECCIÓN 1: HERO (BLOQUE ROJO CARMESÍ SÓLIDO / PRETZELS)   */}
+      {/* SECCIÓN 1: HERO                                           */}
       {/* ========================================================= */}
       <section
         ref={(el) => {
@@ -106,18 +103,18 @@ export function LandingPage() {
         <div className="relative mx-auto max-w-4xl text-center space-y-6">
           <div className="inline-flex items-center gap-2 rounded-full bg-white/15 border border-white/30 px-4 py-1.5 text-xs font-mono font-bold uppercase tracking-wider text-white">
             <Sparkles size={14} className="text-red-200" />
-            <span>Campus Universitario Icesi · Micro-Comercio Inteligente</span>
+            <span>Campus Universitario Icesi · Domicilios Universitarios</span>
           </div>
 
           <h1 className="font-display text-4xl font-black tracking-tight sm:text-6xl lg:text-7xl text-white leading-[1.08]">
             Tus snacks favoritos.{' '}
             <span className="text-red-100">
-              En casilleros inteligentes.
+              Entregados en tu edificio.
             </span>
           </h1>
 
           <p className="text-base sm:text-lg text-white/90 leading-relaxed max-w-2xl mx-auto font-normal">
-            Aparta brownies, galletas y postres artesanales preparados por estudiantes. Retira sin esperas ni contacto en los casilleros de los <strong>Edificios D, M y L</strong>.
+            Pide brownies, galletas, empanadas y postres preparados por estudiantes. Un <strong>Tendedero</strong> (mensajero del campus) recoge tu comida con el cocinero y te la entrega donde estés por solo <strong>$200 COP</strong> de domicilio.
           </p>
 
           {/* Action CTAs */}
@@ -126,17 +123,16 @@ export function LandingPage() {
               to="/catalogo"
               className="w-full sm:w-auto flex items-center justify-center gap-2.5 rounded-2xl bg-white px-8 py-4 font-display text-sm font-black text-[#8F1414] shadow-md hover:bg-[#FAF6F0] active:scale-95 transition-all"
             >
-              <Boxes size={18} />
+              <Package size={18} />
               <span>Ver Catálogo de Snacks</span>
             </Link>
-            <button
-              type="button"
-              onClick={() => scrollToSlide(1)}
+            <Link
+              to="/entregas"
               className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl border-2 border-white/40 bg-transparent px-8 py-4 font-display text-sm font-bold text-white hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
             >
-              <span>Cómo Funciona</span>
-              <ChevronDown size={16} />
-            </button>
+              <Bike size={18} />
+              <span>Ser Tendedero (Repartir)</span>
+            </Link>
           </div>
         </div>
 
@@ -163,10 +159,10 @@ export function LandingPage() {
         <div className="mx-auto max-w-5xl grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           <div className="p-4 border-r last:border-none border-border/70">
             <p className="font-display text-4xl sm:text-5xl font-black text-[#8F1414] dark:text-red-400">
-              60+
+              $200
             </p>
-            <p className="mt-1 text-xs sm:text-sm font-bold text-foreground">Casilleros Activos</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Edificios D, M y L</p>
+            <p className="mt-1 text-xs sm:text-sm font-bold text-foreground">Tarifa Tendedero</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">Envío directo en campus</p>
           </div>
 
           <div className="p-4 border-r last:border-none border-border/70">
@@ -196,7 +192,7 @@ export function LandingPage() {
       </section>
 
       {/* ========================================================= */}
-      {/* SECCIÓN 3: CÓMO FUNCIONA (BLOQUE BLANCO PURO DELIMITADO)  */}
+      {/* SECCIÓN 3: CÓMO FUNCIONA                                  */}
       {/* ========================================================= */}
       <section
         ref={(el) => {
@@ -209,10 +205,10 @@ export function LandingPage() {
             El Ecosistema Bocado
           </span>
           <h2 className="font-display text-3xl font-black sm:text-4xl text-foreground">
-            ¿Cómo funciona el negocio?
+            ¿Cómo funciona el servicio?
           </h2>
           <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
-            Conectamos a estudiantes cocineros con la comunidad universitaria a través de una red física de 60 casilleros inteligentes en Icesi.
+            Conectamos a estudiantes que cocinan con estudiantes que tienen antojos, a través de una red ágil de <strong>Tendederos</strong> (mensajeros en campus) que entregan directo en tus clases por solo <strong>$200 COP</strong>.
           </p>
         </div>
 
@@ -224,13 +220,13 @@ export function LandingPage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#8F1414] text-white">
                 <Users size={24} />
               </div>
-              <h3 className="font-display text-xl font-bold text-foreground">Para Compradores</h3>
+              <h3 className="font-display text-xl font-bold text-foreground">1. Compradores</h3>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                Exploras el catálogo de hoy, apartas tu snack favorito y recibes tu <strong>PIN de 4 dígitos</strong> para retirar sin esperas en el casillero.
+                Pides tu snack, seleccionas en qué edificio o salón de la U estás y recibes tu comprobante. El precio incluye solo <strong>$200 COP</strong> de tarifa de entrega.
               </p>
             </div>
             <div className="mt-6 border-t border-border pt-4 text-xs font-mono text-[#8F1414] dark:text-red-400 font-bold flex items-center gap-1.5">
-              <Clock size={14} /> Retiro en menos de 10 segundos
+              <Clock size={14} /> Recibe en tu salón sin desplazarte
             </div>
           </div>
 
@@ -240,36 +236,36 @@ export function LandingPage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#751010] text-white">
                 <ChefHat size={24} />
               </div>
-              <h3 className="font-display text-xl font-bold text-foreground">Para Cocineros</h3>
+              <h3 className="font-display text-xl font-bold text-foreground">2. Cocineros</h3>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                Cocinas en casa, seleccionas un casillero libre en los Edificios D, M o L desde la app, depositas con tu PIN y vendes sin perder horas de clase.
+                Publicas tus preparaciones fijando tu precio. Se le suman $200 de logística y no tienes que salir de clase para hacer las entregas: los tendederos lo hacen por ti.
               </p>
             </div>
             <div className="mt-6 border-t border-border pt-4 text-xs font-mono text-[#8F1414] dark:text-red-400 font-bold flex items-center gap-1.5">
-              <ShieldCheck size={14} /> Solo 5% de comisión por venta
+              <ShieldCheck size={14} /> Vende sin interrumpir tu horario
             </div>
           </div>
 
-          {/* Pillar 3: Infraestructura */}
+          {/* Pillar 3: Tendederos */}
           <div className="rounded-3xl border-2 border-border bg-[#FAF6F0] dark:bg-[#1E1917] p-6 sm:p-8 shadow-xs flex flex-col justify-between">
             <div className="space-y-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#5C0C0C] text-white">
-                <Store size={24} />
+                <Bike size={24} />
               </div>
-              <h3 className="font-display text-xl font-bold text-foreground">Infraestructura Icesi</h3>
+              <h3 className="font-display text-xl font-bold text-foreground">3. Tendederos</h3>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                60 casilleros inteligentes distribuidos en los <strong>Edificios D (20), M (20) y L (20)</strong>. La máquina se desbloquea con tu PIN y valida el pago virtual.
+                Estudiantes que aceptan solicitudes en sus huecos libres. Recogen el snack del vendedor, se lo llevan al comprador y ganan <strong>$200 COP</strong> por cada entrega rápida.
               </p>
             </div>
             <div className="mt-6 border-t border-border pt-4 text-xs font-mono text-[#8F1414] dark:text-red-400 font-bold flex items-center gap-1.5">
-              <MapPin size={14} /> 60 Casilleros en 3 Edificios
+              <DollarSign size={14} /> Ganancias inmediatas en campus
             </div>
           </div>
         </div>
       </section>
 
       {/* ========================================================= */}
-      {/* SECCIÓN 4: SIMULADOR DE TERMINAL (BLOQUE CREMA MARFIL)    */}
+      {/* SECCIÓN 4: FLUJO DE ENTREGAS Y CONFIRMACIÓN TRIPLE        */}
       {/* ========================================================= */}
       <section
         ref={(el) => {
@@ -277,24 +273,53 @@ export function LandingPage() {
         }}
         className="relative z-10 bg-[#FAF6F0] dark:bg-[#1A1614] py-20 px-4 sm:px-6 border-b border-border"
       >
-        <div className="mx-auto max-w-4xl text-center space-y-3 mb-10">
+        <div className="mx-auto max-w-4xl text-center space-y-3 mb-12">
           <span className="inline-block rounded-full bg-red-100 text-[#8F1414] dark:bg-red-950 dark:text-red-300 px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider">
-            Simulador de Terminal
+            Logística Ágil en Campus
           </span>
           <h2 className="font-display text-3xl font-black sm:text-4xl text-foreground">
-            Paso a Paso: PIN → Pago QR → Retiro
+            Flujo de Entrega con Triple Confirmación
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground max-w-xl mx-auto">
-            Experimenta en vivo cómo el usuario digita su PIN en la máquina, realiza el pago virtual y la compuerta se abre entregando el producto con comprobante automático.
+            Total seguridad y transparencia gracias a la validación de cada parte involucrada.
           </p>
         </div>
 
-        {/* The Animated Mini Console Demo Component */}
-        <ProcessConsoleDemo />
+        <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground font-mono font-bold">
+              1
+            </span>
+            <h4 className="font-display font-bold text-foreground">Pides tu snack</h4>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Eliges tu preparación, indicas tu edificio y ves el recibo con los +$200 de envío. Se crea la solicitud pública en el campus.
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground font-mono font-bold">
+              2
+            </span>
+            <h4 className="font-display font-bold text-foreground">Tendedero toma el pedido</h4>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Un mensajero acepta el encargo y se habilitan los <strong>chats directos</strong> con comprador y vendedor para coordinar el punto exacto.
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-sm space-y-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground font-mono font-bold">
+              3
+            </span>
+            <h4 className="font-display font-bold text-foreground">Triple Confirmación</h4>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              El tendedero confirma que entregó, el cliente confirma que recibió y el vendedor confirma que recibió el dinero.
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* ========================================================= */}
-      {/* SECCIÓN 5: RED DE CASILLEROS (BLOQUE ROJO SÓLIDO / BLANCO) */}
+      {/* SECCIÓN 5: COBERTURA EN CAMPUS ICESI                       */}
       {/* ========================================================= */}
       <section
         ref={(el) => {
@@ -304,68 +329,52 @@ export function LandingPage() {
       >
         <div className="max-w-3xl mx-auto text-center mb-10 space-y-3">
           <span className="inline-block rounded-full bg-red-100 text-[#8F1414] dark:bg-red-950 dark:text-red-300 px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider">
-            Red de Casilleros Activos
+            Cobertura en Campus Icesi
           </span>
           <h2 className="font-display text-3xl font-black sm:text-4xl text-foreground">
-            60 Casilleros en Universidad Icesi
+            Envíos en menos de 5 minutos
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Distribución estratégica en los principales edificios para que retires o deposites cerca de tus clases.
+            Llegamos a cualquier edificio dentro de la universidad con entregas a pie rápidas entre clases.
           </p>
         </div>
 
-        {/* 3 Buildings Display */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-5xl mx-auto w-full text-left mb-10">
-          {LOCKER_HUBS.map((hub) => {
-            const isSel = hub.id === selectedHubId
-            const hubLockers = getLockersByHub(hub.id)
-            const readyCount = hubLockers.filter((l) => l.status === 'listo_para_retiro').length
-            const availableCount = hubLockers.filter((l) => l.status === 'disponible').length
+          <div className="rounded-3xl border-2 border-border bg-card p-6 space-y-2">
+            <span className="text-2xl">🏛️</span>
+            <h3 className="font-display text-lg font-bold">Edificio D · Plazoleta Central</h3>
+            <p className="text-xs text-muted-foreground">Punto de encuentro gastronómico principal de Icesi.</p>
+            <span className="inline-block font-mono text-xs font-bold text-primary mt-2">Tarifa envío: $200 COP</span>
+          </div>
 
-            return (
-              <button
-                key={hub.id}
-                type="button"
-                onClick={() => {
-                  setSelectedHubId(hub.id)
-                  playKeyBeep(550)
-                }}
-                className={`rounded-3xl border-2 p-6 transition-all text-left cursor-pointer ${
-                  isSel
-                    ? 'border-[#8F1414] bg-[#FAF6F0] dark:bg-[#251D1A] shadow-md ring-2 ring-[#8F1414]/20'
-                    : 'border-border bg-card hover:border-border hover:bg-[#FAF6F0]/60'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-display text-lg font-bold text-foreground flex items-center gap-2">
-                    <span className="text-xl">{hub.icon}</span>
-                    {hub.name}
-                  </span>
-                  <span className="h-2.5 w-2.5 rounded-full bg-[#8F1414]" />
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">{hub.zone}</p>
-                <div className="mt-6 flex items-center justify-between border-t border-border pt-3 text-xs font-mono">
-                  <span className="text-[#8F1414] dark:text-red-400 font-bold">{readyCount} snacks listos</span>
-                  <span className="text-muted-foreground">{availableCount}/20 libres</span>
-                </div>
-              </button>
-            )
-          })}
+          <div className="rounded-3xl border-2 border-border bg-card p-6 space-y-2">
+            <span className="text-2xl">⚡</span>
+            <h3 className="font-display text-lg font-bold">Edificio E · Ingeniería & Aulas</h3>
+            <p className="text-xs text-muted-foreground">Entregas directas en pisos de laboratorios y salas de estudio.</p>
+            <span className="inline-block font-mono text-xs font-bold text-primary mt-2">Tarifa envío: $200 COP</span>
+          </div>
+
+          <div className="rounded-3xl border-2 border-border bg-card p-6 space-y-2">
+            <span className="text-2xl">🌿</span>
+            <h3 className="font-display text-lg font-bold">El Samán & Biblioteca</h3>
+            <p className="text-xs text-muted-foreground">Zonas de descanso y estudio con cobertura completa de Tendederos.</p>
+            <span className="inline-block font-mono text-xs font-bold text-primary mt-2">Tarifa envío: $200 COP</span>
+          </div>
         </div>
 
         <div className="text-center">
           <Link
-            to="/catalogo"
+            to="/entregas"
             className="inline-flex items-center gap-2 rounded-2xl bg-[#8F1414] text-white px-8 py-4 font-display text-sm font-bold shadow-md hover:bg-[#781010] active:scale-95 transition-all"
           >
-            <Boxes size={18} />
-            <span>Explorar Catálogo de Snacks</span>
+            <Bike size={18} />
+            <span>Ver Solicitudes de Tendedero Activas</span>
           </Link>
         </div>
       </section>
 
       {/* ========================================================= */}
-      {/* SECCIÓN 6: CIERRE DE MARCA & FOOTER (BLOQUE OSCURO SÓLIDO) */}
+      {/* SECCIÓN 6: CIERRE DE MARCA & FOOTER                       */}
       {/* ========================================================= */}
       <footer className="relative z-10 bg-[#1C1917] text-white py-16 px-4 sm:px-6">
         <div className="mx-auto max-w-4xl text-center space-y-6">
@@ -373,14 +382,14 @@ export function LandingPage() {
             Listo para vivir la experiencia <span className="text-red-400">Bocado</span>.
           </h3>
           <p className="text-sm text-neutral-300 max-w-xl mx-auto leading-relaxed">
-            El sabor artesanal hecho por tus compañeros de universidad, con la comodidad de los casilleros inteligentes entre clases.
+            Comida casera hecha por estudiantes, con domicilios internos por Tendederos universitarios en Icesi.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-6 pt-4 text-xs font-semibold text-neutral-400">
             <Link to="/catalogo" className="hover:text-white transition-colors">Catálogo de Snacks</Link>
+            <Link to="/entregas" className="hover:text-white transition-colors">Panel Tendedero</Link>
             <Link to="/vender" className="hover:text-white transition-colors">Vender Comida</Link>
-            <Link to="/pedidos" className="hover:text-white transition-colors">Mis Apartados</Link>
-            <Link to="/vitrina" className="hover:text-white transition-colors">Vitrina Virtual</Link>
+            <Link to="/pedidos" className="hover:text-white transition-colors">Mis Pedidos</Link>
           </div>
 
           <p className="text-[11px] text-neutral-500 font-mono pt-6 border-t border-white/10">
