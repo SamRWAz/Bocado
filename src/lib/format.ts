@@ -32,7 +32,7 @@ export function parseTags(category: string) {
   return category
     .split(',')
     .map((tag) => tag.trim())
-    .filter(Boolean)
+    .filter((tag) => Boolean(tag) && !tag.startsWith('edif:'))
 }
 
 export function joinTags(tags: string[]) {

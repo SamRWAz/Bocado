@@ -146,7 +146,7 @@ export function SellPage() {
         imageUrl = await uploadProductImage(file)
       }
 
-      const allCategoryTags = [...tags, ...dietary]
+      const allCategoryTags = [...tags, ...dietary, `edif:${preferredBuilding}`]
       const finalCatalogPrice = numPrice + 200
 
       const created = await insertProduct({

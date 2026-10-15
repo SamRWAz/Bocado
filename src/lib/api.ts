@@ -22,6 +22,30 @@ export async function uploadProductImage(file: File): Promise<string | null> {
   return data.publicUrl
 }
 
+function normalizeProduct(raw: any): Product {
+  if (!raw) return raw
+  const cat = typeof raw.category === 'string' ? raw.category : ''
+  let building: 'D' | 'M' | 'L' | string = 'D'
+  if (cat.includes('edif:M')) building = 'M'
+  else if (cat.includes('edif:L')) building = 'L'
+  else if (cat.includes('edif:D')) building = 'D'
+
+  let localDesc = raw.description || null
+  if (!localDesc && typeof window !== 'undefined' && window.localStorage) {
+    try {
+      localDesc = localStorage.getItem(`bocado_desc_${raw.id}`) || null
+    } catch {
+      // ignore
+    }
+  }
+
+  return {
+    ...raw,
+    description: localDesc,
+    preferredBuilding: building,
+  }
+}
+
 export async function fetchProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from('products')
@@ -32,13 +56,13 @@ export async function fetchProducts(): Promise<Product[]> {
     console.error(error)
     return []
   }
-  return (data ?? []).filter((p) => p.category !== 'archived')
+  return (data ?? []).filter((p) => p.category !== 'archived').map(normalizeProduct)
 }
 
 export async function fetchProduct(id: string): Promise<Product | null> {
   const { data, error } = await supabase.from('products').select('*').eq('id', id).single()
   if (error || !data || data.category === 'archived') return null
-  return data
+  return normalizeProduct(data)
 }
 
 export async function deleteProduct(id: string): Promise<boolean> {
@@ -57,27 +81,60 @@ export async function deleteProduct(id: string): Promise<boolean> {
 export async function insertProduct(
   product: Omit<Product, 'id' | 'created_at'>,
 ): Promise<Product | null> {
-  const payload: Record<string, unknown> = { ...product }
-  if (!product.description) delete payload.description
+  // PostgREST strict schema: Only send actual columns that exist in the Supabase 'products' table
+  const payload: Record<string, unknown> = {
+    name: product.name,
+    price: product.price,
+    stock: product.stock,
+    sold_out: product.sold_out ?? false,
+    seller: product.seller,
+    intent_count: product.intent_count ?? 0,
+    image_url: product.image_url ?? null,
+    category: product.category,
+  }
 
-  const first = await supabase.from('products').insert(payload).select().single()
-  if (!first.error) return first.data
-
-  if (payload.description) {
-    delete payload.description
-    const retry = await supabase.from('products').insert(payload).select().single()
-    if (!retry.error) return retry.data
-    console.error(retry.error)
+  const { data, error } = await supabase.from('products').insert(payload).select().single()
+  if (error) {
+    console.error('Error al insertar producto en Supabase:', error)
     return null
   }
 
-  console.error(first.error)
-  return null
+  if (product.description && data?.id && typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(`bocado_desc_${data.id}`, product.description)
+    } catch {
+      // ignore
+    }
+  }
+
+  return normalizeProduct({
+    ...data,
+    description: product.description,
+    preferredBuilding: product.preferredBuilding || 'D',
+  })
 }
 
 export async function updateProduct(id: string, patch: Partial<Product>): Promise<void> {
-  const { error } = await supabase.from('products').update(patch).eq('id', id)
-  if (error) console.error(error)
+  const allowedKeys = ['name', 'price', 'stock', 'sold_out', 'seller', 'intent_count', 'image_url', 'category']
+  const cleanPatch: Record<string, unknown> = {}
+  for (const [key, val] of Object.entries(patch)) {
+    if (allowedKeys.includes(key)) {
+      cleanPatch[key] = val
+    }
+  }
+
+  if (patch.description && typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(`bocado_desc_${id}`, patch.description)
+    } catch {
+      // ignore
+    }
+  }
+
+  if (Object.keys(cleanPatch).length === 0) return
+
+  const { error } = await supabase.from('products').update(cleanPatch).eq('id', id)
+  if (error) console.error('Error al actualizar producto en Supabase:', error)
 }
 
 export async function fetchMetrics(): Promise<Omit<Metrics, 'id'>> {
