@@ -7,18 +7,21 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { PageTransition } from '../components/PageTransition'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import { formatTime, money, sellerUserId } from '../lib/format'
+import { DELIVERY_FEE } from '../lib/pricing'
 import { playKeyBeep, playPaymentSuccess } from '../lib/sounds'
 import { fetchOrders, saveOrder, subscribeToOrderUpdates } from '../lib/storage-db'
 import type { Order } from '../types'
 
 export function DeliveriesPage() {
   const { user } = useAuth()
+  const { success, bonus } = useToast()
   const navigate = useNavigate()
   const [orders, setOrders] = useState<Order[]>([])
   const [tab, setTab] = useState<'disponibles' | 'activas' | 'historial'>('disponibles')
-  const [actionSuccess, setActionSuccess] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
     const all = await fetchOrders()
@@ -58,32 +61,34 @@ export function DeliveriesPage() {
 
   // Historial de entregas completadas por el usuario actual
   const misCompletadas = orders.filter(
-    (o) => o.tendederoId === user.id && (o.status === 'completado' || o.status === 'entregado'),
+    (o) => o.tendederoId === user.id && (o.status === 'completado' || o.tendederoConfirmed),
   )
 
-  const totalGanado = misCompletadas.length * 200
+  const totalGanado = misCompletadas.reduce((sum, o) => sum + (o.deliveryFee || DELIVERY_FEE), 0)
 
   // Acción: Aceptar solicitud / Tomar pedido
   const handleTomarPedido = async (order: Order) => {
     playKeyBeep(800)
+    const fee = order.deliveryFee || DELIVERY_FEE
     const updated: Order = {
       ...order,
       status: 'tomado',
       tendederoId: user.id,
       tendederoName: user.name,
       tendederoAcceptedAt: new Date().toISOString(),
-      deliveryFee: order.deliveryFee || 200,
+      deliveryFee: fee,
     }
-    await saveOrder(updated)
-    await refresh()
+    // Optimistic update so it immediately transitions to active deliveries
+    setOrders((prev) => [updated, ...prev.filter((o) => o.id !== order.id)])
     setTab('activas')
-    setActionSuccess(`¡Has tomado el pedido para entrega! Ganancia: $200 COP`)
-    setTimeout(() => setActionSuccess(null), 3500)
+    bonus(`¡Tomaste el pedido para entrega!`, `Carrera asignada. Llévalo a ${order.deliveryLocation || 'punto acordado'}.`)
+    await saveOrder(updated)
   }
 
   // Acción: Confirmar que entregó el pedido
   const handleConfirmarEntregaTendedero = async (order: Order) => {
     playPaymentSuccess()
+    const fee = order.deliveryFee || DELIVERY_FEE
     const isCompleted = order.buyerConfirmed && order.sellerPaidConfirmed
     const updated: Order = {
       ...order,
@@ -91,10 +96,9 @@ export function DeliveriesPage() {
       tendederoConfirmedAt: new Date().toISOString(),
       status: isCompleted ? 'completado' : 'entregado_por_tendedero',
     }
+    setOrders((prev) => prev.map((o) => (o.id === order.id ? updated : o)))
+    success(`¡Pedido enviado!`, `Marcaste la entrega como enviada. Ganancia de carrera: +${money(fee)}.`)
     await saveOrder(updated)
-    await refresh()
-    setActionSuccess(`¡Entrega confirmada! Se notificó al comprador y al vendedor.`)
-    setTimeout(() => setActionSuccess(null), 3500)
   }
 
   // Navegar al chat con el comprador
@@ -123,7 +127,8 @@ export function DeliveriesPage() {
   }
 
   return (
-    <div className="space-y-6 pb-16">
+    <PageTransition>
+      <div className="space-y-6 pb-16">
       {/* Banner Superior Tendedero */}
       <div className="rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/15 via-card to-background p-6 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -157,12 +162,6 @@ export function DeliveriesPage() {
         </div>
       </div>
 
-      {actionSuccess && (
-        <div className="rounded-2xl bg-emerald-50 border border-emerald-200 dark:bg-emerald-950/60 dark:border-emerald-800 p-4 text-xs font-medium text-emerald-800 dark:text-emerald-300 flex items-center gap-2 animate-fadeIn">
-          <CheckCircle2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-          <span>{actionSuccess}</span>
-        </div>
-      )}
 
       {/* Tabs */}
       <div className="flex flex-wrap rounded-2xl bg-secondary p-1 border border-border gap-1">
@@ -221,7 +220,7 @@ export function DeliveriesPage() {
               <Package size={36} className="mx-auto opacity-30 text-primary" />
               <p className="font-display font-bold text-foreground text-sm">No hay solicitudes de entrega en este momento</p>
               <p className="text-xs max-w-sm mx-auto">
-                Tan pronto un estudiante aparte un snack en el campus, aparecerá aquí para que puedas tomar el pedido y ganar $200 COP por el domicilio.
+                Tan pronto un estudiante aparte un snack en el campus, aparecerá aquí para que puedas tomar el pedido y realizar la entrega en el campus.
               </p>
             </div>
           ) : (
@@ -243,20 +242,20 @@ export function DeliveriesPage() {
                           </h3>
                         </div>
                         <span className="rounded-xl bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-2.5 py-1 text-xs font-mono font-bold shrink-0">
-                          +$200 COP
+                          +{money(order.deliveryFee || DELIVERY_FEE)} COP
                         </span>
                       </div>
 
-                      {/* Ruta de entrega */}
+                      {/* Ruta de entrega de edificio a edificio */}
                       <div className="rounded-2xl bg-secondary/60 p-3 space-y-2 text-xs border border-border/60">
                         <div className="flex items-start gap-2">
                           <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-100 text-[#8F1414] dark:bg-red-950 dark:text-red-300 text-[10px] font-bold">
                             1
                           </span>
                           <div>
-                            <span className="text-[10px] text-muted-foreground font-mono uppercase block">Recoger en:</span>
-                            <span className="font-semibold text-foreground">{order.pickup || 'Campus Icesi'}</span>
-                            <span className="text-[11px] text-muted-foreground block">Vendedor: {order.sellerName}</span>
+                            <span className="text-[10px] text-muted-foreground font-mono uppercase block">Punto 1 (Recoger con Vendedor):</span>
+                            <span className="font-bold text-foreground">{order.sellerBuilding || order.pickup || 'Campus Icesi'}</span>
+                            <span className="text-[11px] text-muted-foreground block">Cocinero(a): {order.sellerName}</span>
                           </div>
                         </div>
 
@@ -267,18 +266,27 @@ export function DeliveriesPage() {
                             2
                           </span>
                           <div>
-                            <span className="text-[10px] text-muted-foreground font-mono uppercase block">Entregar en:</span>
-                            <span className="font-semibold text-foreground">
-                              {order.deliveryLocation || 'Punto acordado en campus'}
+                            <span className="text-[10px] text-muted-foreground font-mono uppercase block">Punto 2 (Entregar a Comprador):</span>
+                            <span className="font-bold text-foreground">
+                              {order.buyerBuilding || order.deliveryLocation || 'Punto acordado en campus'}
                             </span>
                             <span className="text-[11px] text-muted-foreground block">Cliente: {order.buyerName}</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="text-[11px] text-muted-foreground flex justify-between">
-                        <span>Total del pedido: {money(order.total)}</span>
-                        <span>{formatTime(order.createdAt)}</span>
+                      {/* Transparencia financiera para el tendedero */}
+                      <div className="rounded-xl bg-card p-2.5 text-[11px] space-y-1 border border-border/50 font-mono">
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>Pago en mano a vendedor:</span>
+                          <span className="font-bold text-foreground">
+                            {money(order.vendorPayout || Math.max(0, order.total - (order.deliveryFee || DELIVERY_FEE)))}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-emerald-600 font-bold">
+                          <span>Cobro a tu favor al entregar:</span>
+                          <span>{money(order.tendederoPayout || order.total)}</span>
+                        </div>
                       </div>
                     </div>
 
@@ -333,7 +341,7 @@ export function DeliveriesPage() {
                           {order.tendederoConfirmed ? 'Entregado por ti' : 'En camino / Entrega activa'}
                         </span>
                         <span className="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                          +$200 COP
+                          +{money(order.deliveryFee || DELIVERY_FEE)} COP
                         </span>
                       </div>
 
@@ -341,15 +349,15 @@ export function DeliveriesPage() {
                         {order.items.map((i) => `${i.qty}x ${i.name}`).join(', ')}
                       </h3>
 
-                      {/* Ruta visual */}
-                      <div className="rounded-2xl bg-secondary/80 p-3.5 space-y-3 text-xs border border-border">
+                      {/* Ruta visual de edificio a edificio */}
+                      <div className="rounded-2xl bg-secondary/80 p-3.5 space-y-2 text-xs border border-border">
                         <div className="flex items-center justify-between">
-                          <span className="font-mono text-[10px] uppercase text-muted-foreground">Paso 1: Recoger</span>
-                          <span className="font-bold text-foreground">{order.pickup}</span>
+                          <span className="font-mono text-[10px] uppercase text-muted-foreground">Paso 1 (Recoger):</span>
+                          <span className="font-bold text-foreground">{order.sellerBuilding || order.pickup || 'Campus Icesi'}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="font-mono text-[10px] uppercase text-muted-foreground">Paso 2: Entregar</span>
-                          <span className="font-bold text-foreground">{order.deliveryLocation || 'Campus Icesi'}</span>
+                          <span className="font-mono text-[10px] uppercase text-muted-foreground">Paso 2 (Entregar):</span>
+                          <span className="font-bold text-foreground">{order.buyerBuilding || order.deliveryLocation || 'Campus Icesi'}</span>
                         </div>
                       </div>
 
@@ -402,14 +410,14 @@ export function DeliveriesPage() {
                         <button
                           type="button"
                           onClick={() => void handleConfirmarEntregaTendedero(order)}
-                          className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 py-3 text-xs font-display font-bold text-white shadow-sm active:scale-95 transition-all cursor-pointer"
+                          className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary hover:bg-[#751010] py-3 text-xs font-display font-bold text-white shadow-sm active:scale-95 transition-all cursor-pointer"
                         >
                           <CheckCircle2 size={16} />
-                          <span>Confirmar que entregué el pedido</span>
+                          <span>Confirmar: Pedido enviado</span>
                         </button>
                       ) : (
                         <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/40 p-2 text-center text-xs text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-200 dark:border-emerald-800">
-                          ✓ Ya marcaste este pedido como entregado
+                          ✓ Marcaste este pedido como enviado
                         </div>
                       )}
                     </div>
@@ -467,6 +475,7 @@ export function DeliveriesPage() {
           )}
         </div>
       )}
-    </div>
+      </div>
+    </PageTransition>
   )
 }

@@ -1,4 +1,10 @@
-export type UserRole = 'comprar' | 'vender' | 'tendedero' | 'ambos' | 'admin'
+export type UserRole =
+  | 'comprar_vender'
+  | 'ambos'
+  | 'comprar'
+  | 'vender'
+  | 'entregar'
+  | 'admin'
 
 export type AuthUser = {
   id: string
@@ -139,7 +145,7 @@ export type OrderStatus =
   | 'listo' // compatibilidad previa
   | 'cancelado'
 
-export type PaymentMethod = 'qr_nequi' | 'tarjeta' | 'qr_bancolombia' | 'efectivo_vitrina' | 'efectivo'
+export type PaymentMethod = 'qr_nequi' | 'tarjeta' | 'qr_bancolombia' | 'efectivo_vitrina' | 'efectivo' | 'wompi'
 
 export type OrderItem = {
   productId: string
@@ -188,6 +194,14 @@ export type Order = {
   claimedAt?: string
   platformCommission?: number
   sellerNetRevenue?: number
+  // Nuevos campos de geolocalización y pasarela
+  buyerBuilding?: string // Edificio actual del comprador
+  sellerBuilding?: string // Edificio confirmado por el vendedor
+  sellerBuildingConfirmed?: boolean // Vendedor ya respondió en qué edificio está
+  bocadoCommission?: number // Comisión Bocado ($100 - $500 COP)
+  vendorPayout?: number // Lo que cobra el vendedor por el producto
+  tendederoPayout?: number // Lo que cobra el tendedero (producto + envío)
+  transactionId?: string // Identificador de pasarela de pago digital
 }
 
 export type StoredUser = AuthUser & {

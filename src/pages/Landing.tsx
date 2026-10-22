@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import {
   Bike,
   ChefHat,
@@ -11,6 +12,7 @@ import {
   Sparkles,
   Users,
 } from 'lucide-react'
+import { ThreeHeroCanvas } from '../components/ThreeHeroCanvas'
 import { playKeyBeep } from '../lib/sounds'
 
 const SLIDES = [
@@ -98,49 +100,77 @@ export function LandingPage() {
         ref={(el) => {
           sectionRefs.current[0] = el
         }}
-        className="relative z-10 flex min-h-[92vh] flex-col items-center justify-center bg-[#8F1414] text-white px-4 py-16 sm:px-6 border-b border-black/10"
+        className="relative z-10 flex min-h-[92vh] flex-col items-center justify-center bg-gradient-to-b from-[#8F1414] via-[#851212] to-[#700E0E] text-white px-4 py-16 sm:px-6 border-b border-black/10 overflow-hidden"
       >
+        {/* Three.js Interactive 3D Canvas */}
+        <ThreeHeroCanvas />
+
+        {/* Subtle decorative glowing background blur */}
+        <div className="pointer-events-none absolute top-10 left-1/2 -translate-x-1/2 h-96 w-96 rounded-full bg-red-400/15 blur-3xl" />
+
         <div className="relative mx-auto max-w-4xl text-center space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 border border-white/30 px-4 py-1.5 text-xs font-mono font-bold uppercase tracking-wider text-white">
-            <Sparkles size={14} className="text-red-200" />
-            <span>Campus Universitario Icesi · Domicilios Universitarios</span>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 rounded-full bg-white/15 border border-white/30 px-4 py-1.5 text-xs font-mono font-bold uppercase tracking-wider text-white shadow-sm"
+          >
+            <Sparkles size={14} className="text-amber-300" />
+            <span>Campus Universitario · Red Logística Interna</span>
+          </motion.div>
 
-          <h1 className="font-display text-4xl font-black tracking-tight sm:text-6xl lg:text-7xl text-white leading-[1.08]">
-            Tus snacks favoritos.{' '}
-            <span className="text-red-100">
-              Entregados en tu edificio.
+          <motion.h1
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="font-display text-4xl font-black tracking-tight sm:text-6xl lg:text-7xl text-white leading-[1.08]"
+          >
+            Snacks universitarios.{' '}
+            <span className="text-amber-200">
+              Entregados donde estés.
             </span>
-          </h1>
+          </motion.h1>
 
-          <p className="text-base sm:text-lg text-white/90 leading-relaxed max-w-2xl mx-auto font-normal">
-            Pide brownies, galletas, empanadas y postres preparados por estudiantes. Un <strong>Tendedero</strong> (mensajero del campus) recoge tu comida con el cocinero y te la entrega donde estés por solo <strong>$200 COP</strong> de domicilio.
-          </p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-base sm:text-lg text-white/90 leading-relaxed max-w-2xl mx-auto font-normal"
+          >
+            Pide brownies, galletas, empanadas y postres preparados por estudiantes. Un <strong>Tendedero</strong> (repartidor en campus) recoge tu comida con el cocinero y te la entrega donde estés en minutos con micro-tarifas justas de <strong>$100 a $500 COP</strong> según la distancia.
+          </motion.p>
 
           {/* Action CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-3"
+          >
             <Link
               to="/catalogo"
-              className="w-full sm:w-auto flex items-center justify-center gap-2.5 rounded-2xl bg-white px-8 py-4 font-display text-sm font-black text-[#8F1414] shadow-md hover:bg-[#FAF6F0] active:scale-95 transition-all"
+              onClick={() => playKeyBeep(700)}
+              className="w-full sm:w-auto flex items-center justify-center gap-2.5 rounded-2xl bg-white px-8 py-4 font-display text-sm font-black text-[#8F1414] shadow-xl hover:bg-[#FAF6F0] active:scale-95 transition-all cursor-pointer"
             >
               <Package size={18} />
               <span>Ver Catálogo de Snacks</span>
             </Link>
             <Link
               to="/entregas"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl border-2 border-white/40 bg-transparent px-8 py-4 font-display text-sm font-bold text-white hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
+              onClick={() => playKeyBeep(600)}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-2xl border-2 border-white/40 bg-white/10 px-8 py-4 font-display text-sm font-bold text-white hover:bg-white/20 active:scale-95 transition-all cursor-pointer backdrop-blur-sm"
             >
               <Bike size={18} />
-              <span>Ser Tendedero (Repartir)</span>
+              <span>Ser Tendedero (Hacer Entregas)</span>
             </Link>
-          </div>
+          </motion.div>
         </div>
 
         {/* Scroll Cue */}
         <button
           type="button"
           onClick={() => scrollToSlide(1)}
-          className="absolute bottom-6 flex flex-col items-center gap-1 text-xs font-mono text-white/80 hover:text-white transition-colors animate-bounce cursor-pointer"
+          className="absolute bottom-4 flex flex-col items-center gap-1 text-xs font-mono text-white/80 hover:text-white transition-colors animate-bounce cursor-pointer"
         >
           <span>Conoce cómo funciona</span>
           <ChevronDown size={18} />
@@ -329,36 +359,39 @@ export function LandingPage() {
       >
         <div className="max-w-3xl mx-auto text-center mb-10 space-y-3">
           <span className="inline-block rounded-full bg-red-100 text-[#8F1414] dark:bg-red-950 dark:text-red-300 px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider">
-            Cobertura en Campus Icesi
+            Red de Domicilios en Campus
           </span>
           <h2 className="font-display text-3xl font-black sm:text-4xl text-foreground">
             Envíos en menos de 5 minutos
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Llegamos a cualquier edificio dentro de la universidad con entregas a pie rápidas entre clases.
+            Entregas a pie directamente entre salones, salas de estudio y zonas comunes del campus.
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-5xl mx-auto w-full text-left mb-10">
           <div className="rounded-3xl border-2 border-border bg-card p-6 space-y-2">
-            <span className="text-2xl">🏛️</span>
-            <h3 className="font-display text-lg font-bold">Edificio D · Plazoleta Central</h3>
-            <p className="text-xs text-muted-foreground">Punto de encuentro gastronómico principal de Icesi.</p>
-            <span className="inline-block font-mono text-xs font-bold text-primary mt-2">Tarifa envío: $200 COP</span>
+            <h3 className="font-display text-lg font-bold">Entregas entre Clases</h3>
+            <p className="text-xs text-muted-foreground">
+              Un Tendedero recoge con el vendedor y te lleva el pedido a tu ubicación exacta en minutos.
+            </p>
+            <span className="inline-block font-mono text-xs font-bold text-primary mt-2">Tarifa domicilio: $100 a $500 COP (por distancia)</span>
           </div>
 
           <div className="rounded-3xl border-2 border-border bg-card p-6 space-y-2">
-            <span className="text-2xl">⚡</span>
-            <h3 className="font-display text-lg font-bold">Edificio E · Ingeniería & Aulas</h3>
-            <p className="text-xs text-muted-foreground">Entregas directas en pisos de laboratorios y salas de estudio.</p>
-            <span className="inline-block font-mono text-xs font-bold text-primary mt-2">Tarifa envío: $200 COP</span>
+            <h3 className="font-display text-lg font-bold">Ingresos Estudiantiles</h3>
+            <p className="text-xs text-muted-foreground">
+              Estudiantes ganan ingresos en sus huecos y tiempos libres realizando carreras a pie.
+            </p>
+            <span className="inline-block font-mono text-xs font-bold text-emerald-600 mt-2">100% para el Tendedero</span>
           </div>
 
           <div className="rounded-3xl border-2 border-border bg-card p-6 space-y-2">
-            <span className="text-2xl">🌿</span>
-            <h3 className="font-display text-lg font-bold">El Samán & Biblioteca</h3>
-            <p className="text-xs text-muted-foreground">Zonas de descanso y estudio con cobertura completa de Tendederos.</p>
-            <span className="inline-block font-mono text-xs font-bold text-primary mt-2">Tarifa envío: $200 COP</span>
+            <h3 className="font-display text-lg font-bold">Pago & Liquidación Segura</h3>
+            <p className="text-xs text-muted-foreground">
+              El Tendedero adelanta la compra al vendedor y cobra el valor del producto más el envío en la entrega.
+            </p>
+            <span className="inline-block font-mono text-xs font-bold text-primary mt-2">Garantía tripartita Bocado</span>
           </div>
         </div>
 

@@ -1,8 +1,9 @@
 import {
   Bike,
+  Building2,
+  DollarSign,
   Filter,
   MapPin,
-  MessageCircle,
   Receipt,
   Search,
   ShoppingBag,
@@ -11,14 +12,16 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { PageTransition } from '../components/PageTransition'
 import { ProductCard } from '../components/ProductCard'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
+import { useToast } from '../context/ToastContext'
 import { fetchProducts, incrementMetric, updateProduct } from '../lib/api'
 import { DIETARY_OPTIONS } from '../lib/campus'
-import { sendMessage } from '../lib/chat'
-import { DELIVERY_FEE, FILTERS, PICKUP_POINTS } from '../lib/constants'
-import { displaySeller, hasTag, money, sellerUserId } from '../lib/format'
+import { FILTERS, PICKUP_POINTS } from '../lib/constants'
+import { displaySeller, hasTag, money } from '../lib/format'
+import { computeOrderFinancials, DELIVERY_FEE } from '../lib/pricing'
 import { playKeyBeep, playPaymentSuccess } from '../lib/sounds'
 import { saveOrder } from '../lib/storage-db'
 import type { Order, Product } from '../types'
@@ -26,10 +29,13 @@ import type { Order, Product } from '../types'
 export function CatalogPage() {
   const { user } = useAuth()
   const { add } = useCart()
+  const { success, bonus } = useToast()
   const navigate = useNavigate()
   const [products, setProducts] = useState<Product[]>([])
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<(typeof FILTERS)[number]>('Todos')
+  const [buildingFilter, setBuildingFilter] = useState<'Todos' | 'D' | 'M' | 'L'>('Todos')
+  const [budgetOnly, setBudgetOnly] = useState(false)
   const [dietaryFilter, setDietaryFilter] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -52,7 +58,8 @@ export function CatalogPage() {
 
   const handleOpenApartarModal = (product: Product) => {
     if (!user) {
-      navigate('/login', { state: { from: `/catalogo` } })
+      add(product, 1)
+      success('¡Snack añadido al carrito!', `1x ${product.name} guardado. Puedes revisarlo en tu carrito.`)
       return
     }
     setSelectedProduct(product)
@@ -69,13 +76,15 @@ export function CatalogPage() {
     try {
       playPaymentSuccess()
 
-      const sId = sellerUserId(selectedProduct.seller)
       const sName = displaySeller(selectedProduct.seller)
-      const orderId = crypto.randomUUID()
-      const deliveryFee = DELIVERY_FEE // 200 COP
-      const orderTotal = selectedProduct.price + deliveryFee
-      const commission = Math.round(selectedProduct.price * 0.05)
-      const netRevenue = selectedProduct.price - commission
+      const chosenLoc = deliveryLocation.trim() || 'Edificio D (Plazoleta / Pisos)'
+      const originLoc = `Edificio ${selectedProduct.preferredBuilding || 'D'}`
+      const financials = computeOrderFinancials(
+        [{ price: selectedProduct.price, qty: 1 }],
+        { origin: originLoc, destination: chosenLoc }
+      )
+
+      const orderId = `order_${Date.now()}`
 
       const order: Order = {
         id: orderId,
@@ -93,16 +102,22 @@ export function CatalogPage() {
             image_url: selectedProduct.image_url,
           },
         ],
-        total: orderTotal,
+        total: financials.totalBuyerPays,
         pickup: `Edificio ${selectedProduct.preferredBuilding || 'D'}`,
-        deliveryLocation: deliveryLocation.trim() || 'Edificio D (Plazoleta / Pisos)',
-        deliveryFee,
+        deliveryLocation: chosenLoc,
+        deliveryFee: financials.deliveryFee,
         note: '',
         status: 'solicitado',
         createdAt: new Date().toISOString(),
         isGuaranteed: false,
-        platformCommission: commission,
-        sellerNetRevenue: netRevenue,
+        platformCommission: financials.bocadoCommission,
+        sellerNetRevenue: financials.vendorPayout,
+        buyerBuilding: chosenLoc,
+        sellerBuilding: selectedProduct.preferredBuilding ? `Edificio ${selectedProduct.preferredBuilding}` : 'Punto por confirmar por vendedor',
+        sellerBuildingConfirmed: false,
+        bocadoCommission: financials.bocadoCommission,
+        vendorPayout: financials.vendorPayout,
+        tendederoPayout: financials.tendederoReimbursementAndFee,
         tendederoConfirmed: false,
         buyerConfirmed: false,
         sellerPaidConfirmed: false,
@@ -111,21 +126,7 @@ export function CatalogPage() {
       // 1. Save order in storage DB for seller and tendederos
       await saveOrder(order)
 
-      // 2. Notify seller via live chat message
-      await sendMessage({
-        conversationId: `order_${orderId}`,
-        senderId: user.id,
-        senderName: user.name,
-        recipientId: sId,
-        recipientName: sName,
-        orderId,
-        productId: selectedProduct.id,
-        productName: selectedProduct.name,
-        text: `👋 ¡Hola ${sName}! He solicitado 1x ${selectedProduct.name} (${money(selectedProduct.price)}) con domicilio a ${order.deliveryLocation}. Un Tendedero recogerá el snack en Edificio ${selectedProduct.preferredBuilding || 'D'}.`,
-        messageType: 'text',
-      })
-
-      // 3. Add to cart & increment metrics
+      // 2. Add to cart & increment metrics
       add(selectedProduct, 1)
       void updateProduct(selectedProduct.id, {
         intent_count: (selectedProduct.intent_count || 0) + 1,
@@ -133,30 +134,13 @@ export function CatalogPage() {
       void incrementMetric('total_intents')
 
       const confirmed = selectedProduct
-      const chosenLoc = order.deliveryLocation || 'Edificio D (Plazoleta / Pisos)'
       setSelectedProduct(null)
-      setApartadoSuccess({ product: confirmed, orderId, total: orderTotal, location: chosenLoc })
+      bonus('¡Pedido creado con éxito!', `Tu orden está disponible para ser tomada por un Tendedero.`)
+      setApartadoSuccess({ product: confirmed, orderId, total: financials.totalBuyerPays, location: chosenLoc })
     } finally {
       setIsProcessing(false)
     }
   }
-
-  const handleGoToChat = (item: { product: Product; orderId: string; total: number; location: string }) => {
-    const sId = sellerUserId(item.product.seller)
-    const sName = displaySeller(item.product.seller)
-    if (!user) {
-      navigate('/login', { state: { from: `/catalogo` } })
-      return
-    }
-    navigate(
-      `/mensajes?conv=order_${item.orderId}&partnerId=${encodeURIComponent(
-        sId,
-      )}&partnerName=${encodeURIComponent(sName)}&orderId=${item.orderId}&productName=${encodeURIComponent(
-        item.product.name,
-      )}&productId=${encodeURIComponent(item.product.id)}`,
-    )
-  }
-
 
   // Filter products
   const availableProducts = products.filter((p) => !p.sold_out && p.stock > 0)
@@ -176,117 +160,173 @@ export function CatalogPage() {
       hasTag(product.category, dietaryFilter) ||
       (product.dietary && product.dietary.includes(dietaryFilter as never))
 
-    return matchesQuery && matchesCategory && matchesDietary
+    const matchesBuilding =
+      buildingFilter === 'Todos' ||
+      (product.preferredBuilding && product.preferredBuilding === buildingFilter) ||
+      (buildingFilter === 'D' && (!product.preferredBuilding || product.preferredBuilding === 'D'))
+
+    const matchesBudget = !budgetOnly || product.price <= 4000
+
+    return matchesQuery && matchesCategory && matchesDietary && matchesBuilding && matchesBudget
   })
 
   return (
-    <div className={user ? 'space-y-6' : 'mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6'}>
-      {/* Header Banner */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary font-mono">
-            <Sparkles size={14} />
-            <span>Catálogo Libre en Campus Icesi</span>
+    <PageTransition>
+      <div className={user ? 'space-y-6' : 'mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6'}>
+
+        {/* Header Banner */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary font-mono">
+              <Sparkles size={14} />
+              <span>Campus Universitario Icesi · Snacks Frescos</span>
+            </div>
+            <h1 className="mt-1 font-display text-3xl font-black tracking-tight sm:text-4xl text-foreground">
+              Snacks y Postres Disponibles
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Explora las preparaciones de hoy, pide tu favorito y recíbelo directo donde estés con los Tendederos de Icesi.
+            </p>
           </div>
-          <h1 className="mt-1 font-display text-3xl font-black tracking-tight sm:text-4xl text-foreground">
-            Snacks y Postres Disponibles
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Explora las preparaciones de hoy, pide tu favorito y recíbelo directo donde estés con los Tendederos de Icesi.
-          </p>
+
+          {/* Search input */}
+          <div className="relative w-full sm:max-w-xs">
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Buscar brownie, galleta, vegano..."
+              className="w-full rounded-2xl border border-border bg-card py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-ring"
+            />
+          </div>
         </div>
 
-        {/* Search input */}
-        <div className="relative w-full sm:max-w-xs">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar brownie, galleta, vegano..."
-            className="w-full rounded-2xl border border-border bg-card py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-ring"
-          />
-        </div>
-      </div>
+        {/* Main Filter Bar */}
+        <div className="space-y-3 rounded-3xl border border-border/80 bg-card p-5 shadow-sm">
+          {/* Categories Carousel */}
+          <div>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-2 font-mono">
+              Categorías de Snacks
+            </span>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+              {FILTERS.map((filter) => {
+                const active = category === filter
+                const icons: Record<string, string> = {
+                  Todos: '✨',
+                  Brownies: '🍫',
+                  Galletas: '🍪',
+                  Alfajores: '🍯',
+                  'Salado & Empanadas': '🥟',
+                  'Fit & Proteína': '🥑',
+                  'Tortas & Postres': '🍰',
+                  'Bebidas & Fruta': '🍓',
+                  'Dulces & Gomitas': '🍬',
+                  Combos: '🎁',
+                }
+                const icon = icons[filter] || '✨'
+                return (
+                  <button
+                    type="button"
+                    key={filter}
+                    onClick={() => {
+                      playKeyBeep(500)
+                      setCategory(filter)
+                    }}
+                    className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-xs font-display font-bold transition-all cursor-pointer ${
+                      active
+                        ? 'bg-[#8F1414] text-white shadow-xs'
+                        : 'bg-secondary text-foreground/80 hover:bg-secondary hover:text-foreground border border-border/60'
+                    }`}
+                  >
+                    <span>{icon}</span>
+                    <span>{filter}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
 
-      {/* Main Filter Bar */}
-      <div className="space-y-3 rounded-3xl border border-border/80 bg-card p-5 shadow-sm">
-        {/* Categories Carousel */}
-        <div>
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-2 font-mono">
-            Categorías
-          </span>
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-            {FILTERS.map((filter) => {
-              const active = category === filter
-              const icons: Record<string, string> = {
-                Todos: '✨',
-                Brownies: '🍫',
-                Galletas: '🍪',
-                Alfajores: '🍯',
-                'Salado & Empanadas': '🥟',
-                'Fit & Proteína': '🥑',
-                'Tortas & Postres': '🍰',
-                'Bebidas & Fruta': '🍓',
-                'Dulces & Gomitas': '🍬',
-                Combos: '🎁',
-              }
-              const icon = icons[filter] || '✨'
+          {/* Campus Location & Student Budget Quick Chips */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border/60">
+            {/* Building Filter */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+              <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1 mr-1">
+                <Building2 size={12} className="text-primary" /> Edificio:
+              </span>
+              {(['Todos', 'D', 'M', 'L'] as const).map((b) => {
+                const active = buildingFilter === b
+                return (
+                  <button
+                    type="button"
+                    key={b}
+                    onClick={() => {
+                      playKeyBeep(560)
+                      setBuildingFilter(b)
+                    }}
+                    className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors cursor-pointer ${
+                      active ? 'bg-[#8F1414] text-white' : 'bg-secondary text-foreground/80 hover:bg-secondary/80'
+                    }`}
+                  >
+                    {b === 'Todos' ? 'Todos los Edificios' : `Edif. ${b}`}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Budget Student Toggle */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  playKeyBeep(640)
+                  setBudgetOnly(!budgetOnly)
+                }}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1 text-[11px] font-bold transition-all cursor-pointer ${
+                  budgetOnly
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'bg-secondary text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <DollarSign size={13} />
+                <span>Económico (≤ $4.000 COP)</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Dietary Filter */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-3 border-t border-border/60">
+            <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1 mr-1">
+              <Filter size={12} /> Dieta:
+            </span>
+            <button
+              type="button"
+              onClick={() => setDietaryFilter(null)}
+              className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors cursor-pointer ${
+                dietaryFilter === null ? 'bg-[#8F1414] text-white' : 'bg-secondary text-muted-foreground'
+              }`}
+            >
+              Cualquiera
+            </button>
+            {DIETARY_OPTIONS.slice(0, 5).map((opt) => {
+              const active = dietaryFilter === opt.shortLabel || dietaryFilter === opt.id
               return (
                 <button
                   type="button"
-                  key={filter}
-                  onClick={() => {
-                    playKeyBeep(500)
-                    setCategory(filter)
-                  }}
-                  className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-xs font-display font-bold transition-all cursor-pointer ${
+                  key={opt.id}
+                  onClick={() => setDietaryFilter(active ? null : opt.shortLabel)}
+                  className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors cursor-pointer ${
                     active
-                      ? 'bg-[#8F1414] text-white shadow-xs'
-                      : 'bg-secondary text-foreground/80 hover:bg-secondary hover:text-foreground border border-border/60'
+                      ? 'bg-[#8F1414] text-white'
+                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                   }`}
                 >
-                  <span>{icon}</span>
-                  <span>{filter}</span>
+                  <span>{opt.icon}</span>
+                  <span>{opt.shortLabel}</span>
                 </button>
               )
             })}
           </div>
         </div>
-
-        {/* Dietary Filter */}
-        <div className="flex flex-wrap items-center gap-1.5 pt-3 border-t border-border/60">
-          <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1 mr-1">
-            <Filter size={12} /> Dieta:
-          </span>
-          <button
-            type="button"
-            onClick={() => setDietaryFilter(null)}
-            className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors cursor-pointer ${
-              dietaryFilter === null ? 'bg-[#8F1414] text-white' : 'bg-secondary text-muted-foreground'
-            }`}
-          >
-            Cualquiera
-          </button>
-          {DIETARY_OPTIONS.slice(0, 5).map((opt) => {
-            const active = dietaryFilter === opt.shortLabel || dietaryFilter === opt.id
-            return (
-              <button
-                type="button"
-                key={opt.id}
-                onClick={() => setDietaryFilter(active ? null : opt.shortLabel)}
-                className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors cursor-pointer ${
-                  active
-                    ? 'bg-[#8F1414] text-white'
-                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                }`}
-              >
-                <span>{opt.icon}</span>
-                <span>{opt.shortLabel}</span>
-              </button>
-            )
-          })}
-        </div>
-      </div>
 
       {/* Products Grid */}
       {loading ? (
@@ -488,8 +528,8 @@ export function CatalogPage() {
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Costo de Domicilio:</span>
-                <span className="font-mono font-bold text-emerald-600">+$200 COP</span>
+                <span className="text-muted-foreground">Tarifa Domicilio Tendedero:</span>
+                <span className="font-mono font-bold text-primary">+${DELIVERY_FEE.toLocaleString('es-CO')} COP</span>
               </div>
 
               <div className="flex justify-between items-center pt-2 border-t border-border/60 font-bold text-sm">
@@ -511,23 +551,12 @@ export function CatalogPage() {
                 <Bike size={16} />
                 <span>Seguir Pedido en Mis Pedidos</span>
               </Link>
-
-              <button
-                type="button"
-                onClick={() => {
-                  const item = apartadoSuccess
-                  setApartadoSuccess(null)
-                  handleGoToChat(item)
-                }}
-                className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary py-3 text-xs font-display font-semibold text-foreground hover:bg-secondary/80 transition-colors"
-              >
-                <MessageCircle size={15} className="text-primary" />
-                <span>Chatear con el Cocinero</span>
-              </button>
             </div>
           </div>
         </div>
       )}
     </div>
-  )
+  </PageTransition>
+)
 }
+

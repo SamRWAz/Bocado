@@ -2,7 +2,8 @@ export function money(value: number) {
   return `$${value.toLocaleString('es-CO')}`
 }
 
-export function displaySeller(seller: string) {
+export function displaySeller(seller?: string | null) {
+  if (!seller) return ''
   return seller.split('::')[0] || seller
 }
 
@@ -10,13 +11,25 @@ export function encodeSeller(name: string, userId: string) {
   return `${name}::${userId}`
 }
 
-export function sellerUserId(seller: string) {
+export function sellerUserId(seller?: string | null) {
+  if (!seller) return ''
   const parts = seller.split('::')
   return parts.length > 1 ? parts[1] : seller
 }
 
-export function ownsListing(seller: string, userId: string, name: string) {
-  return seller === encodeSeller(name, userId) || seller.endsWith(`::${userId}`)
+export function ownsListing(seller?: string | null, userId?: string | null, name?: string | null): boolean {
+  if (!seller) return false
+  const s = seller.trim().toLowerCase()
+  const uId = (userId || '').trim().toLowerCase()
+  const uName = (name || '').trim().toLowerCase()
+
+  if (uId && s === uId) return true
+  if (uId && s.endsWith(`::${uId}`)) return true
+  if (uId && sellerUserId(seller).toLowerCase() === uId) return true
+  if (uName && uId && s === `${uName}::${uId}`) return true
+  if (uName && s === uName) return true
+  if (uName && displaySeller(seller).toLowerCase() === uName) return true
+  return false
 }
 
 export function initials(name: string) {

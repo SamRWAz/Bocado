@@ -11,7 +11,7 @@ export function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [campus, setCampus] = useState<(typeof CAMPUSES)[number]>(CAMPUSES[0])
-  const [role, setRole] = useState<UserRole>('ambos')
+  const [role, setRole] = useState<UserRole>('comprar')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -105,10 +105,10 @@ export function RegisterPage() {
                   onChange={(e) => setRole(e.target.value as UserRole)}
                   className={inputClass}
                 >
-                  <option value="ambos">Comprar, vender y repartir</option>
-                  <option value="tendedero">🛵 Tendedero (Repartidor en campus)</option>
-                  <option value="comprar">Solo comprar snacks</option>
-                  <option value="vender">Solo vender snacks</option>
+                  <option value="comprar">Comprar</option>
+                  <option value="vender">Vender</option>
+                  <option value="comprar_vender">Comprar y Vender (Ambos roles)</option>
+                  <option value="entregar">Entregar (Domiciliario independiente)</option>
                 </select>
               </div>
             </div>

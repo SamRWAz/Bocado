@@ -15,8 +15,10 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { Link, Navigate } from 'react-router-dom'
+import { PageTransition } from '../components/PageTransition'
 import { TagList } from '../components/TagList'
 import { canSell, useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import {
   deleteProduct,
   fetchProducts,
@@ -28,6 +30,7 @@ import {
 import { DIETARY_OPTIONS } from '../lib/campus'
 import { CATEGORIES, inputClass, labelClass } from '../lib/constants'
 import { encodeSeller, formatTime, joinTags, money, ownsListing, parseTags } from '../lib/format'
+import { calculateProductCommission } from '../lib/pricing'
 import { playKeyBeep, playPaymentSuccess } from '../lib/sounds'
 import { fetchOrders, subscribeToOrderUpdates } from '../lib/storage-db'
 import type { DietaryTag, Order, Product } from '../types'
@@ -43,6 +46,7 @@ const SAMPLE_PRESETS = [
 
 export function SellPage() {
   const { user } = useAuth()
+  const { bonus } = useToast()
   const [products, setProducts] = useState<Product[]>([])
   const [orders, setOrders] = useState<Order[]>([])
 
@@ -82,23 +86,27 @@ export function SellPage() {
   }
 
   const mine = products.filter((p) => ownsListing(p.seller, user.id, user.name))
+  const myProductIds = new Set(mine.map((p) => p.id))
+
   const mySellingOrders = orders.filter((order) => {
     if (!user) return false
     const sKey = order.sellerKey || ''
     const sName = (order.sellerName || '').trim().toLowerCase()
     const uName = (user.name || '').trim().toLowerCase()
     const uId = user.id.toLowerCase()
+    const matchesProduct = order.items?.some((item) => myProductIds.has(item.productId))
 
     return (
       sKey.toLowerCase().endsWith(`::${uId}`) ||
       sKey.toLowerCase() === uId ||
       sKey.toLowerCase() === uName ||
       sName === uName ||
+      matchesProduct ||
       ownsListing(order.sellerKey, user.id, user.name)
     )
   })
 
-  const pendingApartados = mySellingOrders.filter((o) => o.status === 'reservado')
+  const activeSellingOrders = mySellingOrders.filter((o) => o.status !== 'completado' && o.status !== 'cancelado')
 
   const onFile = (event: ChangeEvent<HTMLInputElement>) => {
     const next = event.target.files?.[0]
@@ -147,7 +155,7 @@ export function SellPage() {
       }
 
       const allCategoryTags = [...tags, ...dietary, `edif:${preferredBuilding}`]
-      const finalCatalogPrice = numPrice + 200
+      const finalCatalogPrice = numPrice
 
       const created = await insertProduct({
         name: name.trim(),
@@ -165,6 +173,7 @@ export function SellPage() {
       if (!created) throw new Error('No se pudo publicar el snack. Intenta de nuevo.')
 
       playPaymentSuccess()
+      bonus('¡Snack publicado con éxito!', `${name.trim()} ya está visible para todos los estudiantes en el catálogo.`)
       setPublishSuccess(true)
       setTimeout(() => setPublishSuccess(false), 3500)
 
@@ -229,7 +238,8 @@ export function SellPage() {
   })()
 
   return (
-    <div className="space-y-6 pb-12">
+    <PageTransition>
+      <div className="space-y-6 pb-12">
       {/* Header with quick stats */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -262,10 +272,10 @@ export function SellPage() {
         </div>
         <div className="rounded-2xl border border-border bg-card p-3.5 shadow-sm">
           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">
-            Apartados pendientes
+            Pedidos recibidos
           </span>
           <p className="mt-1 font-display text-xl font-black text-primary">
-            {pendingApartados.length}
+            {activeSellingOrders.length}
           </p>
         </div>
         <div className="rounded-2xl border border-border bg-card p-3.5 shadow-sm">
@@ -276,8 +286,8 @@ export function SellPage() {
         </div>
       </div>
 
-      {/* Pending Apartados Alert Banner */}
-      {pendingApartados.length > 0 && (
+      {/* Active Orders Alert Banner */}
+      {activeSellingOrders.length > 0 && (
         <div className="rounded-3xl border-2 border-primary/20 bg-card p-5 shadow-sm space-y-4 animate-fadeIn">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3.5">
@@ -286,25 +296,25 @@ export function SellPage() {
               </div>
               <div>
                 <h3 className="font-display font-black text-foreground text-base sm:text-lg">
-                  ¡Tienes {pendingApartados.length} apartado(s) nuevo(s) de compradores!
+                  ¡Tienes {activeSellingOrders.length} pedido(s) activo(s) de estudiantes!
                 </h3>
                 <p className="text-xs text-foreground/80 font-medium">
-                  Los estudiantes han solicitado tus snacks. Un Tendedero recogerá el pedido en tu punto de entrega para llevarlo al comprador.
+                  Los estudiantes han comprado tus snacks. Confirma tu ubicación para que el Tendedero recoja el producto y te entregue tu dinero.
                 </p>
               </div>
             </div>
 
             <Link
-              to="/pedidos"
+              to="/pedidos?tab=ventas"
               className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#8F1414] hover:bg-[#751010] px-4 py-2.5 text-xs font-display font-bold text-white shadow-xs transition-colors self-start sm:self-auto cursor-pointer"
             >
-              <span>Gestionar Apartados</span>
+              <span>Gestionar y Confirmar Ventas</span>
               <span>→</span>
             </Link>
           </div>
 
           <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 pt-1">
-            {pendingApartados.slice(0, 3).map((ord) => (
+            {activeSellingOrders.slice(0, 6).map((ord) => (
               <div
                 key={ord.id}
                 className="flex items-center justify-between rounded-2xl border border-border bg-secondary/70 p-3.5 text-xs shadow-xs"
@@ -315,6 +325,9 @@ export function SellPage() {
                   </span>
                   <span className="text-xs text-muted-foreground font-medium">
                     {ord.items.map((i) => `${i.qty}× ${i.name}`).join(', ')}
+                  </span>
+                  <span className="text-[10px] text-primary font-mono block mt-0.5">
+                    Estado: {ord.status}
                   </span>
                 </div>
                 <div className="text-right font-mono">
@@ -363,7 +376,7 @@ export function SellPage() {
             <CheckCircle2 size={20} className="shrink-0" />
             <div className="text-xs">
               <p className="font-bold font-display text-sm">¡Snack publicado con éxito en el catálogo!</p>
-              <p className="text-muted-foreground">Los estudiantes ya pueden verlo y apartarlo en campus.</p>
+              <p className="text-muted-foreground">Los estudiantes ya pueden verlo y pedirlo en campus.</p>
             </div>
           </div>
         )}
@@ -412,14 +425,24 @@ export function SellPage() {
                   />
                   {price && !isNaN(parseInt(price, 10)) && (
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md bg-primary/20 px-2 py-0.5 text-[10px] font-mono font-bold text-primary">
-                      {money(parseInt(price, 10) + 200)} COP
+                      {money(parseInt(price, 10))} COP
                     </span>
                   )}
                 </div>
                 {price && !isNaN(parseInt(price, 10)) && (
-                  <p className="mt-1.5 text-[11px] text-muted-foreground">
-                    Recibes: <strong className="text-foreground">{money(parseInt(price, 10))}</strong> + $200 (logística domiciliario en campus) = <strong className="text-primary font-bold">{money(parseInt(price, 10) + 200)}</strong> precio en catálogo.
-                  </p>
+                  <div className="mt-2 rounded-xl bg-secondary/80 p-2.5 text-[11px] border border-border/60 space-y-1 font-mono">
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Comisión plataforma Bocado:</span>
+                      <span className="text-destructive font-semibold">-{money(calculateProductCommission(parseInt(price, 10)))}</span>
+                    </div>
+                    <div className="flex justify-between text-foreground font-bold border-t border-border/50 pt-1">
+                      <span>Tu ganancia neta:</span>
+                      <span className="text-primary font-black">{money(parseInt(price, 10) - calculateProductCommission(parseInt(price, 10)))} COP</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground font-sans">
+                      Comisión justa de $100 a $500 COP según el valor para que tu producto no pierda valor.
+                    </p>
+                  </div>
                 )}
               </div>
 
@@ -671,12 +694,12 @@ export function SellPage() {
                       Precio
                     </span>
                     <p className="font-mono text-lg font-black text-primary">
-                      {price && !isNaN(parseInt(price, 10)) ? money(parseInt(price, 10) + 200) : '$0'}
+                      {price && !isNaN(parseInt(price, 10)) ? money(parseInt(price, 10)) : '$0'}
                     </p>
                   </div>
 
                   <span className="rounded-xl bg-[#8F1414] px-3.5 py-2 font-display text-xs font-bold text-white shadow-xs">
-                    Apartar
+                    Pedir
                   </span>
                 </div>
               </div>
@@ -771,7 +794,7 @@ export function SellPage() {
 
                 <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t border-border/40">
                   <span className="flex items-center gap-1">
-                    <Users size={13} className="text-primary" /> {product.intent_count || 0} apartados
+                    <Users size={13} className="text-primary" /> {product.intent_count || 0} pedidos
                   </span>
                   <Link
                     to={`/producto/${product.id}`}
@@ -785,6 +808,7 @@ export function SellPage() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </PageTransition>
   )
 }

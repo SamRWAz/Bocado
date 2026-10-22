@@ -5,7 +5,25 @@ import { signJwt, verifyJwt } from './jwt'
 import { findStoredUser, saveStoredUser } from './storage-db'
 import { supabase } from './supabase'
 
-const ROLES: UserRole[] = ['comprar', 'vender', 'tendedero', 'ambos', 'admin']
+export const ROLES: UserRole[] = ['comprar_vender', 'comprar', 'vender', 'entregar', 'admin']
+
+export const normalizeRole = (role?: string): UserRole => {
+  const r = (role || '').trim().toLowerCase()
+  if (
+    r === 'comprar_vender' ||
+    r === 'ambos' ||
+    r === 'ambos roles' ||
+    r === 'comprar y vender' ||
+    r === 'comprar_y_vender'
+  ) {
+    return 'comprar_vender'
+  }
+  if (r === 'comprar' || r === 'comprador') return 'comprar'
+  if (r === 'vender' || r === 'vendedor') return 'vender'
+  if (r === 'entregar' || r === 'tendedero' || r === 'repartidor') return 'entregar'
+  if (r === 'admin' || r === 'administrador') return 'admin'
+  return 'comprar'
+}
 
 const asUser = (input: {
   id: string
@@ -18,7 +36,7 @@ const asUser = (input: {
   email: input.email,
   name: input.name?.trim() || input.email.split('@')[0] || 'Bocado',
   campus: input.campus?.trim() || 'Icesi',
-  role: ROLES.includes(input.role as UserRole) ? (input.role as UserRole) : 'ambos',
+  role: normalizeRole(input.role),
 })
 
 const persist = (session: Session) => {
@@ -63,7 +81,10 @@ export async function restoreSession(): Promise<Session | null> {
   if (local) {
     if (local.source === 'local') {
       const valid = await verifyJwt(local.token)
-      return valid ? local : null
+      if (!valid) return null
+    }
+    if (local.user) {
+      local.user.role = normalizeRole(local.user.role)
     }
     return local
   }
@@ -161,27 +182,70 @@ export async function loginAccount(email: string, password: string) {
   if (hash !== stored.passwordHash) {
     throw new Error('Correo o contraseña incorrectos')
   }
-  return createLocalSession({
-    id: stored.id,
-    email: stored.email,
-    name: stored.name,
-    campus: stored.campus,
-    role: stored.role,
-  })
+  return createLocalSession(
+    asUser({
+      id: stored.id,
+      email: stored.email,
+      name: stored.name,
+      campus: stored.campus,
+      role: stored.role,
+    }),
+  )
 }
 
 export async function updateAccount(user: AuthUser) {
+  const normalizedUser: AuthUser = {
+    ...user,
+    role: normalizeRole(user.role),
+  }
   const stored = await findStoredUser(user.email)
   if (stored) {
-    await saveStoredUser({ ...stored, ...user })
+    await saveStoredUser({ ...stored, ...normalizedUser })
   }
   const session = readSession()
   if (!session) return null
-  if (session.source === 'local') return createLocalSession(user)
-  return persist({ ...session, user })
+  if (session.source === 'local') return createLocalSession(normalizedUser)
+  return persist({ ...session, user: normalizedUser })
+}
+
+export async function loginDemoUser(role: UserRole = 'comprar') {
+  const demos: Record<string, { id: string; name: string; email: string; role: UserRole; campus: string }> = {
+    comprar: {
+      id: 'demo-buyer-sofia',
+      name: 'Sofía Gómez (Compradora)',
+      email: 'sofia.gomez@icesi.edu.co',
+      role: 'comprar',
+      campus: 'Universidad Icesi',
+    },
+    vender: {
+      id: 'demo-seller-valentina',
+      name: 'Chef Valentina (Vendedora)',
+      email: 'valentina.bocados@icesi.edu.co',
+      role: 'vender',
+      campus: 'Universidad Icesi',
+    },
+    comprar_vender: {
+      id: 'demo-user-alejandro',
+      name: 'Alejandro Campus (Comprar y Vender)',
+      email: 'alejandro.demo@icesi.edu.co',
+      role: 'comprar_vender',
+      campus: 'Universidad Icesi',
+    },
+    entregar: {
+      id: 'demo-tendedero-mateo',
+      name: 'Mateo Rivas (Tendedero / Entregar)',
+      email: 'mateo.tendedero@icesi.edu.co',
+      role: 'entregar',
+      campus: 'Universidad Icesi',
+    },
+  }
+
+  const selected = demos[role] || demos.comprar
+  return createLocalSession(asUser(selected))
 }
 
 export async function logoutAccount() {
   localStorage.removeItem(SESSION_KEY)
   await supabase.auth.signOut()
 }
+

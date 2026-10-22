@@ -1,23 +1,24 @@
 import {
   ArrowLeft,
   Bike,
-  BookmarkCheck,
+  CheckCircle2,
   Flame,
   MapPin,
-  MessageCircle,
   Receipt,
-  Store,
+  ShoppingCart,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { PageTransition } from '../components/PageTransition'
 import { TagList } from '../components/TagList'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
+import { useToast } from '../context/ToastContext'
 import { fetchProduct, incrementMetric, updateProduct } from '../lib/api'
-import { sendMessage } from '../lib/chat'
-import { DELIVERY_FEE, PICKUP_POINTS } from '../lib/constants'
+import { PICKUP_POINTS } from '../lib/constants'
 import { displaySeller, initials, money, ownsListing, parseTags, productDescription, sellerUserId } from '../lib/format'
-import { playPaymentSuccess } from '../lib/sounds'
+import { computeOrderFinancials } from '../lib/pricing'
+import { playKeyBeep, playPaymentSuccess } from '../lib/sounds'
 import { saveOrder } from '../lib/storage-db'
 import type { Order, Product } from '../types'
 
@@ -25,34 +26,46 @@ export function ProductDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
   const { add } = useCart()
+  const { success, bonus } = useToast()
   const navigate = useNavigate()
 
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [qty, setQty] = useState(1)
   const [deliveryLocation, setDeliveryLocation] = useState<string>(PICKUP_POINTS[0] || 'Edificio D (Plazoleta / Pisos)')
-  const [apartadoDone, setApartadoDone] = useState(false)
-  const [apartadoOrderId, setApartadoOrderId] = useState<string | null>(null)
+  const [orderDone, setOrderDone] = useState(false)
   const [confirmedTotal, setConfirmedTotal] = useState(0)
-  const [isApartando, setIsApartando] = useState(false)
+  const [isOrdering, setIsOrdering] = useState(false)
 
   useEffect(() => {
     if (!id) return
-    void fetchProduct(id).then((p) => {
-      setProduct(p)
-      setLoading(false)
-    })
+    let active = true
+    setLoading(true)
+    fetchProduct(id)
+      .then((p) => {
+        if (active) setProduct(p)
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => {
+      active = false
+    }
   }, [id])
 
   if (loading) {
-    return <p className="py-20 text-center text-sm text-muted-foreground animate-pulse">Cargando snack...</p>
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    )
   }
 
   if (!product) {
     return (
-      <div className="py-20 text-center space-y-3">
-        <p className="font-display text-lg font-bold">Snack no encontrado</p>
-        <Link to="/catalogo" className="inline-block rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground">
+      <div className="py-16 text-center space-y-4">
+        <p className="font-display text-xl font-bold">Snack no encontrado</p>
+        <Link to="/catalogo" className="inline-block rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white">
           Volver al catálogo
         </Link>
       </div>
@@ -62,31 +75,28 @@ export function ProductDetailPage() {
   const sellerId = sellerUserId(product.seller)
   const sellerName = displaySeller(product.seller)
   const isMyProduct = user ? ownsListing(product.seller, user.id, user.name) : false
-  const isLowStock = product.stock > 0 && product.stock <= 3
 
-  const handleApartar = async () => {
+  const financials = computeOrderFinancials([{ price: product.price, qty }])
+
+  const handleOrderWithDelivery = async () => {
+    if (isMyProduct) return
     if (!user) {
       navigate('/login', { state: { from: `/producto/${product.id}` } })
       return
     }
 
-    setIsApartando(true)
+    setIsOrdering(true)
     try {
       playPaymentSuccess()
-      const orderId = crypto.randomUUID()
-      const itemsTotal = product.price * qty
-      const deliveryFee = DELIVERY_FEE // 200 COP
-      const orderTotal = itemsTotal + deliveryFee
-      const commission = Math.round(itemsTotal * 0.05)
-      const netRevenue = itemsTotal - commission
-      const finalLoc = deliveryLocation.trim() || 'Edificio D (Plazoleta / Pisos)'
+      const orderId = `order_${Date.now()}`
+      const finalLoc = deliveryLocation.trim() || 'Campus Icesi'
 
-      const order: Order = {
+      const newOrder: Order = {
         id: orderId,
         buyerId: user.id,
         buyerName: user.name,
         buyerEmail: user.email,
-        sellerKey: product.seller,
+        sellerKey: sellerId,
         sellerName,
         items: [
           {
@@ -97,62 +107,44 @@ export function ProductDetailPage() {
             image_url: product.image_url,
           },
         ],
-        total: orderTotal,
+        total: financials.totalBuyerPays,
         pickup: `Edificio ${product.preferredBuilding || 'D'}`,
         deliveryLocation: finalLoc,
-        deliveryFee,
+        deliveryFee: financials.deliveryFee,
         note: '',
         status: 'solicitado',
         createdAt: new Date().toISOString(),
         isGuaranteed: false,
-        platformCommission: commission,
-        sellerNetRevenue: netRevenue,
+        platformCommission: financials.bocadoCommission,
+        sellerNetRevenue: financials.vendorPayout,
+        buyerBuilding: finalLoc,
+        sellerBuilding: product.preferredBuilding ? `Edificio ${product.preferredBuilding}` : 'Punto por confirmar por vendedor',
+        sellerBuildingConfirmed: false,
+        bocadoCommission: financials.bocadoCommission,
+        vendorPayout: financials.vendorPayout,
+        tendederoPayout: financials.tendederoReimbursementAndFee,
         tendederoConfirmed: false,
         buyerConfirmed: false,
         sellerPaidConfirmed: false,
       }
 
-      await saveOrder(order)
+      await saveOrder(newOrder)
 
-      await sendMessage({
-        conversationId: `order_${orderId}`,
-        senderId: user.id,
-        senderName: user.name,
-        recipientId: sellerId,
-        recipientName: sellerName,
-        orderId,
-        productId: product.id,
-        productName: product.name,
-        text: `👋 ¡Hola ${sellerName}! He solicitado ${qty}x ${product.name} (${money(itemsTotal)}) con domicilio a ${finalLoc}. Un Tendedero recogerá el snack en Edificio ${product.preferredBuilding || 'D'}.`,
-        messageType: 'text',
-      })
-
-      add(product, qty)
       void updateProduct(product.id, { intent_count: product.intent_count + qty })
       void incrementMetric('total_intents')
-      setApartadoOrderId(orderId)
-      setConfirmedTotal(orderTotal)
-      setApartadoDone(true)
+      setConfirmedTotal(financials.totalBuyerPays)
+      setOrderDone(true)
+      bonus('¡Pedido Creado!', `${qty}x ${product.name} solicitado. Notificando al vendedor y a los Tendederos disponibles.`)
     } finally {
-      setIsApartando(false)
+      setIsOrdering(false)
     }
   }
 
-  const handleStartChat = () => {
-    if (!user) {
-      navigate('/login', { state: { from: `/producto/${product.id}` } })
-      return
-    }
-    if (isMyProduct) {
-      navigate('/vender')
-      return
-    }
-    const convQuery = apartadoOrderId ? `conv=order_${apartadoOrderId}&orderId=${apartadoOrderId}&` : ''
-    navigate(
-      `/mensajes?${convQuery}partnerId=${encodeURIComponent(sellerId)}&partnerName=${encodeURIComponent(
-        sellerName,
-      )}&productId=${encodeURIComponent(product.id)}&productName=${encodeURIComponent(product.name)}`,
-    )
+  const handleAddToCart = () => {
+    if (isMyProduct) return
+    playKeyBeep(720)
+    add(product, qty)
+    success('¡Agregado al carrito!', `${qty}x ${product.name} agregado. Puedes completar tu pedido en cualquier momento.`)
   }
 
   const displayImage = (() => {
@@ -172,214 +164,195 @@ export function ProductDetailPage() {
       return '/images/real_cookies.jpg'
     }
     if (nameLower.includes('rollo') || nameLower.includes('canela')) return '/images/real_cinnamon_roll.jpg'
-    if (nameLower.includes('cheesecake') || nameLower.includes('torta')) return '/images/real_cheesecake.jpg'
     return '/images/real_brownie.jpg'
   })()
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6">
-      <Link
-        to="/catalogo"
-        className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ArrowLeft size={16} />
-        Volver al catálogo de snacks
-      </Link>
+    <PageTransition>
+      <div className="mx-auto max-w-4xl space-y-6">
+        <Link
+          to="/catalogo"
+          className="inline-flex items-center gap-1.5 text-xs font-display font-semibold text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft size={16} />
+          <span>Volver al catálogo</span>
+        </Link>
 
-      <div className="grid gap-8 rounded-3xl border border-border/80 bg-card p-6 shadow-xl lg:grid-cols-2 lg:p-8">
-        {/* Left Column: Image */}
-        <div className="relative overflow-hidden rounded-2xl bg-secondary/50 border border-border/50">
-          <img
-            src={displayImage}
-            alt={product.name}
-            className="h-80 w-full object-cover sm:h-96 rounded-2xl"
-          />
-
-          {isLowStock && (
-            <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-rose-500 px-3 py-1 text-xs font-bold text-white shadow-lg animate-pulse">
-              <Flame size={14} /> ¡Últimas {product.stock} unidades!
-            </div>
-          )}
-        </div>
-
-        {/* Right Column: Info & Actions */}
-        <div className="flex flex-col justify-between space-y-5">
+        <div className="grid gap-8 md:grid-cols-2">
+          {/* Imagen de fotografía real */}
           <div className="space-y-4">
-            {/* Seller Header Box */}
-            <div className="flex items-center justify-between rounded-2xl border border-border bg-secondary/50 p-3.5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 font-display text-sm font-bold text-primary">
-                  {initials(sellerName)}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-display text-sm font-bold">{sellerName}</span>
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                      Cocinero Universitario
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                    <Store size={12} className="text-primary" />
-                    <span>Emprendedor del Campus Icesi</span>
-                  </p>
-                </div>
+            <div className="relative aspect-square w-full overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+              <img
+                src={displayImage}
+                alt={product.name}
+                className="h-full w-full object-cover"
+              />
+              {product.stock <= 3 && product.stock > 0 && (
+                <span className="absolute bottom-3 left-3 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-white shadow-md flex items-center gap-1.5 animate-pulse">
+                  <Flame size={14} className="text-amber-300" /> ¡Solo quedan {product.stock} unidades!
+                </span>
+              )}
+            </div>
+
+            {/* Cocinero Card */}
+            <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 font-display font-black text-primary text-base">
+                {initials(sellerName)}
+              </span>
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
+                  Elaborado en Campus por
+                </span>
+                <p className="font-display font-bold text-sm text-foreground truncate">{sellerName}</p>
+                <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                  <MapPin size={12} className="text-primary" /> Punto de recogida: Edificio {product.preferredBuilding || 'D'}
+                </span>
               </div>
-
-              <button
-                type="button"
-                onClick={handleStartChat}
-                className="flex items-center gap-1.5 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-xs font-display font-bold text-primary hover:bg-primary hover:text-primary-foreground transition-all"
-              >
-                <MessageCircle size={14} />
-                <span>{isMyProduct ? 'Mi Panel' : 'Chatear'}</span>
-              </button>
-            </div>
-
-            {/* Title & Description */}
-            <div>
-              <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
-                {product.name}
-              </h1>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {productDescription(product)}
-              </p>
-            </div>
-
-            {/* Dietary Tags */}
-            <div>
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1.5 font-mono">
-                Etiquetas e ingredientes
-              </span>
-              <TagList tags={parseTags(product.category)} size="md" />
-            </div>
-
-            {/* Price & Stock */}
-            <div className="flex items-baseline gap-3 pt-2">
-              <span className="font-display text-3xl font-extrabold text-primary">{money(product.price)}</span>
-              <span className="text-xs text-muted-foreground">
-                {product.stock > 0 ? `${product.stock} disponibles en campus` : 'Agotado por hoy'}
-              </span>
             </div>
           </div>
 
-          {/* Quantity and Order CTAs */}
-          <div className="border-t border-border pt-5 space-y-4">
-            <div className="flex items-center gap-4">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground font-mono">
-                Cantidad:
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setQty((n) => Math.max(1, n - 1))}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-sm font-bold hover:bg-secondary/80 active:scale-95"
-                >
-                  -
-                </button>
-                <span className="min-w-8 text-center font-display text-base font-bold">{qty}</span>
-                <button
-                  type="button"
-                  onClick={() => setQty((n) => Math.min(product.stock, n + 1))}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-sm font-bold hover:bg-secondary/80 active:scale-95"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* Delivery Location Selector */}
-            <div className="space-y-1.5 pt-2 border-t border-border/60">
-              <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                <MapPin size={14} className="text-primary" /> ¿Dónde te encuentras en el campus para la entrega?
-              </label>
-              <select
-                value={deliveryLocation}
-                onChange={(e) => setDeliveryLocation(e.target.value)}
-                className="w-full rounded-xl border border-border bg-card px-3 py-2.5 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary"
-              >
-                {PICKUP_POINTS.map((pt) => (
-                  <option key={pt} value={pt}>
-                    {pt}
-                  </option>
-                ))}
-                <option value="Biblioteca Central - Piso 2">Biblioteca Central - Piso 2</option>
-                <option value="Edificio E (Ingeniería) - Aulas">Edificio E (Ingeniería) - Aulas</option>
-                <option value="El Samán - Bancas exteriores">El Samán - Bancas exteriores</option>
-              </select>
-            </div>
-
-            {/* Transparent Receipt Breakdown */}
-            <div className="rounded-2xl bg-secondary/60 p-3.5 space-y-1.5 text-xs border border-border/60">
-              <div className="flex justify-between text-muted-foreground">
-                <span>Subtotal snacks ({qty} uds):</span>
-                <span className="font-mono font-semibold">{money(product.price * qty)}</span>
-              </div>
-              <div className="flex justify-between text-muted-foreground">
-                <span className="flex items-center gap-1 text-primary font-medium">
-                  <Bike size={13} /> Envío Tendedero en campus:
+          {/* Información del snack y acciones */}
+          <div className="flex flex-col justify-between space-y-6">
+            <div className="space-y-4">
+              <div>
+                <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-mono font-bold text-primary uppercase">
+                  {product.category || 'Snack Casero'}
                 </span>
-                <span className="font-mono font-bold text-primary">+{money(DELIVERY_FEE)} COP</span>
-              </div>
-              <div className="flex justify-between font-bold text-foreground pt-1.5 border-t border-border/60 text-sm">
-                <span>Total a pagar:</span>
-                <span className="font-mono text-primary font-extrabold">
-                  {money(product.price * qty + DELIVERY_FEE)}
-                </span>
-              </div>
-            </div>
-
-            {apartadoDone ? (
-              <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 p-4 space-y-3 animate-fadeIn text-center">
-                <div className="flex items-center justify-center gap-2 text-emerald-600 dark:text-emerald-400 font-display font-bold text-sm">
-                  <Receipt size={18} />
-                  <span>¡Solicitud de Entrega Campus Creada!</span>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Tu pedido de <strong>{qty}x {product.name}</strong> por <strong>{money(confirmedTotal)}</strong> fue emitido a los Tendederos. Te lo llevarán a <strong>{deliveryLocation}</strong>.
+                <h1 className="mt-2 font-display text-2xl font-black text-foreground sm:text-3xl">
+                  {product.name}
+                </h1>
+                <p className="mt-2 text-2xl font-black font-mono text-primary">
+                  {money(product.price)}
                 </p>
-                <div className="flex gap-2 pt-1">
+              </div>
+
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {productDescription(product)}
+              </p>
+
+              <TagList tags={parseTags(product.category)} />
+
+              {/* Selector de cantidad */}
+              <div className="flex items-center justify-between rounded-2xl border border-border bg-card p-4">
+                <span className="text-xs font-bold font-display">Cantidad a ordenar</span>
+                <div className="flex items-center gap-3">
                   <button
                     type="button"
-                    onClick={handleStartChat}
-                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-primary hover:bg-[#751010] py-2.5 text-xs font-display font-bold text-white shadow-xs transition-colors cursor-pointer"
+                    onClick={() => setQty(Math.max(1, qty - 1))}
+                    disabled={qty <= 1}
+                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-sm font-bold hover:bg-secondary/80 active:scale-95 disabled:opacity-40"
                   >
-                    <MessageCircle size={14} />
-                    <span>Chatear con el Cocinero</span>
+                    -
                   </button>
-                  <Link
-                    to="/pedidos"
-                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-border bg-secondary py-2.5 text-xs font-display font-semibold text-foreground hover:bg-secondary/80"
+                  <span className="font-mono text-sm font-black w-6 text-center">{qty}</span>
+                  <button
+                    type="button"
+                    onClick={() => setQty(Math.min(product.stock || 10, qty + 1))}
+                    disabled={qty >= (product.stock || 10)}
+                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary text-sm font-bold hover:bg-secondary/80 active:scale-95 disabled:opacity-40"
                   >
-                    <BookmarkCheck size={14} className="text-primary" />
-                    <span>Ver Mis Pedidos</span>
-                  </Link>
+                    +
+                  </button>
                 </div>
               </div>
-            ) : (
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <button
-                  type="button"
-                  disabled={isApartando || product.sold_out || product.stock <= 0}
-                  onClick={() => void handleApartar()}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-primary hover:bg-[#751010] py-4 font-display text-sm font-bold text-white shadow-md transition-transform active:scale-95 disabled:opacity-40 cursor-pointer"
+
+              {/* Selector de Edificio / Ubicación del Comprador */}
+              <div className="space-y-1.5 pt-2 border-t border-border/60">
+                <label className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <MapPin size={14} className="text-primary" /> ¿En qué edificio te encuentras para la entrega?
+                </label>
+                <select
+                  value={deliveryLocation}
+                  onChange={(e) => setDeliveryLocation(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-card px-3 py-2.5 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary"
                 >
-                  <Bike size={18} />
-                  {isApartando ? 'Creando pedido...' : `Pedir con Domicilio (${money(product.price * qty + DELIVERY_FEE)})`}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleStartChat}
-                  className="flex items-center justify-center gap-2 rounded-2xl bg-secondary px-6 py-4 font-display text-sm font-semibold text-foreground hover:bg-secondary/80 transition-colors cursor-pointer"
-                >
-                  <MessageCircle size={18} />
-                  <span>Chatear</span>
-                </button>
+                  {PICKUP_POINTS.map((pt) => (
+                    <option key={pt} value={pt}>
+                      {pt}
+                    </option>
+                  ))}
+                  <option value="Biblioteca Central - Sala de Estudio">Biblioteca Central - Sala de Estudio</option>
+                  <option value="Edificio E (Ingeniería) - Aulas">Edificio E (Ingeniería) - Aulas</option>
+                  <option value="Edificio D - Plazoleta Central">Edificio D - Plazoleta Central</option>
+                  <option value="El Samán - Zonas Verdes">El Samán - Zonas Verdes</option>
+                </select>
               </div>
-            )}
+
+              {/* Desglose Transparente de la Operación */}
+              <div className="rounded-2xl bg-secondary/60 p-4 space-y-2 text-xs border border-border/60">
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Subtotal snack ({qty} uds):</span>
+                  <span className="font-mono font-semibold">{money(financials.itemsSubtotal)}</span>
+                </div>
+                <div className="flex justify-between text-muted-foreground">
+                  <span className="flex items-center gap-1 text-primary font-medium">
+                    <Bike size={13} /> Domicilio por distancia ($100 - $500):
+                  </span>
+                  <span className="font-mono font-bold text-emerald-600">
+                    +{money(financials.deliveryFee)} COP
+                  </span>
+                </div>
+                <div className="flex justify-between text-muted-foreground text-[11px]">
+                  <span>Tarifa de servicio plataforma:</span>
+                  <span className="font-mono">{money(financials.bocadoCommission)} COP</span>
+                </div>
+                <div className="flex justify-between font-bold text-foreground pt-2 border-t border-border/60 text-sm">
+                  <span>Total a pagar:</span>
+                  <span className="font-mono text-primary font-black">
+                    {money(financials.totalBuyerPays)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Mensaje si el usuario es el propio vendedor */}
+              {isMyProduct ? (
+                <div className="rounded-2xl border border-amber-300 bg-amber-50 dark:bg-amber-950/40 p-4 text-xs font-semibold text-amber-800 dark:text-amber-200 text-center">
+                  Eres el vendedor de este producto. La plataforma no permite comprar tus propias publicaciones.
+                </div>
+              ) : orderDone ? (
+                <div className="rounded-2xl border-2 border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 p-4 space-y-3 animate-fadeIn text-center">
+                  <div className="flex items-center justify-center gap-2 text-emerald-700 dark:text-emerald-400 font-display font-bold text-sm">
+                    <CheckCircle2 size={18} />
+                    <span>¡Pedido Solicitado con Éxito!</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Tu orden de <strong>{qty}x {product.name}</strong> por <strong>{money(confirmedTotal)}</strong> fue registrada. Un Tendedero la tomará para llevártela a <strong>{deliveryLocation}</strong>.
+                  </p>
+                  <Link
+                    to="/pedidos"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-xs font-display font-bold text-white shadow-xs"
+                  >
+                    <Receipt size={14} />
+                    <span>Ver Estado de Mi Pedido</span>
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <button
+                    type="button"
+                    disabled={isOrdering || product.sold_out || product.stock <= 0}
+                    onClick={() => void handleOrderWithDelivery()}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-primary hover:bg-[#751010] py-3.5 font-display text-xs sm:text-sm font-bold text-white shadow-md active:scale-95 disabled:opacity-40 cursor-pointer transition-all"
+                  >
+                    <Bike size={16} />
+                    <span>{isOrdering ? 'Procesando...' : `Pedir con Domicilio (${money(financials.totalBuyerPays)})`}</span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={product.sold_out || product.stock <= 0}
+                    onClick={handleAddToCart}
+                    className="flex items-center justify-center gap-2 rounded-2xl border border-border bg-card hover:bg-secondary px-5 py-3.5 font-display text-xs font-bold text-foreground transition-all active:scale-95 cursor-pointer shadow-xs"
+                    title="Añadir al carrito"
+                  >
+                    <ShoppingCart size={16} className="text-primary" />
+                    <span>Agregar al Carrito</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </PageTransition>
   )
 }
-

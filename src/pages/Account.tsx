@@ -7,7 +7,7 @@ export function AccountPage() {
   const { user, updateProfile, logout } = useAuth()
   const [name, setName] = useState(user?.name ?? '')
   const [campus, setCampus] = useState(user?.campus ?? CAMPUSES[0])
-  const [role, setRole] = useState<UserRole>(user?.role ?? 'ambos')
+  const [role, setRole] = useState<UserRole>(user?.role ?? 'comprar_vender')
   const [saved, setSaved] = useState(false)
 
   if (!user) return null
@@ -41,12 +41,13 @@ export function AccountPage() {
           </select>
         </div>
         <div>
-          <label className={labelClass}>Rol</label>
           <select value={role} onChange={(e) => setRole(e.target.value as UserRole)} className={inputClass}>
-            <option value="ambos">Comprar y vender</option>
-            <option value="comprar">Solo comprar</option>
-            <option value="vender">Solo vender</option>
-            <option value="admin">Admin</option>
+            <option value="comprar">Comprar</option>
+            <option value="vender">Vender</option>
+            <option value="comprar_vender">Comprar y Vender (Ambos roles)</option>
+            <option value="ambos">Ambos roles (Comprar y Vender)</option>
+            <option value="entregar">Entregar (Domiciliario)</option>
+            <option value="admin">Administrador</option>
           </select>
         </div>
         {saved && <p className="text-sm text-primary">Cambios guardados</p>}

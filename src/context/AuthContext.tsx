@@ -1,12 +1,13 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { AuthUser, Session, UserRole } from '../types'
-import { loginAccount, logoutAccount, registerAccount, restoreSession, updateAccount } from '../lib/auth'
+import { loginAccount, loginDemoUser, logoutAccount, registerAccount, restoreSession, updateAccount } from '../lib/auth'
 
 type AuthContextValue = {
   session: Session | null
   user: AuthUser | null
   loading: boolean
   login: (email: string, password: string) => Promise<void>
+  loginDemo: (role?: UserRole) => Promise<void>
   register: (input: {
     name: string
     email: string
@@ -45,6 +46,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login: async (email, password) => {
         setSession(await loginAccount(email, password))
       },
+      loginDemo: async (role = 'comprar_vender') => {
+        setSession(await loginDemoUser(role))
+      },
       register: async (input) => {
         setSession(await registerAccount(input))
       },
@@ -69,18 +73,19 @@ export function useAuth() {
   return ctx
 }
 
-export function canSell(role?: UserRole) {
-  return role === 'vender' || role === 'ambos' || role === 'admin'
+export function canSell(role?: UserRole | string) {
+  return role === 'vender' || role === 'comprar_vender' || role === 'ambos' || role === 'admin'
 }
 
-export function canBuy(role?: UserRole) {
-  return role === 'comprar' || role === 'ambos' || role === 'admin'
+export function canBuy(role?: UserRole | string) {
+  return role === 'comprar' || role === 'comprar_vender' || role === 'ambos' || role === 'admin'
 }
 
-export function isTendedero(role?: UserRole) {
-  return role === 'tendedero' || role === 'ambos' || role === 'admin'
+export function isTendedero(role?: UserRole | string) {
+  // Estrictamente domiciliarios externos dedicados a entregas
+  return role === 'entregar' || role === 'tendedero' || role === 'admin'
 }
 
-export function isAdmin(role?: UserRole) {
+export function isAdmin(role?: UserRole | string) {
   return role === 'admin'
 }

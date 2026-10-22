@@ -1,7 +1,8 @@
-import { BookmarkCheck } from 'lucide-react'
+import { ShoppingCart } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
 import { canSell, useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
+import { BrandMark } from '../BrandMark'
 import { ThemeToggle } from '../ThemeToggle'
 
 function SectionNav() {
@@ -38,11 +39,8 @@ export function PublicHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link
-          to="/"
-          className="font-display text-2xl font-medium tracking-tight text-foreground hover:text-primary transition-colors"
-        >
-          Bocado
+        <Link to="/" className="flex items-center">
+          <BrandMark size="sm" />
         </Link>
         <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
           <SectionNav />
@@ -53,10 +51,10 @@ export function PublicHeader() {
             to="/carrito"
             className="relative flex items-center gap-1.5 rounded-xl bg-secondary/60 px-3 py-2 text-xs sm:text-sm font-display font-semibold text-foreground hover:bg-secondary transition-colors"
           >
-            <BookmarkCheck size={16} className="text-primary" />
-            <span className="hidden sm:inline">Apartados</span>
+            <ShoppingCart size={16} className="text-primary" />
+            <span className="hidden sm:inline">Carrito</span>
             {count > 0 && (
-              <span className="min-w-5 rounded-full bg-primary px-1.5 py-0.2 text-center text-[10px] font-bold text-primary-foreground animate-pulse">
+              <span className="min-w-5 rounded-full bg-primary px-1.5 py-0.2 text-center text-[10px] font-bold text-primary-foreground">
                 {count}
               </span>
             )}

@@ -12,20 +12,30 @@ export const CATEGORIES = [
 
 export const FILTERS = ['Todos', ...CATEGORIES] as const
 
-export const PICKUP_POINTS = [
-  'Edificio D (Plazoleta / Pisos)',
-  'El Samán',
-  'Biblioteca Central',
-  'Cafetería Central',
-  'Edificio E (Ingeniería)',
-  'Plazoleta Las Palmas',
+export const CAMPUS_BUILDINGS = [
+  'Edificio M',
+  'Edificio A',
+  'Edificio B',
   'Edificio C (Aulas)',
+  'Edificio D (Plazoleta / Pisos)',
+  'Edificio E (Ingeniería)',
   'Edificio F',
-  'Portería Principal',
+  'Edificio G',
+  'Bienestar',
+  'Biblioteca Central',
+  'Caballerizas',
+  'Edificio N',
+  'Edificio L',
+  'Cafetería Central',
+  'Auditorios',
+  'Coliseo',
 ] as const
 
+export const PICKUP_POINTS = CAMPUS_BUILDINGS
+
+export const DEFAULT_DELIVERY_FEE = 200
 export const DELIVERY_FEE = 200
-export const GUARANTEED_RESERVE_FEE = 200
+export const GUARANTEED_RESERVE_FEE = 0
 
 export const CAMPUSES = ['Universidad Icesi', 'Javeriana Cali', 'Univalle', 'USC', 'Autónoma'] as const
 
