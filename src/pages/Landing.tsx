@@ -230,7 +230,7 @@ export function LandingPage() {
       {/* 4. CALL TO ACTION & FOOTER                                */}
       {/* ========================================================= */}
       <footer className="bg-[#1C1816] text-[#FAF6F0] py-16 px-4 sm:px-8 lg:px-12">
-        <div className="max-w-5xl mx-auto space-y-12">
+        <div className="max-w-5xl mx-auto">
           <div className="rounded-3xl border border-white/10 bg-[#26201C] p-8 sm:p-12 text-center space-y-6">
             <h3 className="font-display text-3xl sm:text-4xl font-black text-white">
               ¿Listo para pedir tu primer antojo?
@@ -251,19 +251,6 @@ export function LandingPage() {
               >
                 Crear Cuenta Gratuita
               </Link>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-6 border-t border-white/10 text-xs font-mono text-neutral-400">
-            <div>
-              <p className="font-display font-bold text-white text-sm">Bocado Marketplace</p>
-              <p className="text-[11px] mt-0.5">Micro-comercio universitario · Universidad Icesi · Cali, Colombia</p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-6">
-              <Link to="/catalogo" className="hover:text-white transition-colors">Catálogo</Link>
-              <Link to="/vender" className="hover:text-white transition-colors">Vender</Link>
-              <Link to="/pedidos" className="hover:text-white transition-colors">Pedidos</Link>
             </div>
           </div>
         </div>
