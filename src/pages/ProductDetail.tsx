@@ -205,7 +205,7 @@ export function ProductDetailPage() {
                 </span>
                 <p className="font-display font-bold text-sm text-foreground truncate">{sellerName}</p>
                 <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                  <MapPin size={12} className="text-primary" /> Punto de recogida: Edificio {product.preferredBuilding || 'D'}
+                  Vendedor móvil en campus Icesi
                 </span>
               </div>
             </div>

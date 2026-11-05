@@ -1,11 +1,10 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Flame, MapPin, ShoppingCart, Star } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { displaySeller, money, ownsListing, parseTags } from '../lib/format'
+import { displaySeller, money, ownsListing } from '../lib/format'
 import { playKeyBeep } from '../lib/sounds'
 import type { Product } from '../types'
-import { TagList } from './TagList'
 
 type Props = {
   product: Product
@@ -17,15 +16,14 @@ export function ProductCard({ product, onApartar }: Props) {
 
   const sellerName = displaySeller(product.seller)
   const isMyProduct = user ? ownsListing(product.seller, user.id, user.name) : false
-  const isLowStock = product.stock > 0 && product.stock <= 3
 
-  // Map product image to real appetizing photography
+  // Resolved clean appetizing photography
   const displayImage = (() => {
     const raw = product.image_url
     if (raw && !raw.includes('snack_anime') && (raw.startsWith('http') || raw.startsWith('/images/real_'))) {
       return raw
     }
-    const nameLower = (product.name + ' ' + (product.category || '')).toLowerCase()
+    const nameLower = product.name.toLowerCase()
     if (nameLower.includes('brownie') || nameLower.includes('chocolate')) return '/images/real_brownie.jpg'
     if (nameLower.includes('parfait') || nameLower.includes('yogur') || nameLower.includes('chia') || nameLower.includes('fruta')) {
       return '/images/real_parfait.jpg'
@@ -42,117 +40,75 @@ export function ProductCard({ product, onApartar }: Props) {
     return '/images/real_brownie.jpg'
   })()
 
-  // Freshness & specialty badge helper
-  const getBadge = () => {
-    const n = (product.name + ' ' + (product.category || '')).toLowerCase()
-    if (n.includes('brownie')) return { label: '🔥 Más pedido', cls: 'badge-bakery-strawberry' }
-    if (n.includes('parfait') || n.includes('fruta')) return { label: '🍓 Fruta fresca', cls: 'badge-bakery-strawberry' }
-    if (n.includes('empanada')) return { label: '🥟 Recién horneado', cls: 'badge-bakery-strawberry' }
-    if (n.includes('galleta')) return { label: '🍪 100% Casero', cls: 'badge-bakery-strawberry' }
-    if (n.includes('matcha') || n.includes('vegano')) return { label: '🌿 Artesanal', cls: 'badge-bakery-neutral' }
-    return { label: '✨ Elaboración de hoy', cls: 'badge-bakery-strawberry' }
-  }
-
-  const badge = getBadge()
-  const building = product.preferredBuilding || 'D'
-
-  const handleActionClick = () => {
-    if (isMyProduct) return
+  const handleActionClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (isMyProduct || product.sold_out || product.stock <= 0) return
     playKeyBeep(720)
     onApartar(product)
   }
 
   return (
     <motion.article
-      whileHover={{ y: -4 }}
-      transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-      className="food-card-hover group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card p-4 shadow-sm hover:shadow-lg transition-shadow"
+      whileHover={{ y: -6 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-[#E5DFD7] dark:border-[#2C2420] bg-white dark:bg-[#1E1917] p-3.5 transition-all shadow-xs hover:shadow-md"
     >
-      {/* Top Bar: Seller & Campus Pickup Zone (Chat between buyer and seller is strictly prohibited) */}
-      <div className="flex items-center justify-between border-b border-border/60 pb-2.5 mb-3 text-xs">
-        <div className="flex items-center gap-2 truncate">
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-100 dark:bg-red-950 text-[10px] font-bold text-[#8F1414] dark:text-red-300 font-mono">
-            {sellerName.charAt(0).toUpperCase()}
-          </span>
-          <span className="font-semibold text-foreground/80 text-xs truncate">
-            {sellerName}
-          </span>
+      <Link to={`/producto/${product.id}`} className="block overflow-hidden rounded-2xl bg-[#F5EFEB] dark:bg-[#251F1C]">
+        <div className="relative aspect-4/3 w-full overflow-hidden">
+          <img
+            src={displayImage}
+            alt={product.name}
+            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-106"
+            loading="lazy"
+          />
+          {product.sold_out || product.stock <= 0 ? (
+            <div className="absolute inset-0 bg-[#2C221C]/60 backdrop-blur-[2px] flex items-center justify-center">
+              <span className="rounded-full bg-white px-3 py-1 font-display text-xs font-bold text-[#8F1414] shadow-sm">
+                Agotado por hoy
+              </span>
+            </div>
+          ) : null}
         </div>
-        <span className="inline-flex items-center gap-0.5 rounded-md bg-secondary px-2 py-0.5 text-[10px] font-mono text-muted-foreground shrink-0">
-          <MapPin size={10} className="text-primary" /> Punto: Edif. {building}
-        </span>
-      </div>
-
-      {/* Product Image */}
-      <Link
-        to={`/producto/${product.id}`}
-        className="relative h-48 w-full overflow-hidden rounded-2xl bg-secondary border border-border block group-hover:shadow-xs transition-shadow"
-      >
-        <img
-          src={displayImage}
-          alt={product.name}
-          className="h-full w-full object-cover rounded-2xl transition-transform duration-500 ease-out group-hover:scale-105"
-          loading="lazy"
-        />
-
-        {/* Top Badge */}
-        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10">
-          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-xs ${badge.cls}`}>
-            {badge.label}
-          </span>
-        </div>
-
-        {/* Rating chip */}
-        <div className="absolute top-2.5 right-2.5 rounded-full bg-black/75 px-2 py-0.5 text-[10px] font-bold text-white flex items-center gap-1 shadow-xs">
-          <Star size={10} className="fill-amber-400 text-amber-400" />
-          <span>4.9</span>
-        </div>
-
-        {/* Low Stock Warning */}
-        {isLowStock && (
-          <span className="absolute bottom-2 left-2 rounded-xl bg-[#8F1414] px-2.5 py-1 text-[10px] font-bold text-white shadow-xs flex items-center gap-1 animate-pulse">
-            <Flame size={12} className="text-amber-300" /> ¡Quedan {product.stock}!
-          </span>
-        )}
       </Link>
 
-      {/* Card Details & Add to Cart Action */}
-      <div className="mt-4 flex flex-1 flex-col justify-between space-y-3">
+      {/* Info Section */}
+      <div className="pt-3 px-1 pb-1 flex flex-col gap-2">
         <div>
-          <Link to={`/producto/${product.id}`} className="group-hover:text-primary transition-colors">
-            <h3 className="font-display text-base font-bold text-foreground line-clamp-1">
+          <span className="text-[11px] font-mono text-[#7E726A] dark:text-[#A89C92] block tracking-wide">
+            Por {sellerName}
+          </span>
+          <Link to={`/producto/${product.id}`} className="block">
+            <h3 className="font-display text-base font-bold text-[#2C221C] dark:text-[#FAF6F0] line-clamp-1 hover:text-[#8F1414] transition-colors">
               {product.name}
             </h3>
           </Link>
-
-          <div className="mt-2">
-            <TagList tags={parseTags(product.category)} size="sm" />
-          </div>
         </div>
 
-        {/* Price and Cart Button */}
-        <div className="pt-3 flex items-center justify-between border-t border-border">
+        {/* Price & Add to Cart button */}
+        <div className="flex items-center justify-between pt-1 border-t border-[#F0EAE1] dark:border-[#2C2420]">
           <div>
-            <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono block">
-              Precio Snack
+            <span className="font-display text-lg font-black text-[#8F1414] dark:text-red-400">
+              {money(product.price)}
             </span>
-            <p className="font-mono text-lg font-black text-[#8F1414] dark:text-red-400">{money(product.price)}</p>
           </div>
 
-          {isMyProduct ? (
-            <span className="rounded-xl bg-secondary px-3 py-2 text-[11px] font-bold text-muted-foreground border border-border">
-              Tu producto
-            </span>
-          ) : (
-            <button
+          {!isMyProduct && product.stock > 0 && !product.sold_out && (
+            <motion.button
+              whileTap={{ scale: 0.92 }}
               type="button"
               onClick={handleActionClick}
-              disabled={product.sold_out || product.stock <= 0}
-              className="flex items-center gap-1.5 rounded-2xl bg-[#8F1414] hover:bg-[#751010] px-3.5 py-2.5 font-display text-xs font-bold text-white shadow-sm active:scale-95 disabled:opacity-40 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 rounded-xl bg-[#8F1414] hover:bg-[#751010] px-3.5 py-2 font-display text-xs font-bold text-white shadow-xs transition-colors cursor-pointer"
             >
-              <ShoppingCart size={14} />
-              <span>{product.sold_out ? 'Agotado' : 'Pedir'}</span>
-            </button>
+              <Plus size={14} />
+              <span>Pedir</span>
+            </motion.button>
+          )}
+
+          {isMyProduct && (
+            <span className="text-[10px] font-mono font-bold text-[#7E726A] bg-[#F4EFE6] dark:bg-[#251F1C] px-2 py-1 rounded-lg">
+              Tu producto
+            </span>
           )}
         </div>
       </div>

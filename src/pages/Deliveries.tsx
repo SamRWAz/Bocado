@@ -149,13 +149,13 @@ export function DeliveriesPage() {
   return (
     <PageTransition>
       <div className="space-y-6 pb-16">
-      {/* Banner Superior Tendedero */}
-      <div className="rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/15 via-card to-background p-6 shadow-sm">
+      {/* Banner Superior Domiciliario */}
+      <div className="rounded-3xl border border-border bg-[#FAF6F0] dark:bg-[#1C1816] p-6 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-mono font-bold uppercase tracking-wider text-primary-foreground shadow-xs">
-                <Bike size={14} /> Tendedero Universitario
+                <Bike size={14} /> Domiciliario Universitario
               </span>
               <span className="flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> Activo en Campus
@@ -165,7 +165,7 @@ export function DeliveriesPage() {
               Entregas y Domicilios en Campus
             </h1>
             <p className="mt-1 text-xs text-muted-foreground sm:text-sm max-w-xl">
-              Gana <strong>$200 COP</strong> por cada entrega rápida entre edificios dentro de la universidad.
+              Gana de <strong>$100 a $500 COP</strong> por cada entrega rápida calculada por distancia dentro de la universidad.
               Recoge el snack del vendedor y llévaselo al comprador sin salir de la U.
             </p>
           </div>

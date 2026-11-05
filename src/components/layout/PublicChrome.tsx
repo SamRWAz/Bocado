@@ -26,7 +26,7 @@ function SectionNav() {
             : 'hover:text-foreground font-medium transition-colors'
         }
       >
-        🛵 Tendederos (Domicilios)
+        🛵 Domiciliarios Campus
       </NavLink>
     </>
   )

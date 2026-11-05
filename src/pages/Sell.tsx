@@ -1,66 +1,65 @@
 import {
-  BookmarkCheck,
-  CheckCircle2,
-  Eye,
-  Image as ImageIcon,
+  Check,
   Minus,
+  Package,
   Plus,
-  ShoppingBag,
   Sparkles,
   Store,
   Trash2,
-  TrendingUp,
   UploadCloud,
-  Users,
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { Link, Navigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { PageTransition } from '../components/PageTransition'
-import { TagList } from '../components/TagList'
 import { canSell, useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import {
   deleteProduct,
   fetchProducts,
-  incrementMetric,
   insertProduct,
   updateProduct,
   uploadProductImage,
 } from '../lib/api'
-import { DIETARY_OPTIONS } from '../lib/campus'
-import { CATEGORIES, inputClass, labelClass } from '../lib/constants'
-import { encodeSeller, formatTime, joinTags, money, ownsListing, parseTags } from '../lib/format'
+import { encodeSeller, joinTags, money, ownsListing } from '../lib/format'
 import { calculateProductCommission } from '../lib/pricing'
 import { playKeyBeep, playPaymentSuccess } from '../lib/sounds'
 import { fetchOrders, subscribeToOrderUpdates } from '../lib/storage-db'
-import type { DietaryTag, Order, Product } from '../types'
+import type { Order, Product } from '../types'
 
-const SAMPLE_PRESETS = [
+const PRESET_IMAGES = [
   { name: 'Brownie Melcochudo', price: '4500', cat: 'Brownies', img: '/images/real_brownie.jpg' },
   { name: 'Empanada Horneada', price: '3500', cat: 'Salados', img: '/images/real_empanadas.jpg' },
-  { name: 'Parfait con Frutas', price: '5500', cat: 'Postres', img: '/images/real_parfait.jpg' },
+  { name: 'Parfait de Frutas', price: '5500', cat: 'Postres', img: '/images/real_parfait.jpg' },
   { name: 'Galletas de Avena', price: '2500', cat: 'Galletas', img: '/images/real_cookies.jpg' },
   { name: 'Rollo de Canela', price: '4000', cat: 'Postres', img: '/images/real_cinnamon_roll.jpg' },
   { name: 'Cheesecake Fresa', price: '6000', cat: 'Postres', img: '/images/real_cheesecake.jpg' },
 ]
 
+const CATEGORY_OPTIONS = [
+  { id: 'Brownies', label: 'Brownies', icon: '🍫' },
+  { id: 'Galletas', label: 'Galletas', icon: '🍪' },
+  { id: 'Salados', label: 'Salados & Empanadas', icon: '🥟' },
+  { id: 'Postres', label: 'Postres & Dulces', icon: '🍰' },
+  { id: 'Saludable', label: 'Fit & Saludable', icon: '🥑' },
+  { id: 'Bebidas', label: 'Bebidas', icon: '🥤' },
+]
+
 export function SellPage() {
   const { user } = useAuth()
-  const { bonus } = useToast()
+  const { bonus, success } = useToast()
   const [products, setProducts] = useState<Product[]>([])
   const [orders, setOrders] = useState<Order[]>([])
 
-  // New product form
+  // Form State
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
   const [stock, setStock] = useState('8')
+  const [category, setCategory] = useState('Brownies')
   const [description, setDescription] = useState('')
-  const [tags, setTags] = useState<string[]>(['Brownies'])
-  const [dietary, setDietary] = useState<DietaryTag[]>([])
-  const [preferredBuilding, setPreferredBuilding] = useState<'D' | 'M' | 'L'>('D')
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
-  const [selectedPresetImage, setSelectedPresetImage] = useState<string | null>(null)
+  const [selectedPresetImage, setSelectedPresetImage] = useState<string>('/images/real_brownie.jpg')
   const [uploading, setUploading] = useState(false)
   const [publishSuccess, setPublishSuccess] = useState(false)
   const [error, setError] = useState('')
@@ -106,29 +105,31 @@ export function SellPage() {
     )
   })
 
-  const activeSellingOrders = mySellingOrders.filter((o) => o.status !== 'completado' && o.status !== 'cancelado')
+  // Financial calculations
+  const parsedPrice = parseInt(price, 10) || 0
+  const bocadoFee = parsedPrice > 0 ? calculateProductCommission(parsedPrice) : 0
+  const netEarnings = Math.max(0, parsedPrice - bocadoFee)
 
-  const onFile = (event: ChangeEvent<HTMLInputElement>) => {
-    const next = event.target.files?.[0]
-    if (!next) return
-    setFile(next)
-    setSelectedPresetImage(null)
-    setPreview(URL.createObjectURL(next))
-  }
-
-  const handleApplyPreset = (preset: typeof SAMPLE_PRESETS[0]) => {
+  const handleApplyPreset = (preset: typeof PRESET_IMAGES[0]) => {
     playKeyBeep(600)
     setName(preset.name)
     setPrice(preset.price)
-    setTags([preset.cat])
+    setCategory(preset.cat)
     setSelectedPresetImage(preset.img)
     setFile(null)
     setPreview(null)
   }
 
-  const publish = async () => {
+  const onFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const next = e.target.files?.[0]
+    if (!next) return
+    setFile(next)
+    setPreview(URL.createObjectURL(next))
+  }
+
+  const handlePublish = async () => {
     if (!name.trim()) {
-      setError('Escribe el nombre del snack')
+      setError('Escribe el nombre de tu snack')
       return
     }
     const numPrice = parseInt(price, 10)
@@ -141,53 +142,44 @@ export function SellPage() {
       setError('Ingresa una cantidad de stock inicial')
       return
     }
-    if (tags.length === 0 && dietary.length === 0) {
-      setError('Selecciona al menos una categoría o etiqueta')
-      return
-    }
 
     setUploading(true)
     setError('')
+
     try {
-      let imageUrl: string | null = selectedPresetImage
+      let imageUrl: string | null = preview ? null : selectedPresetImage
       if (file) {
         imageUrl = await uploadProductImage(file)
       }
 
-      const allCategoryTags = [...tags, ...dietary, `edif:${preferredBuilding}`]
-      const finalCatalogPrice = numPrice
-
       const created = await insertProduct({
         name: name.trim(),
-        price: finalCatalogPrice,
+        price: numPrice,
         stock: numStock,
         sold_out: false,
         seller: encodeSeller(user.name, user.id),
         intent_count: 0,
-        image_url: imageUrl,
-        category: joinTags(allCategoryTags),
+        image_url: imageUrl || '/images/real_brownie.jpg',
+        category: joinTags([category]),
         description: description.trim() || undefined,
-        preferredBuilding,
       })
 
       if (!created) throw new Error('No se pudo publicar el snack. Intenta de nuevo.')
 
       playPaymentSuccess()
-      bonus('¡Snack publicado con éxito!', `${name.trim()} ya está visible para todos los estudiantes en el catálogo.`)
+      bonus('¡Snack publicado con éxito!', `${name.trim()} ya está visible para los estudiantes en el catálogo.`)
       setPublishSuccess(true)
-      setTimeout(() => setPublishSuccess(false), 3500)
+      setTimeout(() => setPublishSuccess(false), 3000)
 
-      // Reset form
+      // Reset
       setName('')
       setPrice('')
       setStock('8')
-      setTags(['Brownies'])
-      setDietary([])
       setDescription('')
       setFile(null)
       setPreview(null)
-      setSelectedPresetImage(null)
-      await refresh()
+      setSelectedPresetImage('/images/real_brownie.jpg')
+      void refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al publicar snack')
     } finally {
@@ -195,619 +187,384 @@ export function SellPage() {
     }
   }
 
-  const changeStock = async (id: string, delta: number) => {
-    const product = products.find((p) => p.id === id)
-    if (!product) return
-    const next = Math.max(0, product.stock + delta)
-    await updateProduct(id, { stock: next, sold_out: next === 0 })
-    await incrementMetric('inventory_updates')
-    await refresh()
+  const handleAdjustStock = async (prod: Product, delta: number) => {
+    playKeyBeep(delta > 0 ? 700 : 450)
+    const next = Math.max(0, prod.stock + delta)
+    const isSoldOut = next === 0
+    setProducts((prev) => prev.map((p) => (p.id === prod.id ? { ...p, stock: next, sold_out: isSoldOut } : p)))
+    await updateProduct(prod.id, { stock: next, sold_out: isSoldOut })
   }
 
-  const toggleSoldOut = async (product: Product) => {
-    const nextSoldOut = !product.sold_out
-    await updateProduct(product.id, {
-      sold_out: nextSoldOut,
-      stock: nextSoldOut ? 0 : product.stock > 0 ? product.stock : 5,
-    })
-    await incrementMetric('inventory_updates')
-    await refresh()
+  const handleDelete = async (prod: Product) => {
+    if (!confirm(`¿Seguro que deseas eliminar "${prod.name}"?`)) return
+    setProducts((prev) => prev.filter((p) => p.id !== prod.id))
+    await deleteProduct(prod.id)
+    success('Producto retirado de la venta.')
   }
-
-  const handleDeleteProduct = async (id: string, prodName: string) => {
-    if (!window.confirm(`¿Estás seguro de que deseas eliminar "${prodName}"?`)) return
-    await deleteProduct(id)
-    await refresh()
-  }
-
-  // Quick stats
-  const totalItemsInStock = mine.reduce((sum, p) => sum + (p.sold_out ? 0 : p.stock), 0)
-  const totalValue = mine.reduce((sum, p) => sum + p.price * (p.sold_out ? 0 : p.stock), 0)
-
-
-  // Live preview image helper
-  const livePreviewImage = preview || selectedPresetImage || (() => {
-    const n = name.toLowerCase()
-    if (n.includes('brownie') || n.includes('chocolate')) return '/images/real_brownie.jpg'
-    if (n.includes('parfait') || n.includes('yogur') || n.includes('chia') || n.includes('fruta')) return '/images/real_parfait.jpg'
-    if (n.includes('empanada') || n.includes('pastel') || n.includes('pollo')) return '/images/real_empanadas.jpg'
-    if (n.includes('galleta') || n.includes('cookie') || n.includes('avena')) return '/images/real_cookies.jpg'
-    if (n.includes('rollo') || n.includes('canela')) return '/images/real_cinnamon_roll.jpg'
-    if (n.includes('cheesecake') || n.includes('torta')) return '/images/real_cheesecake.jpg'
-    return '/images/real_brownie.jpg'
-  })()
 
   return (
     <PageTransition>
-      <div className="space-y-6 pb-12">
-      {/* Header with quick stats */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-primary">
-            <Store size={14} />
-            <span>Panel de Cocinero Universitario</span>
-          </div>
-          <h1 className="mt-1 font-display text-2xl font-black tracking-tight sm:text-3xl text-foreground">
-            Estudio de Creación & Gestión de Snacks
-          </h1>
-          <p className="text-xs text-muted-foreground sm:text-sm">
-            Publica tus preparaciones caseras y controla tu inventario disponible en tiempo real.
-          </p>
-        </div>
-      </div>
-
-      {/* Metrics Bar */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-sm">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">
-            Snacks publicados
-          </span>
-          <p className="mt-1 font-display text-xl font-black text-foreground">{mine.length}</p>
-        </div>
-        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-sm">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">
-            Unidades en stock
-          </span>
-          <p className="mt-1 font-display text-xl font-black text-primary">{totalItemsInStock}</p>
-        </div>
-        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-sm">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">
-            Pedidos recibidos
-          </span>
-          <p className="mt-1 font-display text-xl font-black text-primary">
-            {activeSellingOrders.length}
-          </p>
-        </div>
-        <div className="rounded-2xl border border-border bg-card p-3.5 shadow-sm">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1 font-mono">
-            <TrendingUp size={12} className="text-primary" /> Valor Total
-          </span>
-          <p className="mt-1 font-display text-xl font-black text-primary">{money(totalValue)}</p>
-        </div>
-      </div>
-
-      {/* Active Orders Alert Banner */}
-      {activeSellingOrders.length > 0 && (
-        <div className="rounded-3xl border-2 border-primary/20 bg-card p-5 shadow-sm space-y-4 animate-fadeIn">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-center gap-3.5">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#8F1414] text-white font-bold shadow-xs shrink-0">
-                <BookmarkCheck size={22} />
-              </div>
-              <div>
-                <h3 className="font-display font-black text-foreground text-base sm:text-lg">
-                  ¡Tienes {activeSellingOrders.length} pedido(s) activo(s) de estudiantes!
-                </h3>
-                <p className="text-xs text-foreground/80 font-medium">
-                  Los estudiantes han comprado tus snacks. Confirma tu ubicación para que el Tendedero recoja el producto y te entregue tu dinero.
-                </p>
-              </div>
-            </div>
-
-            <Link
-              to="/pedidos?tab=ventas"
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#8F1414] hover:bg-[#751010] px-4 py-2.5 text-xs font-display font-bold text-white shadow-xs transition-colors self-start sm:self-auto cursor-pointer"
-            >
-              <span>Gestionar y Confirmar Ventas</span>
-              <span>→</span>
-            </Link>
-          </div>
-
-          <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 pt-1">
-            {activeSellingOrders.slice(0, 6).map((ord) => (
-              <div
-                key={ord.id}
-                className="flex items-center justify-between rounded-2xl border border-border bg-secondary/70 p-3.5 text-xs shadow-xs"
-              >
-                <div>
-                  <span className="font-bold text-foreground block text-sm">
-                    {ord.buyerName || 'Estudiante'}
-                  </span>
-                  <span className="text-xs text-muted-foreground font-medium">
-                    {ord.items.map((i) => `${i.qty}× ${i.name}`).join(', ')}
-                  </span>
-                  <span className="text-[10px] text-primary font-mono block mt-0.5">
-                    Estado: {ord.status}
-                  </span>
-                </div>
-                <div className="text-right font-mono">
-                  <span className="font-extrabold text-foreground block text-sm">{money(ord.total)}</span>
-                  <span className="text-[11px] text-muted-foreground">{formatTime(ord.createdAt)}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================= */}
-      {/* CREATOR STUDIO: FORM & LIVE PREVIEW                       */}
-      {/* ========================================================= */}
-      <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-xl space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-border/60 pb-4 gap-2">
+      <div className="mx-auto max-w-6xl space-y-10 px-4 py-8 sm:px-6">
+        {/* Header */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between border-b border-[#E5DFD7] dark:border-[#2C2420] pb-6">
           <div>
-            <div className="inline-flex items-center gap-1.5 font-mono text-xs font-bold text-primary uppercase">
-              <Sparkles size={14} />
-              <span>Estudio de Publicación</span>
-            </div>
-            <h2 className="font-display text-xl font-bold text-foreground">
-              Crear Nuevo Snack para el Campus
-            </h2>
+            <span className="text-[11px] font-mono uppercase tracking-widest text-[#8F1414] dark:text-red-400 font-bold block mb-1">
+              Estudio de Creación · Chef {user.name}
+            </span>
+            <h1 className="font-display text-3xl font-black sm:text-4xl text-[#2C221C] dark:text-[#FAF6F0]">
+              Cocina & Publicación de Snacks
+            </h1>
+            <p className="mt-1 text-xs sm:text-sm text-[#7E726A] dark:text-[#A89C92]">
+              Publica tus preparaciones artesanales. Los domiciliarios las entregan en el campus sin que tengas que dejar tu salón.
+            </p>
           </div>
 
-          {/* Preset Quick Fill */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[11px] font-mono text-muted-foreground">Plantillas rápidas:</span>
-            {SAMPLE_PRESETS.map((p) => (
-              <button
-                key={p.name}
-                type="button"
-                onClick={() => handleApplyPreset(p)}
-                className="rounded-lg border border-border/80 bg-secondary/60 px-2.5 py-1 text-[11px] font-semibold text-foreground hover:bg-secondary hover:border-primary/50 transition-colors"
-              >
-                {p.name.split(' ')[0]}
-              </button>
-            ))}
-          </div>
+          <Link
+            to="/pedidos?tab=ventas"
+            className="inline-flex items-center gap-2 rounded-2xl bg-[#FAF6F0] dark:bg-[#251F1C] border border-[#E5DFD7] dark:border-[#2C2420] px-4 py-2.5 text-xs font-display font-bold text-[#2C221C] dark:text-[#FAF6F0] hover:border-[#8F1414] transition-colors self-start sm:self-auto cursor-pointer"
+          >
+            <Store size={15} className="text-[#8F1414]" />
+            <span>Ver Pedidos de mi Cocina ({mySellingOrders.length})</span>
+          </Link>
         </div>
 
-        {publishSuccess && (
-          <div className="rounded-2xl border-2 border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 p-4 flex items-center gap-3 text-[#8F1414] dark:text-red-300 animate-fadeIn">
-            <CheckCircle2 size={20} className="shrink-0" />
-            <div className="text-xs">
-              <p className="font-bold font-display text-sm">¡Snack publicado con éxito en el catálogo!</p>
-              <p className="text-muted-foreground">Los estudiantes ya pueden verlo y pedirlo en campus.</p>
+        {/* ========================================================= */}
+        {/* INTERACTIVE PRODUCT CREATOR (Bento Studio + Live Preview) */}
+        {/* ========================================================= */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Form Left Column */}
+          <div className="lg:col-span-7 space-y-6 rounded-3xl border border-[#E5DFD7] dark:border-[#2C2420] bg-white dark:bg-[#1E1917] p-6 sm:p-8 shadow-sm">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-[#8F1414] dark:text-red-400">
+              <Sparkles size={14} />
+              <span>Nuevo Snack para el Campus</span>
             </div>
-          </div>
-        )}
 
-        {/* 2 Column Layout: Form + Live Preview */}
-        <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-          {/* Left Form */}
-          <div className="space-y-4">
-            {/* Name */}
-            <div>
-              <label className={labelClass}>Nombre de la preparación o snack *</label>
+            {/* Snack Name */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-[#2C221C] dark:text-[#FAF6F0] block">
+                Nombre de la Preparación
+              </label>
               <input
-                placeholder="Ej. Brownie con Arequipe y Nueces Tostadas"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className={inputClass}
+                placeholder="Ej. Brownie con Arequipe y Nueces"
+                className="w-full rounded-2xl border border-[#E5DFD7] dark:border-[#2C2420] bg-[#FAF6F0] dark:bg-[#251F1C] px-4 py-3 text-sm font-semibold text-[#2C221C] dark:text-[#FAF6F0] outline-none transition-all focus:border-[#8F1414]"
               />
             </div>
 
-            {/* Description */}
-            <div>
-              <label className={labelClass}>Descripción e ingredientes caseros</label>
-              <textarea
-                placeholder="Ej. Horneado hoy en la mañana con cacao al 70%, centro melcochudo y arequipe artesanal."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className={inputClass}
-                rows={2}
-              />
+            {/* Category Selector */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-[#2C221C] dark:text-[#FAF6F0] block">
+                Categoría del Snack
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {CATEGORY_OPTIONS.map((cat) => {
+                  const active = category === cat.id
+                  return (
+                    <button
+                      type="button"
+                      key={cat.id}
+                      onClick={() => {
+                        playKeyBeep(550)
+                        setCategory(cat.id)
+                      }}
+                      className={`flex items-center gap-1.5 rounded-xl border p-2.5 text-xs font-display font-bold transition-all cursor-pointer ${
+                        active
+                          ? 'border-[#8F1414] bg-[#8F1414] text-white shadow-xs'
+                          : 'border-[#E5DFD7] dark:border-[#2C2420] bg-[#FAF6F0] dark:bg-[#251F1C] text-[#7E726A] hover:text-[#2C221C]'
+                      }`}
+                    >
+                      <span>{cat.icon}</span>
+                      <span className="truncate">{cat.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
 
-            {/* Price and Stock */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className={labelClass}>Precio de venta ($ COP) *</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono font-bold text-muted-foreground text-sm">
-                    $
-                  </span>
+            {/* Price & Real-Time Financial Pill */}
+            <div className="space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-[#2C221C] dark:text-[#FAF6F0] block">
+                    Precio al Comprador (COP)
+                  </label>
                   <input
-                    placeholder="4500"
                     type="number"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className={`${inputClass} pl-8 font-mono font-bold text-foreground`}
+                    placeholder="Ej. 4500"
+                    className="w-full rounded-2xl border border-[#E5DFD7] dark:border-[#2C2420] bg-[#FAF6F0] dark:bg-[#251F1C] px-4 py-3 font-mono text-base font-black text-[#8F1414] dark:text-red-400 outline-none transition-all focus:border-[#8F1414]"
                   />
-                  {price && !isNaN(parseInt(price, 10)) && (
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md bg-primary/20 px-2 py-0.5 text-[10px] font-mono font-bold text-primary">
-                      {money(parseInt(price, 10))} COP
-                    </span>
-                  )}
                 </div>
-                {price && !isNaN(parseInt(price, 10)) && (
-                  <div className="mt-2 rounded-xl bg-secondary/80 p-2.5 text-[11px] border border-border/60 space-y-1 font-mono">
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>Comisión plataforma Bocado:</span>
-                      <span className="text-destructive font-semibold">-{money(calculateProductCommission(parseInt(price, 10)))}</span>
-                    </div>
-                    <div className="flex justify-between text-foreground font-bold border-t border-border/50 pt-1">
-                      <span>Tu ganancia neta:</span>
-                      <span className="text-primary font-black">{money(parseInt(price, 10) - calculateProductCommission(parseInt(price, 10)))} COP</span>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground font-sans">
-                      Comisión justa de $100 a $500 COP según el valor para que tu producto no pierda valor.
-                    </p>
-                  </div>
-                )}
-              </div>
 
-              <div>
-                <label className={labelClass}>Cantidad / Stock disponible *</label>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const cur = parseInt(stock, 10) || 1
-                      setStock(String(Math.max(1, cur - 1)))
-                    }}
-                    className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground hover:bg-secondary/80 active:scale-95 border border-border"
-                  >
-                    <Minus size={16} />
-                  </button>
-                  <input
-                    placeholder="8"
-                    type="number"
-                    value={stock}
-                    onChange={(e) => setStock(e.target.value)}
-                    className={`${inputClass} text-center font-mono font-bold text-base`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const cur = parseInt(stock, 10) || 0
-                      setStock(String(cur + 1))
-                    }}
-                    className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-foreground hover:bg-secondary/80 active:scale-95 border border-border"
-                  >
-                    <Plus size={16} />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Preferred Building */}
-            <div>
-              <label className={labelClass}>Edificio de entrega preferido en Campus Icesi</label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { id: 'D' as const, name: 'Edificio D', note: 'Plazoleta Central' },
-                  { id: 'M' as const, name: 'Edificio M', note: 'Aulas Principales' },
-                  { id: 'L' as const, name: 'Edificio L', note: 'Zona de Estudios' },
-                ].map((b) => (
-                  <button
-                    key={b.id}
-                    type="button"
-                    onClick={() => setPreferredBuilding(b.id)}
-                    className={`rounded-2xl p-3 text-left border transition-all ${
-                      preferredBuilding === b.id
-                        ? 'border-primary bg-primary/15 text-primary shadow-sm ring-1 ring-primary'
-                        : 'border-border bg-secondary/30 text-muted-foreground hover:border-primary/40'
-                    }`}
-                  >
-                    <p className="font-display text-xs font-bold text-foreground">
-                      {b.name}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">{b.note}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Categories */}
-            <div>
-              <label className={labelClass}>Categoría principal del snack</label>
-              <div className="flex flex-wrap gap-2">
-                {CATEGORIES.map((item) => {
-                  const selected = tags.includes(item)
-                  return (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-[#2C221C] dark:text-[#FAF6F0] block">
+                    Stock Disponible Inicial
+                  </label>
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      key={item}
-                      onClick={() =>
-                        setTags((current) =>
-                          current.includes(item) ? current.filter((tag) => tag !== item) : [...current, item],
-                        )
-                      }
-                      className={`rounded-xl px-3.5 py-1.5 text-xs font-display font-semibold transition-all ${
-                        selected
-                          ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 scale-102'
-                          : 'bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground'
-                      }`}
+                      onClick={() => setStock((prev) => Math.max(1, (parseInt(prev, 10) || 1) - 1).toString())}
+                      className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#E5DFD7] dark:border-[#2C2420] bg-[#FAF6F0] dark:bg-[#251F1C] text-[#2C221C] dark:text-[#FAF6F0] font-bold hover:bg-[#EFE8DE] cursor-pointer"
                     >
-                      {item}
+                      <Minus size={16} />
                     </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Dietary Options */}
-            <div>
-              <label className={labelClass}>Etiquetas dietéticas e ingredientes especiales</label>
-              <div className="flex flex-wrap gap-2">
-                {DIETARY_OPTIONS.map((opt) => {
-                  const selected = dietary.includes(opt.id)
-                  return (
+                    <input
+                      type="number"
+                      value={stock}
+                      onChange={(e) => setStock(e.target.value)}
+                      className="w-full text-center rounded-2xl border border-[#E5DFD7] dark:border-[#2C2420] bg-[#FAF6F0] dark:bg-[#251F1C] py-2.5 font-mono text-base font-bold text-[#2C221C] dark:text-[#FAF6F0] outline-none"
+                    />
                     <button
                       type="button"
-                      key={opt.id}
-                      onClick={() =>
-                        setDietary((current) =>
-                          current.includes(opt.id) ? current.filter((d) => d !== opt.id) : [...current, opt.id],
-                        )
-                      }
-                      className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-display font-semibold transition-all ${
-                        selected
-                          ? 'bg-[#8F1414] text-white shadow-xs'
-                          : 'bg-secondary text-muted-foreground hover:bg-secondary/80'
-                      }`}
+                      onClick={() => setStock((prev) => ((parseInt(prev, 10) || 1) + 1).toString())}
+                      className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#E5DFD7] dark:border-[#2C2420] bg-[#FAF6F0] dark:bg-[#251F1C] text-[#2C221C] dark:text-[#FAF6F0] font-bold hover:bg-[#EFE8DE] cursor-pointer"
                     >
-                      <span>{opt.icon}</span>
-                      <span>{opt.shortLabel}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Photo Uploader */}
-            <div>
-              <label className={labelClass}>Fotografía del producto</label>
-              <input ref={fileInput} type="file" accept="image/*" className="hidden" onChange={onFile} />
-
-              {preview || selectedPresetImage ? (
-                <div className="relative overflow-hidden rounded-2xl border border-border bg-secondary">
-                  <img
-                    src={preview || selectedPresetImage || ''}
-                    alt="Preview"
-                    className="h-44 w-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/60 flex items-end justify-between p-3">
-                    <span className="text-xs text-white font-medium flex items-center gap-1">
-                      <ImageIcon size={14} /> Imagen seleccionada
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFile(null)
-                        setPreview(null)
-                        setSelectedPresetImage(null)
-                      }}
-                      className="rounded-xl bg-destructive/90 px-3 py-1.5 text-xs font-bold text-destructive-foreground hover:bg-destructive shadow-md flex items-center gap-1"
-                    >
-                      <Trash2 size={12} /> Quitar
+                      <Plus size={16} />
                     </button>
                   </div>
                 </div>
-              ) : (
-                <div
-                  onClick={() => fileInput.current?.click()}
-                  className="cursor-pointer rounded-2xl border-2 border-dashed border-border p-6 text-center hover:border-primary/60 hover:bg-primary/5 transition-all group"
+              </div>
+
+              {/* Dynamic Financial Transparency Capsule */}
+              {parsedPrice > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-2xl bg-[#FAF6F0] dark:bg-[#251F1C] p-3 border border-[#E5DFD7] dark:border-[#2C2420] text-xs space-y-1"
                 >
-                  <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 transition-colors">
-                    <UploadCloud size={24} />
+                  <div className="flex items-center justify-between font-bold">
+                    <span className="text-[#2C221C] dark:text-[#FAF6F0]">Tu ingreso neto por unidad:</span>
+                    <span className="font-mono text-emerald-600 dark:text-emerald-400 font-black">
+                      {money(netEarnings)}
+                    </span>
                   </div>
-                  <p className="font-display font-bold text-foreground text-xs sm:text-sm">
-                    Haz clic para subir una foto desde tu dispositivo
+                  <div className="flex items-center justify-between text-[11px] text-[#7E726A]">
+                    <span>Comisión fija Bocado:</span>
+                    <span className="font-mono">-{money(bocadoFee)} COP</span>
+                  </div>
+                  <p className="text-[10px] text-[#7E726A] pt-1 border-t border-[#E5DFD7]/60">
+                    El valor de domicilio ($100 a $500 COP) lo aporta el comprador directamente al Domiciliario.
                   </p>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
-                    Formatos JPG o PNG. Si no tienes foto, se usará una ilustración sugerida automáticamente.
-                  </p>
-                </div>
+                </motion.div>
               )}
             </div>
 
+            {/* Preset Images or Custom Upload */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-[#2C221C] dark:text-[#FAF6F0] block">
+                Fotografía del Producto
+              </label>
+
+              {/* Quick Preset Selector */}
+              <div>
+                <span className="text-[11px] font-mono text-[#7E726A] block mb-1.5">
+                  Elige una foto artesanal lista o sube la tuya:
+                </span>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  {PRESET_IMAGES.map((preset) => {
+                    const active = !preview && selectedPresetImage === preset.img
+                    return (
+                      <button
+                        type="button"
+                        key={preset.name}
+                        onClick={() => handleApplyPreset(preset)}
+                        className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
+                          active ? 'border-[#8F1414] scale-98 shadow-sm' : 'border-transparent opacity-70 hover:opacity-100'
+                        }`}
+                      >
+                        <img src={preset.img} alt={preset.name} className="h-full w-full object-cover" />
+                        {active && (
+                          <div className="absolute inset-0 bg-[#8F1414]/20 flex items-center justify-center">
+                            <Check size={16} className="text-white drop-shadow-sm" />
+                          </div>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Custom Upload Button */}
+              <div className="pt-1">
+                <input
+                  ref={fileInput}
+                  type="file"
+                  accept="image/*"
+                  onChange={onFileChange}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInput.current?.click()}
+                  className="w-full flex items-center justify-center gap-2 rounded-2xl border border-dashed border-[#E5DFD7] dark:border-[#2C2420] bg-[#FAF6F0] dark:bg-[#251F1C] py-3 text-xs font-bold text-[#7E726A] hover:border-[#8F1414] hover:text-[#8F1414] transition-colors cursor-pointer"
+                >
+                  <UploadCloud size={16} />
+                  <span>{preview ? 'Cambiar Foto Subida' : 'O Subir Foto Propia desde mi Dispositivo'}</span>
+                </button>
+              </div>
+            </div>
+
             {error && (
-              <p className="rounded-xl bg-destructive/10 border border-destructive/30 p-3 text-xs text-destructive font-medium">
+              <p className="text-xs font-bold text-destructive bg-red-50 dark:bg-red-950/40 p-3 rounded-xl border border-red-200">
                 {error}
               </p>
             )}
 
-            <button
+            {publishSuccess && (
+              <p className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 p-3 rounded-xl border border-emerald-200">
+                ✓ ¡Snack publicado exitosamente!
+              </p>
+            )}
+
+            {/* Submit Button */}
+            <motion.button
+              whileTap={{ scale: 0.98 }}
               type="button"
-              onClick={() => void publish()}
-              disabled={uploading || !name.trim() || !price}
-              className="w-full rounded-2xl bg-[#8F1414] hover:bg-[#751010] py-4 font-display text-sm font-extrabold text-white shadow-md active:scale-95 disabled:opacity-40 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              disabled={uploading}
+              onClick={() => void handlePublish()}
+              className="w-full rounded-2xl bg-[#8F1414] hover:bg-[#751010] py-4 font-display text-sm font-black text-white shadow-md transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
             >
               {uploading ? (
-                'Publicando snack en el campus...'
+                <span>Publicando en el Campus...</span>
               ) : (
                 <>
                   <Sparkles size={16} />
                   <span>Publicar Snack en el Catálogo</span>
                 </>
               )}
-            </button>
+            </motion.button>
           </div>
 
-          {/* Right Live Preview Column */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-muted-foreground uppercase">
-              <Eye size={14} className="text-primary" />
-              <span>Vista Previa en Vivo</span>
+          {/* Live Floating Preview Card Right Column */}
+          <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-[11px] font-mono uppercase tracking-wider font-bold text-[#7E726A]">
+                Vista Previa en Vivo:
+              </span>
+              <span className="text-[10px] font-mono text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-full border border-emerald-200">
+                En Vivo
+              </span>
             </div>
-            <p className="text-[11px] text-muted-foreground">
-              Así verán los estudiantes tu publicación en el catálogo de Bocado:
-            </p>
 
-            {/* Simulated Product Card */}
-            <article className="overflow-hidden rounded-3xl border-2 border-border bg-card p-4 shadow-sm transition-all">
-              {/* Top Bar: Seller info */}
-              <div className="flex items-center justify-between border-b border-border/60 pb-2.5 mb-3 text-xs">
-                <div className="flex items-center gap-2 truncate">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-[10px] font-bold text-primary font-mono">
-                    {(user.name || 'V').charAt(0).toUpperCase()}
-                  </span>
-                  <span className="font-medium text-foreground text-xs truncate">
-                    {user.name || 'Mi Tienda'}
-                  </span>
-                </div>
-                <span className="rounded-md bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground font-mono">
-                  Edif. {preferredBuilding}
-                </span>
-              </div>
-
-              {/* Product Image */}
-              <div className="relative h-48 w-full overflow-hidden rounded-2xl bg-secondary border border-border block">
+            <motion.div
+              layout
+              className="rounded-3xl border border-[#E5DFD7] dark:border-[#2C2420] bg-white dark:bg-[#1E1917] p-4 shadow-lg space-y-3"
+            >
+              <div className="relative aspect-4/3 w-full overflow-hidden rounded-2xl bg-[#F5EFEB] dark:bg-[#251F1C]">
                 <img
-                  src={livePreviewImage}
-                  alt={name || 'Preview'}
-                  className="h-full w-full object-cover rounded-xl"
+                  src={preview || selectedPresetImage}
+                  alt={name || 'Vista previa del snack'}
+                  className="h-full w-full object-cover"
                 />
-                <span className="absolute bottom-2 left-2 rounded-lg bg-[#8F1414] px-2.5 py-1 text-[10px] font-bold text-white shadow-md">
-                  Stock: {stock || '0'}
-                </span>
+                <div className="absolute top-2.5 left-2.5 rounded-full bg-white/90 backdrop-blur-xs px-2.5 py-1 text-[10px] font-mono font-bold text-[#2C221C] shadow-xs">
+                  {category}
+                </div>
               </div>
 
-              {/* Card Details */}
-              <div className="mt-3 space-y-2">
-                <h3 className="font-brand text-base font-bold text-foreground line-clamp-1">
-                  {name.trim() || 'Nombre de tu delicioso snack'}
-                </h3>
-
-                <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
-                  {description.trim() || 'Aquí aparecerá la descripción e ingredientes de tu preparación...'}
-                </p>
-
-                <div className="pt-1">
-                  <TagList tags={[...tags, ...dietary]} size="sm" />
+              <div className="pt-1 space-y-2">
+                <div>
+                  <span className="text-[11px] font-mono text-[#7E726A] block">
+                    Por Chef {user.name}
+                  </span>
+                  <h3 className="font-display text-lg font-black text-[#2C221C] dark:text-[#FAF6F0]">
+                    {name.trim() || 'Nombre de tu Snack'}
+                  </h3>
                 </div>
 
-                <div className="pt-3 flex items-center justify-between border-t border-border/60">
+                <div className="flex items-center justify-between pt-2 border-t border-[#F0EAE1] dark:border-[#2C2420]">
                   <div>
-                    <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono block">
-                      Precio
+                    <span className="text-[10px] font-mono text-[#7E726A] block uppercase font-bold">
+                      Precio:
                     </span>
-                    <p className="font-mono text-lg font-black text-primary">
-                      {price && !isNaN(parseInt(price, 10)) ? money(parseInt(price, 10)) : '$0'}
-                    </p>
+                    <span className="font-display text-xl font-black text-[#8F1414] dark:text-red-400">
+                      {money(parsedPrice || 4500)}
+                    </span>
                   </div>
 
-                  <span className="rounded-xl bg-[#8F1414] px-3.5 py-2 font-display text-xs font-bold text-white shadow-xs">
-                    Pedir
+                  <span className="rounded-xl bg-[#FAF6F0] dark:bg-[#251F1C] border border-[#E5DFD7] dark:border-[#2C2420] px-3 py-1.5 text-xs font-bold text-[#7E726A]">
+                    {stock} disponibles
                   </span>
                 </div>
               </div>
-            </article>
+            </motion.div>
           </div>
         </div>
-      </div>
 
-      {/* ========================================================= */}
-      {/* SECTION: MIS SNACKS PUBLICADOS                            */}
-      {/* ========================================================= */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-display text-lg font-bold text-foreground">
-              Mis Snacks Publicados ({mine.length})
+        {/* ========================================================= */}
+        {/* EXISTING PUBLISHED SNACKS TABLE / GRID                    */}
+        {/* ========================================================= */}
+        <div className="space-y-4 pt-6 border-t border-[#E5DFD7] dark:border-[#2C2420]">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-xl font-bold text-[#2C221C] dark:text-[#FAF6F0]">
+              Tus Snacks Publicados ({mine.length})
             </h2>
-            <p className="text-xs text-muted-foreground">
-              Ajusta el stock o marca agotado en cualquier momento.
-            </p>
+            <span className="text-xs font-mono text-[#7E726A]">
+              Control de inventario en tiempo real
+            </span>
           </div>
-        </div>
 
-        {mine.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-border bg-card/40 p-12 text-center text-muted-foreground">
-            <ShoppingBag size={40} className="mx-auto mb-2 text-primary opacity-30" />
-            <p className="font-display font-medium text-foreground">Aún no has publicado snacks.</p>
-            <p className="mt-1 text-xs">Usa el formulario de arriba para anunciar tus preparaciones de hoy.</p>
-          </div>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {mine.map((product) => (
-              <article
-                key={product.id}
-                className="overflow-hidden rounded-3xl border border-border/80 bg-card p-4 shadow-sm space-y-3"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h3 className="font-display font-bold text-foreground truncate">{product.name}</h3>
-                    <p className="font-display font-extrabold text-primary text-base">{money(product.price)}</p>
-                    <div className="mt-1">
-                      <TagList tags={parseTags(product.category)} size="sm" />
-                    </div>
+          {mine.length === 0 ? (
+            <div className="py-12 text-center rounded-3xl border border-dashed border-[#E5DFD7] dark:border-[#2C2420] p-6 space-y-2">
+              <Package size={36} className="mx-auto text-[#7E726A] opacity-40" />
+              <p className="text-xs font-bold text-[#7E726A]">Aún no has publicado ningún snack.</p>
+              <p className="text-[11px] text-[#7E726A]">Completa el formulario superior para lanzar tu primer producto.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {mine.map((prod) => (
+                <div
+                  key={prod.id}
+                  className="flex items-center justify-between p-4 rounded-2xl border border-[#E5DFD7] dark:border-[#2C2420] bg-white dark:bg-[#1E1917] shadow-xs gap-3"
+                >
+                  <img
+                    src={prod.image_url || '/images/real_brownie.jpg'}
+                    alt={prod.name}
+                    className="h-16 w-16 rounded-xl object-cover shrink-0 bg-[#F4EFE6]"
+                  />
+
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-display text-sm font-bold text-[#2C221C] dark:text-[#FAF6F0] truncate">
+                      {prod.name}
+                    </h4>
+                    <span className="font-mono text-xs font-bold text-[#8F1414] dark:text-red-400 block">
+                      {money(prod.price)}
+                    </span>
+                    <span className={`text-[10px] font-mono font-bold ${prod.sold_out || prod.stock === 0 ? 'text-destructive' : 'text-emerald-600'}`}>
+                      {prod.sold_out || prod.stock === 0 ? 'Agotado' : `${prod.stock} en stock`}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       type="button"
-                      onClick={() => void toggleSoldOut(product)}
-                      className={`rounded-full px-3 py-1 text-xs font-display font-bold transition-colors ${
-                        product.sold_out
-                          ? 'bg-secondary text-muted-foreground border border-border'
-                          : 'bg-red-100 text-[#8F1414] dark:bg-red-950 dark:text-red-300 border border-red-200 dark:border-red-800'
-                      }`}
+                      onClick={() => void handleAdjustStock(prod, -1)}
+                      className="h-8 w-8 rounded-lg border border-[#E5DFD7] dark:border-[#2C2420] flex items-center justify-center text-xs font-bold hover:bg-[#FAF6F0]"
                     >
-                      {product.sold_out ? 'Agotado' : 'Disponible'}
+                      -
+                    </button>
+                    <span className="font-mono text-xs font-bold w-6 text-center">{prod.stock}</span>
+                    <button
+                      type="button"
+                      onClick={() => void handleAdjustStock(prod, +1)}
+                      className="h-8 w-8 rounded-lg border border-[#E5DFD7] dark:border-[#2C2420] flex items-center justify-center text-xs font-bold hover:bg-[#FAF6F0]"
+                    >
+                      +
                     </button>
                     <button
                       type="button"
-                      onClick={() => void handleDeleteProduct(product.id, product.name)}
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary text-muted-foreground hover:bg-destructive/10 hover:text-destructive border border-border transition-colors"
-                      title="Eliminar snack"
+                      onClick={() => void handleDelete(prod)}
+                      className="h-8 w-8 rounded-lg text-[#7E726A] hover:text-destructive flex items-center justify-center ml-1"
                     >
-                      <Trash2 size={13} />
+                      <Trash2 size={15} />
                     </button>
                   </div>
                 </div>
-
-                {/* Stock Quick Controls */}
-                <div className="flex items-center justify-between rounded-xl bg-secondary/60 p-2.5">
-                  <span className="text-xs font-semibold text-muted-foreground">Stock en campus:</span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => void changeStock(product.id, -1)}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg bg-card text-foreground hover:bg-card/80 active:scale-95 border border-border"
-                    >
-                      <Minus size={14} />
-                    </button>
-                    <span className="min-w-6 text-center font-display font-bold text-base text-foreground">
-                      {product.stock}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => void changeStock(product.id, 1)}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg bg-card text-foreground hover:bg-card/80 active:scale-95 border border-border"
-                    >
-                      <Plus size={14} />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t border-border/40">
-                  <span className="flex items-center gap-1">
-                    <Users size={13} className="text-primary" /> {product.intent_count || 0} pedidos
-                  </span>
-                  <Link
-                    to={`/producto/${product.id}`}
-                    className="font-display font-bold text-primary hover:underline text-xs"
-                  >
-                    Ver en catálogo →
-                  </Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </PageTransition>
   )
