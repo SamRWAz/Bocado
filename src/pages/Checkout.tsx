@@ -23,7 +23,7 @@ import { displaySeller, money } from '../lib/format'
 import { computeOrderFinancials } from '../lib/pricing'
 import { playPaymentSuccess } from '../lib/sounds'
 import { saveOrder } from '../lib/storage-db'
-import { openWompiCheckout } from '../lib/wompi'
+import { openWompiCheckout, WOMPI_PAYMENT_LINK } from '../lib/wompi'
 import type { Order, PaymentMethod } from '../types'
 
 export function CheckoutPage() {
@@ -428,18 +428,31 @@ export function CheckoutPage() {
                           Pasarela Oficial Wompi (Bancolombia)
                         </span>
                         <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold">
-                          Sandbox / Live
+                          ✓ Producción Oficial
                         </span>
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Wompi procesa pagos de forma segura y centralizada. Al pulsar el botón inferior se desplegará el Widget oficial para pagar mediante:
+                      Tu pago se procesará a través de la cuenta oficial de Bocado en Wompi (Bancolombia). Al pulsar pagar se desplegará el Widget seguro para pagar con:
                     </p>
                     <div className="flex flex-wrap gap-1.5 text-[11px] font-mono">
-                      <span className="rounded-lg bg-card px-2.5 py-1 border border-border">✓ Bancolombia App</span>
                       <span className="rounded-lg bg-card px-2.5 py-1 border border-border">✓ Nequi</span>
+                      <span className="rounded-lg bg-card px-2.5 py-1 border border-border">✓ Bancolombia App</span>
                       <span className="rounded-lg bg-card px-2.5 py-1 border border-border">✓ PSE (Todos los bancos)</span>
                       <span className="rounded-lg bg-card px-2.5 py-1 border border-border">✓ Visa / Mastercard</span>
+                    </div>
+                    <div className="pt-2 border-t border-border/40 flex items-center justify-between">
+                      <span className="text-[11px] text-muted-foreground">
+                        ¿Prefieres pagar con el link directo de cobro?
+                      </span>
+                      <a
+                        href={WOMPI_PAYMENT_LINK}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+                      >
+                        Abrir Link Wompi ↗
+                      </a>
                     </div>
                   </div>
                 )}
