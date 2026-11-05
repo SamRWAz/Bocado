@@ -22,6 +22,7 @@ import { OrdersPage } from './pages/Orders'
 import { ProductDetailPage } from './pages/ProductDetail'
 import { RegisterPage } from './pages/Register'
 import { SellPage } from './pages/Sell'
+import { PresentationPage } from './pages/Presentation'
 
 function Guard({ children }: { children: ReactNode }) {
   return <ProtectedRoute>{children}</ProtectedRoute>
@@ -40,6 +41,7 @@ export default function App() {
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/registro" element={<RegisterPage />} />
+                <Route path="/presentacion" element={<PresentationPage />} />
               </Route>
 
               {/* Catalog & Shop & Deliveries views */}

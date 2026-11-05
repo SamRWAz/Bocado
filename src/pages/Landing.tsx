@@ -214,10 +214,10 @@ export function LandingPage() {
             {/* Center Column: Fluid Orbital Visual with Central Badge */}
             <div className="lg:col-span-4 flex items-center justify-center py-4 sm:py-6">
               <div className="relative w-56 h-56 sm:w-64 sm:h-64 flex items-center justify-center">
-                {/* Thin Elliptical Orbital Rings */}
-                <div className="absolute inset-0 rounded-full border border-[#1E0C30]/15 dark:border-white/15 scale-110" />
-                <div className="absolute inset-4 rounded-full border border-[#B8385E]/20 dark:border-[#B8385E]/30" />
-                <div className="absolute inset-8 rounded-full border border-dashed border-[#1E0C30]/20 dark:border-white/20" />
+                {/* Thin Elliptical Orbital Rings matching mockup */}
+                <div className="absolute inset-0 rounded-[50%] border border-[#1E0C30]/20 dark:border-white/20 scale-x-125 scale-y-75 -rotate-[22deg] pointer-events-none" />
+                <div className="absolute inset-2 rounded-[50%] border border-[#B8385E]/25 dark:border-[#B8385E]/35 scale-x-110 scale-y-85 -rotate-[15deg] pointer-events-none" />
+                <div className="absolute inset-6 rounded-[50%] border border-dashed border-[#1E0C30]/20 dark:border-white/20 scale-x-115 scale-y-80 -rotate-[28deg] pointer-events-none" />
 
                 {/* Central Round Dark Pill */}
                 <motion.div

@@ -37,7 +37,7 @@ export function BrandMark({ size = 'md', showBadge = true }: Props) {
 
       {showBadge && (
         <span className={`font-display font-black tracking-tight text-[#1E0C30] dark:text-white ${current.text} leading-none`}>
-          bocado<span className="text-[#D94668]">.</span>
+          bocado <span className="text-[#B8385E]">.</span>
         </span>
       )}
     </div>
