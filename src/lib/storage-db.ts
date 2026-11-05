@@ -256,39 +256,53 @@ export async function fetchOrders(): Promise<Order[]> {
   const local = readLocal<Order[]>(LOCAL_ORDERS, [])
   let remoteList: Order[] = []
 
-  // 1. Descargar el índice consolidado orders_index_v2.json de forma instantánea
+  // 1. Consultar SIEMPRE los archivos individuales de pedidos en el bucket para detectar pedidos recién creados
   try {
-    const indexed = await downloadJson<Order[]>('orders_index_v2.json')
-    if (Array.isArray(indexed) && indexed.length > 0) {
-      remoteList = indexed
-    }
-  } catch {
-    // Fallback a listado individual
-  }
+    const { data: files, error } = await supabase.storage.from(BUCKET).list('', {
+      limit: 100,
+    })
+    if (!error && files && files.length > 0) {
+      const orderFiles = files.filter(
+        (f) =>
+          (f.name.startsWith('order_v2_') || f.name.startsWith('order-')) &&
+          f.name.endsWith('.json') &&
+          f.name !== 'orders_index_v2.json',
+      )
 
-  // 2. Si no hay índice, consultar archivos individuales en el bucket
-  if (remoteList.length === 0) {
-    try {
-      const { data, error } = await supabase.storage.from(BUCKET).list('', {
-        limit: 200,
-        search: 'order_v2_',
-      })
-      if (!error && data) {
-        const files = data.filter((file) => file.name.startsWith('order_v2_') && file.name.endsWith('.json'))
-        const downloaded = (await Promise.all(files.map((file) => downloadJson<Order>(file.name)))).filter(
-          (order): order is Order => !!order,
-        )
+      if (orderFiles.length > 0) {
+        // Ordenar por fecha de modificación más reciente
+        orderFiles.sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''))
+
+        // Descargar los pedidos concurrentemente
+        const downloaded = (
+          await Promise.all(
+            orderFiles.slice(0, 40).map(async (file) => downloadJson<Order>(file.name)),
+          )
+        ).filter((order): order is Order => Boolean(order && order.id))
+
         if (downloaded.length > 0) {
           remoteList = downloaded
         }
       }
-    } catch {
-      // Ignorar error de red y usar local
     }
+  } catch (err) {
+    console.warn('Error listando archivos individuales de pedidos:', err)
   }
 
+  // 2. También incluir pedidos del índice si existen
+  try {
+    const indexed = await downloadJson<Order[]>('orders_index_v2.json')
+    if (Array.isArray(indexed) && indexed.length > 0) {
+      remoteList = [...remoteList, ...indexed]
+    }
+  } catch {
+    // Non-blocking
+  }
+
+  // 3. Fusionar de forma segura con local sin perder ningún pedido
   const map = new Map<string, Order>()
   ;[...remoteList, ...local].forEach((order) => {
+    if (!order || !order.id) return
     const existing = map.get(order.id)
     if (!existing) {
       map.set(order.id, order)
@@ -296,6 +310,7 @@ export async function fetchOrders(): Promise<Order[]> {
       map.set(order.id, mergeOrder(existing, order))
     }
   })
+
   const merged = [...map.values()]
   localStorage.setItem(LOCAL_ORDERS, JSON.stringify(merged))
   return merged

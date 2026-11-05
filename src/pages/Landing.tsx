@@ -9,7 +9,6 @@ import {
   ChefHat,
   ShoppingBag,
 } from 'lucide-react'
-import { ThreeHeroCanvas } from '../components/ThreeHeroCanvas'
 import { BrandMark } from '../components/BrandMark'
 import { playKeyBeep } from '../lib/sounds'
 
@@ -132,15 +131,90 @@ export function LandingPage() {
             </div>
           </div>
 
-          {/* Right Column: 3D Chocolate Chip Cookie with Fluid Organic Backdrop */}
-          <div className="lg:col-span-5 relative flex items-center justify-center">
-            {/* Soft Organic Layered Backdrop */}
-            <div className="absolute w-64 h-64 sm:w-88 sm:h-88 rounded-full bg-[#E8A5B8]/30 dark:bg-[#B8385E]/20 blur-xl pointer-events-none -top-4 -right-4" />
-            <div className="absolute w-56 h-56 sm:w-76 sm:h-76 rounded-full bg-[#B8385E]/15 dark:bg-[#1E0C30]/50 blur-lg pointer-events-none -bottom-6 -left-4" />
+          {/* Right Column: Colorful Organic Snack Composition matching Mockup */}
+          <div className="lg:col-span-5 relative flex items-center justify-center py-6">
+            {/* Soft Organic Layered Backdrop from Mockup */}
+            <div className="absolute w-72 h-72 sm:w-96 sm:h-96 rounded-full bg-[#E27D8C]/25 dark:bg-[#B8385E]/20 blur-2xl pointer-events-none -top-6 -right-6" />
+            <div className="absolute w-64 h-64 sm:w-80 sm:h-80 rounded-full bg-[#1E0C30]/15 dark:bg-[#1E0C30]/50 blur-xl pointer-events-none -bottom-8 -left-6" />
 
-            {/* The 3D Interactive Cookie in Three.js */}
-            <div className="relative w-full aspect-square max-w-[420px] flex items-center justify-center">
-              <ThreeHeroCanvas />
+            {/* Overlapping Crisp Organic Color Discs */}
+            <div className="relative w-full max-w-[420px] aspect-square flex items-center justify-center">
+              {/* Back Plum Disc */}
+              <div className="absolute w-64 h-64 sm:w-80 sm:h-80 rounded-full bg-[#1E0C30] dark:bg-[#2D1945] shadow-2xl -bottom-2 -left-2 transition-transform duration-500 hover:scale-105" />
+              
+              {/* Top Rose Disc */}
+              <div className="absolute w-56 h-56 sm:w-72 sm:h-72 rounded-full bg-[#B8385E] shadow-xl -top-2 -right-2 opacity-90 transition-transform duration-500 hover:scale-105" />
+
+              {/* Main Crisp Bento Snack Card */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="relative z-10 w-[290px] sm:w-[330px] rounded-3xl bg-white dark:bg-[#1D102E] p-4 shadow-2xl border border-[#EFE8E6] dark:border-[#3A1856] space-y-3"
+              >
+                {/* Photo container with real appetizing campus snack */}
+                <div className="relative w-full h-44 sm:h-48 rounded-2xl overflow-hidden bg-[#FAF6F5] dark:bg-[#130920]">
+                  <img
+                    src="/images/real_cookies.jpg"
+                    alt="Galletas artesanales recién horneadas en Icesi"
+                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                  />
+                  <div className="absolute top-2.5 left-2.5 px-3 py-1 rounded-full bg-[#1E0C30]/90 backdrop-blur-xs text-white text-[11px] font-mono font-bold flex items-center gap-1.5 shadow-sm">
+                    <span className="text-[#E27D7D]">✦</span>
+                    <span>Recién horneado</span>
+                  </div>
+                  <div className="absolute bottom-2.5 right-2.5 px-3 py-1 rounded-full bg-[#B8385E] text-white text-xs font-mono font-black shadow-md">
+                    $4.500 COP
+                  </div>
+                </div>
+
+                {/* Card Info */}
+                <div className="space-y-1 px-1">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-display font-black text-base text-[#1E0C30] dark:text-white">
+                      Galletas Choco-Chips
+                    </h3>
+                    <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+                      Disponible
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#59483E] dark:text-[#C5B7C2]">
+                    Preparadas por Valentina · Edificio D
+                  </p>
+                </div>
+              </motion.div>
+
+              {/* Floating Delivery Route Badge */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="absolute -bottom-4 -left-4 z-20 rounded-2xl bg-[#1E0C30] text-white px-4 py-2.5 shadow-xl border border-white/10 flex items-center gap-2.5"
+              >
+                <div className="w-8 h-8 rounded-full bg-[#B8385E] flex items-center justify-center text-white shrink-0">
+                  <Bike size={16} />
+                </div>
+                <div className="text-left">
+                  <span className="block text-[10px] font-mono uppercase tracking-wider text-neutral-300">
+                    Domicilio a pie
+                  </span>
+                  <span className="block text-xs font-bold text-white">
+                    Edif. D ➔ Tu salón
+                  </span>
+                </div>
+              </motion.div>
+
+              {/* Floating Star Tag */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+                className="absolute -top-3 -right-3 z-20 rounded-full bg-white dark:bg-[#1D102E] p-2.5 shadow-lg border border-[#EFE8E6] dark:border-[#3A1856]"
+              >
+                <div className="w-8 h-8 rounded-full bg-[#B8385E] flex items-center justify-center text-white">
+                  <span className="text-sm font-bold">✦</span>
+                </div>
+              </motion.div>
             </div>
           </div>
         </div>

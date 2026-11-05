@@ -17,7 +17,7 @@ import { fetchOrders, saveOrder, subscribeToOrderUpdates } from '../lib/storage-
 import type { Order } from '../types'
 
 export function DeliveriesPage() {
-  const { user } = useAuth()
+  const { user, updateProfile } = useAuth()
   const { success, bonus } = useToast()
   const navigate = useNavigate()
   const [orders, setOrders] = useState<Order[]>([])
@@ -39,10 +39,10 @@ export function DeliveriesPage() {
   if (!user) {
     return (
       <div className="py-20 text-center space-y-4">
-        <Bike size={48} className="mx-auto text-primary opacity-60" />
+        <Bike size={48} className="mx-auto text-[#B8385E] opacity-60" />
         <h2 className="font-display text-xl font-bold">Inicia sesión para ver solicitudes de Domiciliario</h2>
         <p className="text-xs text-muted-foreground">Regístrate o inicia sesión como Domiciliario para hacer entregas en el campus.</p>
-        <Link to="/login" className="inline-block rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground">
+        <Link to="/login" className="inline-block rounded-xl bg-[#B8385E] px-5 py-2.5 text-xs font-bold text-white shadow-xs">
           Iniciar sesión
         </Link>
       </div>
@@ -52,16 +52,24 @@ export function DeliveriesPage() {
   if (!isTendedero(user.role)) {
     return (
       <div className="py-20 text-center space-y-4 max-w-md mx-auto px-4">
-        <Bike size={48} className="mx-auto text-primary opacity-60" />
-        <h2 className="font-display text-xl font-bold">Módulo Exclusivo para Domiciliarios</h2>
+        <Bike size={48} className="mx-auto text-[#B8385E] opacity-60" />
+        <h2 className="font-display text-xl font-bold">Módulo para Domiciliarios</h2>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Actualmente tienes el rol de <strong className="capitalize">{user.role}</strong>. Para tomar pedidos y ganar por carreras de entrega en el campus, actualiza tu rol a <strong>Domiciliario</strong> en tu perfil.
+          Actualmente tienes el rol de <strong className="capitalize">{user.role}</strong>. Para tomar pedidos y ganar por carreras de entrega en el campus, activa tu rol de Domiciliario con un clic:
         </p>
-        <div className="flex justify-center gap-3 pt-2">
-          <Link to="/cuenta" className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-xs">
-            Cambiar Rol en Mi Cuenta
-          </Link>
-          <Link to="/catalogo" className="rounded-xl border border-border bg-card px-4 py-2 text-xs font-bold text-foreground">
+        <div className="flex flex-col sm:flex-row justify-center gap-3 pt-2">
+          <button
+            type="button"
+            onClick={async () => {
+              playKeyBeep(700)
+              await updateProfile({ ...user, role: 'domiciliario' })
+              success('¡Rol actualizado a Domiciliario!', 'Ahora puedes ver y tomar pedidos para entregar en el campus.')
+            }}
+            className="rounded-xl bg-[#B8385E] px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#A32F51] cursor-pointer"
+          >
+            Activar Rol de Domiciliario Ahora ↗
+          </button>
+          <Link to="/catalogo" className="rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-bold text-foreground">
             Ir al Catálogo
           </Link>
         </div>
@@ -69,9 +77,17 @@ export function DeliveriesPage() {
     )
   }
 
-  // Solicitudes abiertas para cualquier tendedero
+  // Solicitudes abiertas para cualquier domiciliario
+  const isAvailableStatus = (status?: string) =>
+    status === 'solicitado' ||
+    status === 'reservado' ||
+    status === 'pendiente' ||
+    status === 'pagado' ||
+    status === 'creado' ||
+    !status
+
   const disponibles = orders.filter(
-    (o) => (o.status === 'solicitado' || o.status === 'reservado') && !o.tendederoId && o.buyerId !== user.id,
+    (o) => isAvailableStatus(o.status) && (!o.tendederoId || o.tendederoId === ''),
   )
 
   // Entregas activas tomadas por el usuario actual
@@ -254,9 +270,16 @@ export function DeliveriesPage() {
                     <div className="space-y-3">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <span className="text-[10px] font-mono font-bold uppercase text-primary bg-primary/10 px-2 py-0.5 rounded-md">
-                            Entrega en Campus
-                          </span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[10px] font-mono font-bold uppercase text-[#B8385E] bg-[#B8385E]/10 px-2 py-0.5 rounded-md">
+                              Entrega en Campus
+                            </span>
+                            {order.buyerId === user.id && (
+                              <span className="text-[10px] font-mono font-bold uppercase text-amber-700 dark:text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded-md">
+                                Tu pedido de prueba
+                              </span>
+                            )}
+                          </div>
                           <h3 className="font-display text-base font-bold text-foreground truncate mt-1">
                             {order.items.map((i) => `${i.qty}x ${i.name}`).join(', ')}
                           </h3>
