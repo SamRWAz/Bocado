@@ -82,6 +82,22 @@ h6 {
   letter-spacing: -0.02em;
 }
 
+/* Expressive outlined text style inspired by Bocado brand direction */
+.text-outline-pink {
+  -webkit-text-stroke: 1.5px #D94668;
+  color: transparent;
+}
+
+.text-outline-coral {
+  -webkit-text-stroke: 1.5px #E27D7D;
+  color: transparent;
+}
+
+.text-outline-white {
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.95);
+  color: transparent;
+}
+
 .touch-target {
   min-height: 48px;
   min-width: 48px;

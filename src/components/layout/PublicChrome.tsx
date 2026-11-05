@@ -7,16 +7,30 @@ import { ThemeToggle } from '../ThemeToggle'
 
 function SectionNav() {
   return (
-    <NavLink
-      to="/catalogo"
-      className={({ isActive }) =>
-        isActive
-          ? 'text-primary font-bold'
-          : 'hover:text-foreground font-medium transition-colors'
-      }
-    >
-      Catálogo de Snacks
-    </NavLink>
+    <>
+      <a
+        href="/#ecosistema"
+        className="text-[#59483E] dark:text-neutral-300 hover:text-[#1E0C30] dark:hover:text-white font-medium transition-colors text-xs font-mono uppercase tracking-wider"
+      >
+        El ecosistema
+      </a>
+      <NavLink
+        to="/catalogo"
+        className={({ isActive }) =>
+          isActive
+            ? 'text-[#B8385E] font-bold text-xs font-mono uppercase tracking-wider'
+            : 'text-[#59483E] dark:text-neutral-300 hover:text-[#1E0C30] dark:hover:text-white font-medium transition-colors text-xs font-mono uppercase tracking-wider'
+        }
+      >
+        Snacks
+      </NavLink>
+      <a
+        href="/#como-funciona"
+        className="text-[#59483E] dark:text-neutral-300 hover:text-[#1E0C30] dark:hover:text-white font-medium transition-colors text-xs font-mono uppercase tracking-wider"
+      >
+        Cómo funciona
+      </a>
+    </>
   )
 }
 
@@ -25,24 +39,24 @@ export function PublicHeader() {
   const { count } = useCart()
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-[#EBE4DC] dark:border-[#26201C] bg-[#FAF6F5]/90 dark:bg-[#120F0D]/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link to="/" className="flex items-center">
           <BrandMark size="sm" />
         </Link>
-        <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
+        <nav className="hidden items-center gap-8 md:flex">
           <SectionNav />
         </nav>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <ThemeToggle />
           <Link
             to="/carrito"
-            className="relative flex items-center gap-1.5 rounded-xl bg-secondary/60 px-3 py-2 text-xs sm:text-sm font-display font-semibold text-foreground hover:bg-secondary transition-colors"
+            className="relative flex items-center gap-1.5 rounded-full bg-white dark:bg-[#1C1816] border border-[#E5DFD7] dark:border-[#2A2420] px-3 py-2 text-xs font-display font-semibold text-foreground hover:bg-neutral-50 transition-colors"
           >
-            <ShoppingCart size={16} className="text-primary" />
+            <ShoppingCart size={15} className="text-[#B8385E]" />
             <span className="hidden sm:inline">Carrito</span>
             {count > 0 && (
-              <span className="min-w-5 rounded-full bg-primary px-1.5 py-0.2 text-center text-[10px] font-bold text-primary-foreground">
+              <span className="min-w-5 rounded-full bg-[#B8385E] px-1.5 py-0.2 text-center text-[10px] font-bold text-white">
                 {count}
               </span>
             )}
@@ -50,25 +64,18 @@ export function PublicHeader() {
           {user ? (
             <Link
               to={canSell(user.role) ? '/vender' : isTendedero(user.role) ? '/entregas' : '/pedidos'}
-              className="rounded-xl bg-primary px-4 py-2 text-xs sm:text-sm font-display font-semibold text-primary-foreground shadow-sm hover:opacity-90"
+              className="rounded-full bg-[#1E0C30] px-4 py-2 text-xs font-display font-bold text-white shadow-xs hover:bg-[#2F154B] transition-all"
             >
               Ir a la app
             </Link>
           ) : (
-            <>
-              <Link
-                to="/login"
-                className="rounded-xl px-3 py-2 text-xs sm:text-sm font-display font-medium text-muted-foreground hover:text-foreground"
-              >
-                Entrar
-              </Link>
-              <Link
-                to="/registro"
-                className="rounded-xl bg-primary px-4 py-2 text-xs sm:text-sm font-display font-semibold text-primary-foreground shadow-sm hover:opacity-90"
-              >
-                Crear cuenta
-              </Link>
-            </>
+            <Link
+              to="/registro"
+              className="rounded-full bg-[#1E0C30] px-5 py-2 text-xs font-display font-bold text-white shadow-xs hover:bg-[#2F154B] transition-all flex items-center gap-1"
+            >
+              <span>Únete al movimiento</span>
+              <span className="text-[13px]">↗</span>
+            </Link>
           )}
         </div>
       </div>
