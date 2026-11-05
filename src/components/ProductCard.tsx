@@ -52,9 +52,9 @@ export function ProductCard({ product, onApartar }: Props) {
     <motion.article
       whileHover={{ y: -6 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-[#E5DFD7] dark:border-[#2C2420] bg-white dark:bg-[#1E1917] p-3.5 transition-all shadow-xs hover:shadow-md"
+      className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-[#EFE8E6] dark:border-[#2D1945] bg-white dark:bg-[#1D102E] p-3.5 transition-all shadow-xs hover:shadow-md"
     >
-      <Link to={`/producto/${product.id}`} className="block overflow-hidden rounded-2xl bg-[#F5EFEB] dark:bg-[#251F1C]">
+      <Link to={`/producto/${product.id}`} className="block overflow-hidden rounded-2xl bg-[#F7F2F6] dark:bg-[#25153A]">
         <div className="relative aspect-4/3 w-full overflow-hidden">
           <img
             src={displayImage}

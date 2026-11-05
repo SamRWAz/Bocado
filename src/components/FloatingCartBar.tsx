@@ -9,9 +9,10 @@ export function FloatingCartBar() {
   const { count, total } = useCart()
   const location = useLocation()
 
-  // Hide on cart, checkout or auth pages
+  // Hide on main landing page, cart, checkout or auth pages
   const isHidden =
     count === 0 ||
+    location.pathname === '/' ||
     location.pathname === '/carrito' ||
     location.pathname === '/checkout' ||
     location.pathname === '/login' ||
