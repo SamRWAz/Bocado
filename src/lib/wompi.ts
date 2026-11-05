@@ -14,6 +14,11 @@ export const WOMPI_PUBLIC_KEY =
   (import.meta.env.VITE_WOMPI_PUBLIC_KEY as string) ||
   'pub_prod_Jy8MRW7sX8ma760866HHM1aBZoTcwZ1l'
 
+// Secreto de integridad oficial de Producción de Wompi
+export const WOMPI_INTEGRITY_SECRET =
+  (import.meta.env.VITE_WOMPI_INTEGRITY_SECRET as string) ||
+  'prod_integrity_fYZrVcGPI4pYrdXAQoSRfGJ4o9OZtsSf'
+
 // Link de pago directo alternativo de Bocado
 export const WOMPI_PAYMENT_LINK = 'https://checkout.wompi.co/l/VPOS_8hLhf4'
 
@@ -94,7 +99,7 @@ export async function openWompiCheckout(options: {
   }
 
   const integritySecret =
-    options.integritySecret || (import.meta.env.VITE_WOMPI_INTEGRITY_SECRET as string)
+    options.integritySecret || WOMPI_INTEGRITY_SECRET
 
   let signatureIntegrity: string | undefined
   if (integritySecret) {
