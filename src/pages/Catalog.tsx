@@ -158,25 +158,25 @@ export function CatalogPage() {
         {/* Minimalist Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between border-b border-[#E5DFD7] dark:border-[#2C2420] pb-6">
           <div>
-            <span className="text-[11px] font-mono uppercase tracking-widest text-[#8F1414] dark:text-red-400 font-bold block mb-1">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-[#B8385E] dark:text-[#D94668] font-bold block mb-1">
               Campus Icesi · Hecho por Estudiantes
             </span>
-            <h1 className="font-display text-3xl font-black sm:text-4xl text-[#2C221C] dark:text-[#FAF6F0]">
+            <h1 className="font-display text-3xl font-black sm:text-4xl text-[#1E0C30] dark:text-[#F6EEF2]">
               Snacks y Postres Artesanales
             </h1>
-            <p className="mt-1 text-xs sm:text-sm text-[#7E726A] dark:text-[#A89C92]">
+            <p className="mt-1 text-xs sm:text-sm text-[#756272] dark:text-[#C5B7C2]">
               Preparaciones frescas del día. Pide tu favorito y recíbelo en tu clase con domiciliarios del campus.
             </p>
           </div>
 
           {/* Minimal Search Bar */}
           <div className="relative w-full sm:max-w-xs">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7E726A]" />
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#756272]" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar por nombre o snack..."
-              className="w-full rounded-2xl border border-[#E5DFD7] dark:border-[#2C2420] bg-white dark:bg-[#1E1917] py-2.5 pl-10 pr-4 text-xs sm:text-sm text-[#2C221C] dark:text-[#FAF6F0] outline-none transition-all focus:border-[#8F1414]"
+              className="w-full rounded-2xl border border-[#EFE8E6] dark:border-[#2D1945] bg-white dark:bg-[#1D102E] py-2.5 pl-10 pr-4 text-xs sm:text-sm text-[#1E0C30] dark:text-[#F6EEF2] outline-none transition-all focus:border-[#B8385E]"
             />
           </div>
         </div>
@@ -196,8 +196,8 @@ export function CatalogPage() {
                   }}
                   className={`rounded-full px-4 py-2 text-xs font-display font-bold transition-all cursor-pointer whitespace-nowrap ${
                     active
-                      ? 'bg-[#8F1414] text-white shadow-xs'
-                      : 'bg-white dark:bg-[#1E1917] text-[#7E726A] dark:text-[#A89C92] hover:text-[#2C221C] border border-[#E5DFD7] dark:border-[#2C2420]'
+                      ? 'bg-[#B8385E] text-white shadow-xs'
+                      : 'bg-white dark:bg-[#1D102E] text-[#756272] dark:text-[#C5B7C2] hover:text-[#1E0C30] border border-[#EFE8E6] dark:border-[#2D1945]'
                   }`}
                 >
                   {filter}
@@ -211,8 +211,8 @@ export function CatalogPage() {
             onClick={() => setBudgetOnly(!budgetOnly)}
             className={`rounded-full px-3.5 py-1.5 text-xs font-mono font-bold transition-all cursor-pointer shrink-0 border ${
               budgetOnly
-                ? 'bg-[#8F1414] text-white border-[#8F1414]'
-                : 'bg-white dark:bg-[#1E1917] text-[#7E726A] border-[#E5DFD7] dark:border-[#2C2420]'
+                ? 'bg-[#B8385E] text-white border-[#B8385E]'
+                : 'bg-white dark:bg-[#1D102E] text-[#756272] border-[#EFE8E6] dark:border-[#2D1945]'
             }`}
           >
             {budgetOnly ? '✓ Menos de $4.000' : '≤ $4.000 COP'}
@@ -293,23 +293,23 @@ export function CatalogPage() {
                   className="h-16 w-16 rounded-2xl object-cover bg-[#F4EFE6]"
                 />
                 <div>
-                  <h4 className="font-display font-bold text-base text-[#2C221C] dark:text-[#FAF6F0]">
+                  <h4 className="font-display font-bold text-base text-[#1E0C30] dark:text-[#F6EEF2]">
                     {selectedProduct.name}
                   </h4>
-                  <span className="font-mono text-sm font-bold text-[#8F1414] dark:text-red-400">
+                  <span className="font-mono text-sm font-bold text-[#B8385E] dark:text-[#D94668]">
                     {money(selectedProduct.price)}
                   </span>
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#2C221C] dark:text-[#FAF6F0] block">
+                <label className="text-xs font-bold text-[#1E0C30] dark:text-[#F6EEF2] block">
                   ¿En qué edificio de la U estás? (Para entrega del Domiciliario)
                 </label>
                 <select
                   value={deliveryLocation}
                   onChange={(e) => setDeliveryLocation(e.target.value)}
-                  className="w-full rounded-2xl border border-[#E5DFD7] dark:border-[#2C2420] bg-[#FAF6F0] dark:bg-[#251F1C] px-3.5 py-3 text-xs font-semibold outline-none focus:border-[#8F1414]"
+                  className="w-full rounded-2xl border border-[#EFE8E6] dark:border-[#2D1945] bg-[#FAF6F5] dark:bg-[#25153A] px-3.5 py-3 text-xs font-semibold outline-none focus:border-[#B8385E]"
                 >
                   {PICKUP_POINTS.map((pt) => (
                     <option key={pt} value={pt}>
@@ -317,7 +317,7 @@ export function CatalogPage() {
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-[#7E726A]">
+                <p className="text-[11px] text-[#756272]">
                   La tarifa de entrega se calcula automáticamente según la distancia de tu aula ($100 a $500 COP).
                 </p>
               </div>
@@ -326,7 +326,7 @@ export function CatalogPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedProduct(null)}
-                  className="flex-1 rounded-2xl border border-[#E5DFD7] dark:border-[#2C2420] py-3 text-xs font-bold text-[#7E726A] hover:bg-[#F4EFE6] transition-colors"
+                  className="flex-1 rounded-2xl border border-[#EFE8E6] dark:border-[#2D1945] py-3 text-xs font-bold text-[#756272] hover:bg-[#F4EBF0] transition-colors"
                 >
                   Cancelar
                 </button>
@@ -334,7 +334,7 @@ export function CatalogPage() {
                   type="button"
                   disabled={isProcessing}
                   onClick={() => void handleConfirmApartar()}
-                  className="flex-1 rounded-2xl bg-[#8F1414] hover:bg-[#751010] py-3 text-xs font-bold text-white shadow-md transition-colors disabled:opacity-50"
+                  className="flex-1 rounded-2xl bg-[#B8385E] hover:bg-[#A32F51] py-3 text-xs font-bold text-white shadow-md transition-colors disabled:opacity-50"
                 >
                   {isProcessing ? 'Procesando...' : 'Pedir Ahora'}
                 </button>
@@ -349,28 +349,28 @@ export function CatalogPage() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="w-full max-w-md rounded-3xl border border-emerald-300 dark:border-emerald-800 bg-white dark:bg-[#1E1917] p-6 shadow-2xl text-center space-y-4"
+              className="w-full max-w-md rounded-3xl border border-emerald-300 dark:border-emerald-800 bg-white dark:bg-[#1D102E] p-6 shadow-2xl text-center space-y-4"
             >
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600">
                 <Receipt size={28} />
               </div>
-              <h3 className="font-display text-xl font-black text-[#2C221C] dark:text-[#FAF6F0]">
+              <h3 className="font-display text-xl font-black text-[#1E0C30] dark:text-[#F6EEF2]">
                 ¡Pedido Creado!
               </h3>
-              <p className="text-xs text-[#7E726A] leading-relaxed">
+              <p className="text-xs text-[#756272] leading-relaxed">
                 Tu solicitud de <strong>{apartadoSuccess.product.name}</strong> quedó registrada en el campus para entrega en <strong>{apartadoSuccess.location}</strong>.
               </p>
               <div className="pt-2 flex gap-2">
                 <button
                   type="button"
                   onClick={() => setApartadoSuccess(null)}
-                  className="flex-1 rounded-2xl border border-[#E5DFD7] dark:border-[#2C2420] py-3 text-xs font-bold text-[#7E726A]"
+                  className="flex-1 rounded-2xl border border-[#EFE8E6] dark:border-[#2D1945] py-3 text-xs font-bold text-[#756272]"
                 >
                   Seguir Viendo
                 </button>
                 <Link
                   to="/pedidos"
-                  className="flex-1 rounded-2xl bg-[#8F1414] hover:bg-[#751010] py-3 text-xs font-bold text-white shadow-md flex items-center justify-center gap-1.5"
+                  className="flex-1 rounded-2xl bg-[#B8385E] hover:bg-[#A32F51] py-3 text-xs font-bold text-white shadow-md flex items-center justify-center gap-1.5"
                 >
                   <span>Ver Mis Pedidos</span>
                 </Link>

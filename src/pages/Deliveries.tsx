@@ -269,7 +269,7 @@ export function DeliveriesPage() {
                       {/* Ruta de entrega de edificio a edificio */}
                       <div className="rounded-2xl bg-secondary/60 p-3 space-y-2 text-xs border border-border/60">
                         <div className="flex items-start gap-2">
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-100 text-[#8F1414] dark:bg-red-950 dark:text-red-300 text-[10px] font-bold">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-pink-100 text-[#B8385E] dark:bg-pink-950 dark:text-[#D94668] text-[10px] font-bold">
                             1
                           </span>
                           <div>

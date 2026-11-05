@@ -56,11 +56,11 @@ export function LoginPage() {
     <PageTransition>
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-2">
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 dark:bg-red-950/80 px-3 py-1 text-xs font-mono font-bold text-[#8F1414] dark:text-red-300">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-pink-100 dark:bg-pink-950/80 px-3 py-1 text-xs font-mono font-bold text-[#B8385E] dark:text-[#D94668]">
             <Sparkles size={12} /> Comunidad Universitaria
           </span>
-          <h1 className="mt-3 font-display text-4xl font-black text-foreground sm:text-5xl">
-            Tu cuenta en <span className="text-[#8F1414] dark:text-red-400">Bocado</span>.
+          <h1 className="mt-3 font-display text-4xl font-black text-[#1E0C30] dark:text-white sm:text-5xl">
+            Tu cuenta en <span className="text-[#B8385E] dark:text-[#D94668]">bocado.</span>
           </h1>
           <p className="mt-4 text-muted-foreground text-sm sm:text-base leading-relaxed">
             Pide snacks preparados por estudiantes, vende tus recetas culinarias o realiza entregas independientes entre clases en el campus.

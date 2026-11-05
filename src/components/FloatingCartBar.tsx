@@ -27,7 +27,7 @@ export function FloatingCartBar() {
           transition={{ type: 'spring', damping: 25, stiffness: 350 }}
           className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-lg"
         >
-          <div className="flex items-center justify-between rounded-2xl border-2 border-primary/30 bg-[#8F1414] text-white p-3 sm:p-3.5 shadow-2xl backdrop-blur-md">
+          <div className="flex items-center justify-between rounded-2xl border border-white/20 bg-[#B8385E] text-white p-3 sm:p-3.5 shadow-2xl backdrop-blur-md">
             <div className="flex items-center gap-3">
               <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-white font-bold">
                 <BookmarkCheck size={20} />
@@ -42,13 +42,13 @@ export function FloatingCartBar() {
               </div>
 
               <div>
-                <div className="flex items-center gap-1.5 text-[11px] font-mono text-red-100">
+                <div className="flex items-center gap-1.5 text-[11px] font-mono text-pink-100">
                   <Bike size={12} />
-                  <span>Domicilio Campus: $200 COP</span>
+                  <span>Domicilio en campus</span>
                 </div>
                 <p className="font-display font-black text-sm sm:text-base leading-none">
                   {money(total)}
-                  <span className="text-xs font-normal text-red-200 ml-1.5">
+                  <span className="text-xs font-normal text-pink-200 ml-1.5">
                     ({count} {count === 1 ? 'snack' : 'snacks'})
                   </span>
                 </p>
@@ -58,7 +58,7 @@ export function FloatingCartBar() {
             <Link
               to="/carrito"
               onClick={() => playKeyBeep(850)}
-              className="flex items-center gap-1.5 rounded-xl bg-white px-4 py-2.5 font-display text-xs font-black text-[#8F1414] shadow-md hover:bg-neutral-100 active:scale-95 transition-all"
+              className="flex items-center gap-1.5 rounded-xl bg-white px-4 py-2.5 font-display text-xs font-black text-[#B8385E] shadow-md hover:bg-neutral-100 active:scale-95 transition-all"
             >
               <span>Ver Carrito</span>
               <ArrowRight size={14} />

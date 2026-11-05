@@ -12,14 +12,14 @@ export function ThreeHeroCanvas() {
     // Scene & Camera
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(
-      42,
+      40,
       container.clientWidth / container.clientHeight,
       0.1,
       100
     )
-    camera.position.set(0, 0, 7.8)
+    camera.position.set(0, 0, 7.5)
 
-    // Renderer (Matte, transparent background)
+    // Renderer
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
       antialias: true,
@@ -28,128 +28,167 @@ export function ThreeHeroCanvas() {
     renderer.setSize(container.clientWidth, container.clientHeight)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.15
+    renderer.toneMappingExposure = 1.25
+    renderer.shadowMap.enabled = true
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap
     container.appendChild(renderer.domElement)
 
-    // Lighting (Warm bakery studio lighting)
-    const ambientLight = new THREE.AmbientLight(0xfff5ea, 1.3)
+    // Studio Lighting
+    const ambientLight = new THREE.AmbientLight(0xfff6ed, 1.4)
     scene.add(ambientLight)
 
-    const keyLight = new THREE.DirectionalLight(0xfff0db, 2.4)
+    const keyLight = new THREE.DirectionalLight(0xffeed9, 2.8)
     keyLight.position.set(5, 7, 6)
+    keyLight.castShadow = true
     scene.add(keyLight)
 
-    const rimLight = new THREE.DirectionalLight(0xd94668, 1.2)
-    rimLight.position.set(-5, -4, -3)
+    const rimLight = new THREE.DirectionalLight(0xd94668, 1.3)
+    rimLight.position.set(-6, -3, -4)
     scene.add(rimLight)
 
-    const bottomFill = new THREE.DirectionalLight(0xfef3c7, 0.8)
-    bottomFill.position.set(0, -6, 4)
-    scene.add(bottomFill)
+    const topSpecular = new THREE.DirectionalLight(0xffffff, 1.0)
+    topSpecular.position.set(0, 8, 3)
+    scene.add(topSpecular)
 
-    // Cookie Group
+    // Cookie Master Group
     const cookieGroup = new THREE.Group()
 
-    // 1. Procedural 3D Cookie Dough
-    const cookieGeo = new THREE.CylinderGeometry(2.1, 1.95, 0.65, 48, 8)
-    
-    // Deform vertices for an organic, freshly-baked, slightly uneven rim and surface
+    // 1. Procedural 3D Cookie Dough with Vertex Color Baking Gradient
+    const cookieGeo = new THREE.CylinderGeometry(2.35, 2.2, 0.72, 64, 14)
     const pos = cookieGeo.attributes.position
+    const colors: number[] = []
+
+    // Baked color palette (center dough to toasted rim)
+    const colorCenter = new THREE.Color(0xdfa460) // golden baked dough
+    const colorRim = new THREE.Color(0xb86e2d) // toasted crust edge
+    const colorCrevice = new THREE.Color(0x99561e) // deep oven baked crevices
+
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i)
       const y = pos.getY(i)
       const z = pos.getZ(i)
       const distFromCenter = Math.sqrt(x * x + z * z)
-
-      // Surface bumpiness
-      const surfaceBump =
-        Math.sin(x * 4.2) * Math.cos(z * 4.2) * 0.04 +
-        Math.sin(x * 8.5 + z * 8.5) * 0.02
-
-      // Rim waviness (crispy, rustic artisanal edge)
       const angle = Math.atan2(z, x)
-      const rimWaviness = distFromCenter > 1.4 ? Math.sin(angle * 9) * 0.08 + Math.cos(angle * 13) * 0.04 : 0
 
-      pos.setY(i, y + surfaceBump)
-      if (distFromCenter > 1.2) {
-        pos.setX(i, x + rimWaviness * (x / distFromCenter))
-        pos.setZ(i, z + rimWaviness * (z / distFromCenter))
+      // Organic artisanal cracks and surface undulation
+      const crackNoise =
+        Math.sin(x * 5.2) * Math.cos(z * 5.2) * 0.06 +
+        Math.sin(x * 11.0 + z * 8.0) * 0.025 +
+        Math.cos(x * 3.1 - z * 3.1) * 0.03
+
+      // Rustic, slightly wavy, thick bakery rim
+      const rimDisplacement =
+        distFromCenter > 1.3
+          ? Math.sin(angle * 7) * 0.08 + Math.cos(angle * 13) * 0.05
+          : 0
+
+      // Natural cookie dome curvature (slightly thicker in the center)
+      const domeCurve = (1.0 - Math.min(distFromCenter / 2.3, 1.0)) * 0.15
+
+      const newY = y > 0 ? y + domeCurve + crackNoise : y - crackNoise * 0.5
+      pos.setY(i, newY)
+
+      if (distFromCenter > 1.0) {
+        const factor = (distFromCenter + rimDisplacement) / distFromCenter
+        pos.setX(i, x * factor)
+        pos.setZ(i, z * factor)
       }
+
+      // Compute vertex color based on depth and distance from center
+      const tempColor = new THREE.Color()
+      const rimRatio = Math.min(distFromCenter / 2.3, 1.0)
+      tempColor.lerpColors(colorCenter, colorRim, rimRatio)
+
+      // Darken crevices
+      if (crackNoise < -0.02 && y > 0) {
+        tempColor.lerp(colorCrevice, 0.45)
+      }
+
+      colors.push(tempColor.r, tempColor.g, tempColor.b)
     }
+
+    cookieGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3))
     cookieGeo.computeVertexNormals()
 
-    // Baked golden cookie dough material (matte, warm, appetizing)
     const cookieMat = new THREE.MeshStandardMaterial({
-      color: 0xd69956, // Golden baked dough
-      roughness: 0.82,
-      metalness: 0.04,
+      vertexColors: true,
+      roughness: 0.85,
+      metalness: 0.02,
       flatShading: false,
     })
 
     const cookieMesh = new THREE.Mesh(cookieGeo, cookieMat)
+    cookieMesh.castShadow = true
+    cookieMesh.receiveShadow = true
     cookieGroup.add(cookieMesh)
 
-    // 2. Realistic 3D Chocolate Chips (Chispas de Chocolate)
-    const chipGeo = new THREE.DodecahedronGeometry(0.28, 1)
-    chipGeo.scale(1, 0.6, 1)
+    // 2. Chunky, Tempting Chocolate Chips (Chispas & Chunks de Chocolate)
+    const chipGeo = new THREE.DodecahedronGeometry(0.32, 1)
+    chipGeo.scale(1, 0.65, 1)
 
+    // Melted rich dark chocolate material
     const chipMat = new THREE.MeshStandardMaterial({
-      color: 0x221108, // Dark roasted cocoa
-      roughness: 0.38, // Satin finish for chocolate
+      color: 0x1f0f07, // Deep dark roasted chocolate
+      roughness: 0.28, // Satin chocolate sheen
       metalness: 0.12,
     })
 
-    // Coordinates scattered naturally over the top face
-    const chipPositions = [
-      { x: 0.2, z: 0.1, s: 1.15, r: 0.4 },
-      { x: -0.65, z: 0.55, s: 0.95, r: 1.2 },
-      { x: 0.85, z: -0.45, s: 1.1, r: 2.1 },
-      { x: -0.8, z: -0.6, s: 1.05, r: 0.8 },
-      { x: 0.6, z: 0.85, s: 0.9, r: 3.1 },
-      { x: -0.15, z: -1.05, s: 1.0, r: 1.7 },
-      { x: -1.1, z: 0.1, s: 0.85, r: 2.5 },
-      { x: 1.15, z: 0.2, s: 1.0, r: 0.2 },
-      { x: 0.0, z: 1.15, s: 0.9, r: 1.9 },
-      { x: -0.4, z: -0.15, s: 1.2, r: 2.8 },
-      { x: 0.45, z: -0.9, s: 0.85, r: 0.9 },
-      { x: 1.05, z: -0.95, s: 0.75, r: 1.4 },
-      { x: -0.95, z: 0.9, s: 0.8, r: 2.2 },
+    // Natural chocolate chip clusters across the top
+    const chipData = [
+      { x: 0.25, z: 0.15, s: 1.25, rx: 0.3, rz: 0.2 },
+      { x: -0.7, z: 0.6, s: 1.05, rx: 0.1, rz: 0.4 },
+      { x: 0.95, z: -0.4, s: 1.15, rx: -0.2, rz: 0.3 },
+      { x: -0.85, z: -0.65, s: 1.1, rx: 0.4, rz: -0.1 },
+      { x: 0.65, z: 0.9, s: 0.95, rx: 0.2, rz: 0.5 },
+      { x: -0.15, z: -1.15, s: 1.05, rx: -0.3, rz: 0.2 },
+      { x: -1.2, z: 0.12, s: 0.9, rx: 0.5, rz: 0.1 },
+      { x: 1.25, z: 0.25, s: 1.0, rx: 0.1, rz: -0.3 },
+      { x: 0.05, z: 1.25, s: 0.95, rx: 0.2, rz: 0.2 },
+      { x: -0.45, z: -0.18, s: 1.3, rx: -0.1, rz: 0.3 },
+      { x: 0.5, z: -0.95, s: 0.9, rx: 0.3, rz: -0.2 },
+      { x: 1.1, z: -1.0, s: 0.8, rx: 0.4, rz: 0.1 },
+      { x: -1.0, z: 0.95, s: 0.85, rx: -0.2, rz: 0.4 },
+      // Smaller morsels / shavings
+      { x: 0.1, z: -0.5, s: 0.55, rx: 0.1, rz: 0.1 },
+      { x: -0.3, z: 0.9, s: 0.5, rx: 0.3, rz: -0.2 },
+      { x: 0.8, z: 0.3, s: 0.6, rx: -0.1, rz: 0.2 },
     ]
 
-    chipPositions.forEach((cp) => {
+    chipData.forEach((cd) => {
       const chip = new THREE.Mesh(chipGeo, chipMat)
-      chip.position.set(cp.x, 0.33, cp.z)
-      chip.scale.set(cp.s, cp.s * 0.9, cp.s)
-      chip.rotation.set(0.2, cp.r, -0.15)
+      chip.position.set(cd.x, 0.4, cd.z)
+      chip.scale.set(cd.s, cd.s * 0.9, cd.s)
+      chip.rotation.set(cd.rx, Math.random() * Math.PI, cd.rz)
+      chip.castShadow = true
       cookieGroup.add(chip)
     })
 
-    // Tilt cookie to show its delicious chocolate chips
-    cookieGroup.rotation.x = 0.55
-    cookieGroup.rotation.z = -0.25
+    // Tilt cookie to showcase its golden surface and glossy chocolate
+    cookieGroup.rotation.x = 0.52
+    cookieGroup.rotation.z = -0.22
     scene.add(cookieGroup)
 
-    // 3. Floating Cocoa/Sugar Crumb Particles
-    const particleCount = 28
-    const particlePositions = new Float32Array(particleCount * 3)
-    for (let i = 0; i < particleCount; i++) {
-      particlePositions[i * 3] = (Math.random() - 0.5) * 8
-      particlePositions[i * 3 + 1] = (Math.random() - 0.5) * 6
-      particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 4
+    // 3. Floating Golden Biscuit Crumbs
+    const crumbCount = 35
+    const crumbPositions = new Float32Array(crumbCount * 3)
+    for (let i = 0; i < crumbCount; i++) {
+      crumbPositions[i * 3] = (Math.random() - 0.5) * 8
+      crumbPositions[i * 3 + 1] = (Math.random() - 0.5) * 6
+      crumbPositions[i * 3 + 2] = (Math.random() - 0.5) * 4
     }
 
-    const particleGeometry = new THREE.BufferGeometry()
-    particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3))
+    const crumbGeo = new THREE.BufferGeometry()
+    crumbGeo.setAttribute('position', new THREE.BufferAttribute(crumbPositions, 3))
 
-    const particleMaterial = new THREE.PointsMaterial({
-      color: 0xe27d95,
-      size: 0.06,
+    const crumbMat = new THREE.PointsMaterial({
+      color: 0xe28a38,
+      size: 0.055,
       transparent: true,
-      opacity: 0.55,
+      opacity: 0.6,
     })
 
-    const particles = new THREE.Points(particleGeometry, particleMaterial)
-    scene.add(particles)
+    const crumbs = new THREE.Points(crumbGeo, crumbMat)
+    scene.add(crumbs)
 
     // GSAP Interactive Mouse Tracking
     const mouse = { x: 0, y: 0 }
@@ -161,7 +200,7 @@ export function ThreeHeroCanvas() {
       gsap.to(mouse, {
         x,
         y,
-        duration: 1.0,
+        duration: 1.2,
         ease: 'power2.out',
       })
     }
@@ -179,19 +218,18 @@ export function ThreeHeroCanvas() {
 
     // Animation Loop
     let animationFrameId: number
-    let clock = new THREE.Clock()
+    const clock = new THREE.Clock()
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate)
-      const elapsedTime = clock.getElapsedTime()
+      const t = clock.getElapsedTime()
 
-      // Smooth organic rotation and floating bobbing
-      cookieGroup.rotation.y = elapsedTime * 0.45 + mouse.x * 0.4
-      cookieGroup.rotation.x = 0.55 + Math.sin(elapsedTime * 1.2) * 0.08 - mouse.y * 0.35
-      cookieGroup.position.y = Math.sin(elapsedTime * 1.5) * 0.12
+      // Smooth floating rotation and gentle organic breathing
+      cookieGroup.rotation.y = t * 0.42 + mouse.x * 0.45
+      cookieGroup.rotation.x = 0.52 + Math.sin(t * 1.3) * 0.06 - mouse.y * 0.35
+      cookieGroup.position.y = Math.sin(t * 1.6) * 0.1
 
-      // Subtle particle float
-      particles.rotation.y = elapsedTime * 0.08
+      crumbs.rotation.y = t * 0.07
 
       renderer.render(scene, camera)
     }
@@ -211,16 +249,16 @@ export function ThreeHeroCanvas() {
       cookieMat.dispose()
       chipGeo.dispose()
       chipMat.dispose()
-      particleGeometry.dispose()
-      particleMaterial.dispose()
+      crumbGeo.dispose()
+      crumbMat.dispose()
     }
   }, [])
 
   return (
     <div
       ref={containerRef}
-      className="w-full h-full min-h-[340px] sm:min-h-[420px] lg:min-h-[480px] cursor-grab active:cursor-grabbing flex items-center justify-center relative z-10"
-      title="3D Galleta Bocado interactiva hecha a mano"
+      className="w-full h-full min-h-[300px] sm:min-h-[420px] lg:min-h-[480px] cursor-grab active:cursor-grabbing flex items-center justify-center relative z-10"
+      title="Galleta Bocado 3D interactiva"
     />
   )
 }

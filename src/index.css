@@ -3,50 +3,50 @@
 @tailwind utilities;
 
 :root {
-  /* Light Theme (Clean Solid Bakery & Artisan Palette - Pretzels / Bake Today style) */
-  --background: 38 30% 97%;
-  --foreground: 25 25% 14%;
+  /* Light Theme (Harmonious Velvet Plum & Rose Palette) */
+  --background: 345 25% 97%;
+  --foreground: 270 60% 12%;
   --card: 0 0% 100%;
-  --card-foreground: 25 25% 14%;
+  --card-foreground: 270 60% 12%;
   --popover: 0 0% 100%;
-  --popover-foreground: 25 25% 14%;
-  --primary: 0 76% 32%;
+  --popover-foreground: 270 60% 12%;
+  --primary: 342 53% 47%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 36 25% 93%;
-  --secondary-foreground: 25 25% 14%;
-  --muted: 36 18% 92%;
-  --muted-foreground: 25 10% 46%;
-  --accent: 0 76% 32%;
+  --secondary: 340 25% 94%;
+  --secondary-foreground: 270 60% 12%;
+  --muted: 340 18% 93%;
+  --muted-foreground: 340 10% 45%;
+  --accent: 342 53% 47%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 75% 45%;
   --destructive-foreground: 0 0% 100%;
-  --border: 36 18% 87%;
-  --input: 36 18% 87%;
-  --ring: 0 76% 32%;
+  --border: 340 15% 89%;
+  --input: 340 15% 89%;
+  --ring: 342 53% 47%;
   --radius: 0.875rem;
 }
 
 .dark {
-  /* Dark Theme (Solid Roasted Cocoa & Warm Cream) */
-  --background: 20 15% 9%;
-  --foreground: 36 25% 94%;
-  --card: 20 14% 13%;
-  --card-foreground: 36 25% 94%;
-  --popover: 20 14% 13%;
-  --popover-foreground: 36 25% 94%;
-  --primary: 0 72% 44%;
+  /* Dark Theme (Deep Velvet Plum & Soft Warm Rose) */
+  --background: 270 45% 8%;
+  --foreground: 340 25% 95%;
+  --card: 270 40% 12%;
+  --card-foreground: 340 25% 95%;
+  --popover: 270 40% 12%;
+  --popover-foreground: 340 25% 95%;
+  --primary: 342 62% 56%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 20 12% 18%;
-  --secondary-foreground: 36 20% 90%;
-  --muted: 20 12% 18%;
-  --muted-foreground: 36 10% 60%;
-  --accent: 0 72% 44%;
+  --secondary: 270 35% 16%;
+  --secondary-foreground: 340 25% 92%;
+  --muted: 270 30% 16%;
+  --muted-foreground: 340 15% 65%;
+  --accent: 342 62% 56%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 70% 50%;
   --destructive-foreground: 0 0% 100%;
-  --border: 20 12% 22%;
-  --input: 20 12% 22%;
-  --ring: 0 72% 44%;
+  --border: 270 30% 20%;
+  --input: 270 30% 20%;
+  --ring: 342 62% 56%;
 }
 
 html {

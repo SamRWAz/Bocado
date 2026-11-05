@@ -208,7 +208,7 @@ export function SellPage() {
         {/* Header */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between border-b border-[#E5DFD7] dark:border-[#2C2420] pb-6">
           <div>
-            <span className="text-[11px] font-mono uppercase tracking-widest text-[#8F1414] dark:text-red-400 font-bold block mb-1">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-[#B8385E] dark:text-[#D94668] font-bold block mb-1">
               Estudio de Creación · Chef {user.name}
             </span>
             <h1 className="font-display text-3xl font-black sm:text-4xl text-[#2C221C] dark:text-[#FAF6F0]">
@@ -221,9 +221,9 @@ export function SellPage() {
 
           <Link
             to="/pedidos?tab=ventas"
-            className="inline-flex items-center gap-2 rounded-2xl bg-[#FAF6F0] dark:bg-[#251F1C] border border-[#E5DFD7] dark:border-[#2C2420] px-4 py-2.5 text-xs font-display font-bold text-[#2C221C] dark:text-[#FAF6F0] hover:border-[#8F1414] transition-colors self-start sm:self-auto cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-2xl bg-[#FAF6F5] dark:bg-[#1D102E] border border-[#EFE8E6] dark:border-[#2D1945] px-4 py-2.5 text-xs font-display font-bold text-[#1E0C30] dark:text-[#F6EEF2] hover:border-[#B8385E] transition-colors self-start sm:self-auto cursor-pointer"
           >
-            <Store size={15} className="text-[#8F1414]" />
+            <Store size={15} className="text-[#B8385E]" />
             <span>Ver Pedidos de mi Cocina ({mySellingOrders.length})</span>
           </Link>
         </div>
@@ -233,28 +233,28 @@ export function SellPage() {
         {/* ========================================================= */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Form Left Column */}
-          <div className="lg:col-span-7 space-y-6 rounded-3xl border border-[#E5DFD7] dark:border-[#2C2420] bg-white dark:bg-[#1E1917] p-6 sm:p-8 shadow-sm">
-            <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-[#8F1414] dark:text-red-400">
+          <div className="lg:col-span-7 space-y-6 rounded-3xl border border-[#EFE8E6] dark:border-[#2D1945] bg-white dark:bg-[#1D102E] p-6 sm:p-8 shadow-sm">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-[#B8385E] dark:text-[#D94668]">
               <Sparkles size={14} />
               <span>Nuevo Snack para el Campus</span>
             </div>
 
             {/* Snack Name */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#2C221C] dark:text-[#FAF6F0] block">
+              <label className="text-xs font-bold text-[#1E0C30] dark:text-[#F6EEF2] block">
                 Nombre de la Preparación
               </label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ej. Brownie con Arequipe y Nueces"
-                className="w-full rounded-2xl border border-[#E5DFD7] dark:border-[#2C2420] bg-[#FAF6F0] dark:bg-[#251F1C] px-4 py-3 text-sm font-semibold text-[#2C221C] dark:text-[#FAF6F0] outline-none transition-all focus:border-[#8F1414]"
+                className="w-full rounded-2xl border border-[#EFE8E6] dark:border-[#2D1945] bg-[#FAF6F5] dark:bg-[#25153A] px-4 py-3 text-sm font-semibold text-[#1E0C30] dark:text-[#F6EEF2] outline-none transition-all focus:border-[#B8385E]"
               />
             </div>
 
             {/* Category Selector */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#2C221C] dark:text-[#FAF6F0] block">
+              <label className="text-xs font-bold text-[#1E0C30] dark:text-[#F6EEF2] block">
                 Categoría del Snack
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -270,8 +270,8 @@ export function SellPage() {
                       }}
                       className={`flex items-center gap-1.5 rounded-xl border p-2.5 text-xs font-display font-bold transition-all cursor-pointer ${
                         active
-                          ? 'border-[#8F1414] bg-[#8F1414] text-white shadow-xs'
-                          : 'border-[#E5DFD7] dark:border-[#2C2420] bg-[#FAF6F0] dark:bg-[#251F1C] text-[#7E726A] hover:text-[#2C221C]'
+                          ? 'border-[#B8385E] bg-[#B8385E] text-white shadow-xs'
+                          : 'border-[#EFE8E6] dark:border-[#2D1945] bg-[#FAF6F5] dark:bg-[#25153A] text-[#756272] hover:text-[#1E0C30]'
                       }`}
                     >
                       <span>{cat.icon}</span>
@@ -286,7 +286,7 @@ export function SellPage() {
             <div className="space-y-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#2C221C] dark:text-[#FAF6F0] block">
+                  <label className="text-xs font-bold text-[#1E0C30] dark:text-[#F6EEF2] block">
                     Precio al Comprador (COP)
                   </label>
                   <input
@@ -294,7 +294,7 @@ export function SellPage() {
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     placeholder="Ej. 4500"
-                    className="w-full rounded-2xl border border-[#E5DFD7] dark:border-[#2C2420] bg-[#FAF6F0] dark:bg-[#251F1C] px-4 py-3 font-mono text-base font-black text-[#8F1414] dark:text-red-400 outline-none transition-all focus:border-[#8F1414]"
+                    className="w-full rounded-2xl border border-[#EFE8E6] dark:border-[#2D1945] bg-[#FAF6F5] dark:bg-[#25153A] px-4 py-3 font-mono text-base font-black text-[#B8385E] dark:text-[#D94668] outline-none transition-all focus:border-[#B8385E]"
                   />
                 </div>
 
@@ -371,12 +371,12 @@ export function SellPage() {
                         key={preset.name}
                         onClick={() => handleApplyPreset(preset)}
                         className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
-                          active ? 'border-[#8F1414] scale-98 shadow-sm' : 'border-transparent opacity-70 hover:opacity-100'
+                          active ? 'border-[#B8385E] scale-98 shadow-sm' : 'border-transparent opacity-70 hover:opacity-100'
                         }`}
                       >
                         <img src={preset.img} alt={preset.name} className="h-full w-full object-cover" />
                         {active && (
-                          <div className="absolute inset-0 bg-[#8F1414]/20 flex items-center justify-center">
+                          <div className="absolute inset-0 bg-[#B8385E]/20 flex items-center justify-center">
                             <Check size={16} className="text-white drop-shadow-sm" />
                           </div>
                         )}
@@ -398,7 +398,7 @@ export function SellPage() {
                 <button
                   type="button"
                   onClick={() => fileInput.current?.click()}
-                  className="w-full flex items-center justify-center gap-2 rounded-2xl border border-dashed border-[#E5DFD7] dark:border-[#2C2420] bg-[#FAF6F0] dark:bg-[#251F1C] py-3 text-xs font-bold text-[#7E726A] hover:border-[#8F1414] hover:text-[#8F1414] transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 rounded-2xl border border-dashed border-[#EFE8E6] dark:border-[#2D1945] bg-[#FAF6F5] dark:bg-[#25153A] py-3 text-xs font-bold text-[#756272] hover:border-[#B8385E] hover:text-[#B8385E] transition-colors cursor-pointer"
                 >
                   <UploadCloud size={16} />
                   <span>{preview ? 'Cambiar Foto Subida' : 'O Subir Foto Propia desde mi Dispositivo'}</span>
@@ -424,7 +424,7 @@ export function SellPage() {
               type="button"
               disabled={uploading}
               onClick={() => void handlePublish()}
-              className="w-full rounded-2xl bg-[#8F1414] hover:bg-[#751010] py-4 font-display text-sm font-black text-white shadow-md transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+              className="w-full rounded-2xl bg-[#B8385E] hover:bg-[#A32F51] py-4 font-display text-sm font-black text-white shadow-md transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
             >
               {uploading ? (
                 <span>Publicando en el Campus...</span>
@@ -473,17 +473,17 @@ export function SellPage() {
                   </h3>
                 </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-[#F0EAE1] dark:border-[#2C2420]">
+                <div className="flex items-center justify-between pt-2 border-t border-[#EFE8E6] dark:border-[#2D1945]">
                   <div>
-                    <span className="text-[10px] font-mono text-[#7E726A] block uppercase font-bold">
+                    <span className="text-[10px] font-mono text-[#756272] block uppercase font-bold">
                       Precio:
                     </span>
-                    <span className="font-display text-xl font-black text-[#8F1414] dark:text-red-400">
+                    <span className="font-display text-xl font-black text-[#B8385E] dark:text-[#D94668]">
                       {money(parsedPrice || 4500)}
                     </span>
                   </div>
 
-                  <span className="rounded-xl bg-[#FAF6F0] dark:bg-[#251F1C] border border-[#E5DFD7] dark:border-[#2C2420] px-3 py-1.5 text-xs font-bold text-[#7E726A]">
+                  <span className="rounded-xl bg-[#FAF6F5] dark:bg-[#25153A] border border-[#EFE8E6] dark:border-[#2D1945] px-3 py-1.5 text-xs font-bold text-[#756272]">
                     {stock} disponibles
                   </span>
                 </div>
@@ -495,40 +495,40 @@ export function SellPage() {
         {/* ========================================================= */}
         {/* EXISTING PUBLISHED SNACKS TABLE / GRID                    */}
         {/* ========================================================= */}
-        <div className="space-y-4 pt-6 border-t border-[#E5DFD7] dark:border-[#2C2420]">
+        <div className="space-y-4 pt-6 border-t border-[#EFE8E6] dark:border-[#2D1945]">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold text-[#2C221C] dark:text-[#FAF6F0]">
+            <h2 className="font-display text-xl font-bold text-[#1E0C30] dark:text-[#F6EEF2]">
               Tus Snacks Publicados ({mine.length})
             </h2>
-            <span className="text-xs font-mono text-[#7E726A]">
+            <span className="text-xs font-mono text-[#756272]">
               Control de inventario en tiempo real
             </span>
           </div>
 
           {mine.length === 0 ? (
-            <div className="py-12 text-center rounded-3xl border border-dashed border-[#E5DFD7] dark:border-[#2C2420] p-6 space-y-2">
-              <Package size={36} className="mx-auto text-[#7E726A] opacity-40" />
-              <p className="text-xs font-bold text-[#7E726A]">Aún no has publicado ningún snack.</p>
-              <p className="text-[11px] text-[#7E726A]">Completa el formulario superior para lanzar tu primer producto.</p>
+            <div className="py-12 text-center rounded-3xl border border-dashed border-[#EFE8E6] dark:border-[#2D1945] p-6 space-y-2">
+              <Package size={36} className="mx-auto text-[#756272] opacity-40" />
+              <p className="text-xs font-bold text-[#756272]">Aún no has publicado ningún snack.</p>
+              <p className="text-[11px] text-[#756272]">Completa el formulario superior para lanzar tu primer producto.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {mine.map((prod) => (
                 <div
                   key={prod.id}
-                  className="flex items-center justify-between p-4 rounded-2xl border border-[#E5DFD7] dark:border-[#2C2420] bg-white dark:bg-[#1E1917] shadow-xs gap-3"
+                  className="flex items-center justify-between p-4 rounded-2xl border border-[#EFE8E6] dark:border-[#2D1945] bg-white dark:bg-[#1D102E] shadow-xs gap-3"
                 >
                   <img
                     src={prod.image_url || '/images/real_brownie.jpg'}
                     alt={prod.name}
-                    className="h-16 w-16 rounded-xl object-cover shrink-0 bg-[#F4EFE6]"
+                    className="h-16 w-16 rounded-xl object-cover shrink-0 bg-[#FAF6F5]"
                   />
 
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-display text-sm font-bold text-[#2C221C] dark:text-[#FAF6F0] truncate">
+                    <h4 className="font-display text-sm font-bold text-[#1E0C30] dark:text-[#F6EEF2] truncate">
                       {prod.name}
                     </h4>
-                    <span className="font-mono text-xs font-bold text-[#8F1414] dark:text-red-400 block">
+                    <span className="font-mono text-xs font-bold text-[#B8385E] dark:text-[#D94668] block">
                       {money(prod.price)}
                     </span>
                     <span className={`text-[10px] font-mono font-bold ${prod.sold_out || prod.stock === 0 ? 'text-destructive' : 'text-emerald-600'}`}>

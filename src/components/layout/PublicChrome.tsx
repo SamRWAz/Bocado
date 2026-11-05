@@ -7,30 +7,16 @@ import { ThemeToggle } from '../ThemeToggle'
 
 function SectionNav() {
   return (
-    <>
-      <a
-        href="/#ecosistema"
-        className="text-[#59483E] dark:text-neutral-300 hover:text-[#1E0C30] dark:hover:text-white font-medium transition-colors text-xs font-mono uppercase tracking-wider"
-      >
-        El ecosistema
-      </a>
-      <NavLink
-        to="/catalogo"
-        className={({ isActive }) =>
-          isActive
-            ? 'text-[#B8385E] font-bold text-xs font-mono uppercase tracking-wider'
-            : 'text-[#59483E] dark:text-neutral-300 hover:text-[#1E0C30] dark:hover:text-white font-medium transition-colors text-xs font-mono uppercase tracking-wider'
-        }
-      >
-        Snacks
-      </NavLink>
-      <a
-        href="/#como-funciona"
-        className="text-[#59483E] dark:text-neutral-300 hover:text-[#1E0C30] dark:hover:text-white font-medium transition-colors text-xs font-mono uppercase tracking-wider"
-      >
-        Cómo funciona
-      </a>
-    </>
+    <NavLink
+      to="/catalogo"
+      className={({ isActive }) =>
+        isActive
+          ? 'text-[#B8385E] font-bold text-xs font-mono uppercase tracking-wider'
+          : 'text-[#59483E] dark:text-neutral-300 hover:text-[#B8385E] dark:hover:text-white font-semibold transition-colors text-xs font-mono uppercase tracking-wider'
+      }
+    >
+      Snacks
+    </NavLink>
   )
 }
 
