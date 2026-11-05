@@ -7,28 +7,16 @@ import { ThemeToggle } from '../ThemeToggle'
 
 function SectionNav() {
   return (
-    <>
-      <NavLink
-        to="/catalogo"
-        className={({ isActive }) =>
-          isActive
-            ? 'text-primary font-bold'
-            : 'hover:text-foreground font-medium transition-colors'
-        }
-      >
-        Catálogo de Snacks
-      </NavLink>
-      <NavLink
-        to="/entregas"
-        className={({ isActive }) =>
-          isActive
-            ? 'text-primary font-bold'
-            : 'hover:text-foreground font-medium transition-colors'
-        }
-      >
-        🛵 Domiciliarios Campus
-      </NavLink>
-    </>
+    <NavLink
+      to="/catalogo"
+      className={({ isActive }) =>
+        isActive
+          ? 'text-primary font-bold'
+          : 'hover:text-foreground font-medium transition-colors'
+      }
+    >
+      Catálogo de Snacks
+    </NavLink>
   )
 }
 
