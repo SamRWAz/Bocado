@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+    <rect width="1920" height="1080" fill="#FAF6F5"/>
+    
+    <!-- Top Branding & Slide Meta -->
+    <g transform="translate(100, 70)">
+      
+    <g transform="translate(0, 0) scale(1.3333333333333333)">
+      <circle cx="12" cy="12" r="12" fill="#B8385E"/>
+      <path d="M12 4C12.3 8 16 11.7 20 12C16 12.3 12.3 16 12 20C11.7 16 8 12.3 4 12C8 11.7 11.7 8 12 4Z" fill="#FFFFFF"/>
+      <circle cx="18" cy="6" r="1.5" fill="#FFFFFF"/>
+    </g>
+  
+      <text x="44" y="24" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="24" font-weight="900" fill="#1E0C30" letter-spacing="-0.5">bocado<tspan fill="#B8385E"> .</tspan></text>
+      <text x="180" y="23" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="700" fill="#B8385E">|  UNIVERSIDAD ICESI</text>
+      
+      <!-- Rubric Pills Right -->
+      <g transform="translate(1380, 0)">
+        <rect x="0" y="0" width="160" height="36" rx="18" fill="#1E0C30"/>
+        <text x="80" y="23" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">Go-to-Market</text>
+        
+        <rect x="175" y="0" width="165" height="36" rx="18" fill="#B8385E"/>
+        <text x="257" y="23" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">15% de la Nota</text>
+      </g>
+    </g>
+
+    <!-- Slide Title & Subtitle -->
+    <g transform="translate(100, 150)">
+      <text x="0" y="55" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="52" font-weight="900" fill="#1E0C30" letter-spacing="-1">Estrategia de Adquisición y Activación Orgánica</text>
+      <text x="0" y="98" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="20" font-weight="400" fill="#59483E">Aprovechamiento de la alta densidad física de la Universidad Icesi con CAC cercano a cero.</text>
+    </g>
+  
+
+    <g transform="translate(100, 270)">
+      <!-- Pilar 1 -->
+      <g transform="translate(0, 0)">
+        <rect width="545" height="690" rx="28" fill="#FFFFFF" stroke="#EFE8E6" stroke-width="2"/>
+        <rect x="40" y="40" width="130" height="34" rx="17" fill="#1E0C30"/>
+        <text x="105" y="62" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">PILAR 01</text>
+        
+        <text x="40" y="125" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="28" font-weight="900" fill="#1E0C30">Público Objetivo</text>
+        <text x="40" y="160" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="16" fill="#59483E">Focalización de alta concentración.</text>
+
+        <g transform="translate(40, 200)">
+          <circle cx="16" cy="16" r="14" fill="#B8385E" opacity="0.15"/>
+          <text x="16" y="21" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" font-weight="900" fill="#B8385E" text-anchor="middle">1</text>
+          <text x="45" y="18" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="18" font-weight="800" fill="#1E0C30">Estudiantes en Bloques Largos</text>
+          <text x="45" y="42" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">Edificios D, M, E y zonas de estudio Boreal donde no se puede abandonar el puesto.</text>
+        </g>
+
+        <g transform="translate(40, 310)">
+          <circle cx="16" cy="16" r="14" fill="#B8385E" opacity="0.15"/>
+          <text x="16" y="21" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" font-weight="900" fill="#B8385E" text-anchor="middle">2</text>
+          <text x="45" y="18" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="18" font-weight="800" fill="#1E0C30">Docentes y Catedráticos</text>
+          <text x="45" y="42" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">Poco tiempo entre clases consecutivas para comprar snacks o café.</text>
+        </g>
+
+        <g transform="translate(40, 420)">
+          <circle cx="16" cy="16" r="14" fill="#B8385E" opacity="0.15"/>
+          <text x="16" y="21" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" font-weight="900" fill="#B8385E" text-anchor="middle">3</text>
+          <text x="45" y="18" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="18" font-weight="800" fill="#1E0C30">Cocineros Clave de Icesi</text>
+          <text x="45" y="42" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">Emprendedores con reputación existente migrados a la plataforma.</text>
+        </g>
+      </g>
+
+      <!-- Pilar 2 -->
+      <g transform="translate(585, 0)">
+        <rect width="545" height="690" rx="28" fill="#FFFFFF" stroke="#EFE8E6" stroke-width="2"/>
+        <rect x="40" y="40" width="130" height="34" rx="17" fill="#B8385E"/>
+        <text x="105" y="62" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">PILAR 02</text>
+        
+        <text x="40" y="125" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="28" font-weight="900" fill="#1E0C30">Canales Orgánicos</text>
+        <text x="40" y="160" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="16" fill="#59483E">Costo de Adquisición (CAC) = $0 COP.</text>
+
+        <g transform="translate(40, 200)">
+          <circle cx="16" cy="16" r="14" fill="#B8385E" opacity="0.15"/>
+          <text x="16" y="21" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" font-weight="900" fill="#B8385E" text-anchor="middle">1</text>
+          <text x="45" y="18" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="18" font-weight="800" fill="#1E0C30">Voz a Voz en Aulas y Grupos</text>
+          <text x="45" y="42" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">Difusión directa en chats de WhatsApp de semestres y materias específicas.</text>
+        </g>
+
+        <g transform="translate(40, 310)">
+          <circle cx="16" cy="16" r="14" fill="#B8385E" opacity="0.15"/>
+          <text x="16" y="21" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" font-weight="900" fill="#B8385E" text-anchor="middle">2</text>
+          <text x="45" y="18" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="18" font-weight="800" fill="#1E0C30">Activación en Plazoletas</text>
+          <text x="45" y="42" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">Presencia visible durante los 10 minutos de cambio de clase en puntos estratégicos.</text>
+        </g>
+
+        <g transform="translate(40, 420)">
+          <circle cx="16" cy="16" r="14" fill="#B8385E" opacity="0.15"/>
+          <text x="16" y="21" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" font-weight="900" fill="#B8385E" text-anchor="middle">3</text>
+          <text x="45" y="18" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="18" font-weight="800" fill="#1E0C30">Efecto Red del Cocinero</text>
+          <text x="45" y="42" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">El cocinero comparte su link de Bocado porque le multiplica sus ventas sin esfuerzo.</text>
+        </g>
+      </g>
+
+      <!-- Pilar 3 -->
+      <g transform="translate(1170, 0)">
+        <rect width="550" height="690" rx="28" fill="#1E0C30"/>
+        <rect x="40" y="40" width="130" height="34" rx="17" fill="#E27D7D"/>
+        <text x="105" y="62" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#1E0C30" text-anchor="middle">PILAR 03</text>
+        
+        <text x="40" y="125" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="28" font-weight="900" fill="#FFFFFF">Tácticas de Conversión</text>
+        <text x="40" y="160" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="16" fill="#D4C5D0">Incentivos directos al consumo inmediato.</text>
+
+        <g transform="translate(40, 200)">
+          <circle cx="16" cy="16" r="14" fill="rgba(255,255,255,0.15)"/>
+          <text x="16" y="21" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" font-weight="900" fill="#E27D7D" text-anchor="middle">1</text>
+          <text x="45" y="18" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="18" font-weight="800" fill="#FFFFFF">Preventas de Receso</text>
+          <text x="45" y="42" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#D4C5D0">Reserva tu snack antes de las clases de la tarde para asegurar disponibilidad.</text>
+        </g>
+
+        <g transform="translate(40, 310)">
+          <circle cx="16" cy="16" r="14" fill="rgba(255,255,255,0.15)"/>
+          <text x="16" y="21" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" font-weight="900" fill="#E27D7D" text-anchor="middle">2</text>
+          <text x="45" y="18" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="18" font-weight="800" fill="#FFFFFF">Micro-Tarifas Amigables</text>
+          <text x="45" y="42" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#D4C5D0">$100 a $500 COP por entrega. Costo despreciable para el estudiante.</text>
+        </g>
+
+        <g transform="translate(40, 420)">
+          <circle cx="16" cy="16" r="14" fill="rgba(255,255,255,0.15)"/>
+          <text x="16" y="21" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" font-weight="900" fill="#E27D7D" text-anchor="middle">3</text>
+          <text x="45" y="18" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="18" font-weight="800" fill="#FFFFFF">Entrega Garantizada en Mano</text>
+          <text x="45" y="42" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#D4C5D0">Comodidad absoluta sin interrumpir el ritmo académico.</text>
+        </g>
+      </g>
+    </g>
+
+    
+    <g transform="translate(100, 1010)">
+      <line x1="0" y1="0" x2="1720" y2="0" stroke="#EFE8E6" stroke-width="1"/>
+      <text x="0" y="28" font-family="monospace, Courier New, sans-serif" font-size="13" font-weight="600" fill="#59483E">Bocado · Sustentación Junta Directiva · Innovación 3</text>
+      <text x="1720" y="28" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="800" fill="#B8385E" text-anchor="end">Slide 5 de 10</text>
+    </g>
+  
+  
+</svg>

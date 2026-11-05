@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+    <rect width="1920" height="1080" fill="#FAF6F5"/>
+    
+    <!-- Top Branding & Slide Meta -->
+    <g transform="translate(100, 70)">
+      
+    <g transform="translate(0, 0) scale(1.3333333333333333)">
+      <circle cx="12" cy="12" r="12" fill="#B8385E"/>
+      <path d="M12 4C12.3 8 16 11.7 20 12C16 12.3 12.3 16 12 20C11.7 16 8 12.3 4 12C8 11.7 11.7 8 12 4Z" fill="#FFFFFF"/>
+      <circle cx="18" cy="6" r="1.5" fill="#FFFFFF"/>
+    </g>
+  
+      <text x="44" y="24" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="24" font-weight="900" fill="#1E0C30" letter-spacing="-0.5">bocado<tspan fill="#B8385E"> .</tspan></text>
+      <text x="180" y="23" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="700" fill="#B8385E">|  UNIVERSIDAD ICESI</text>
+      
+      <!-- Rubric Pills Right -->
+      <g transform="translate(1380, 0)">
+        <rect x="0" y="0" width="160" height="36" rx="18" fill="#1E0C30"/>
+        <text x="80" y="23" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">Tracción Comercial</text>
+        
+        <rect x="175" y="0" width="165" height="36" rx="18" fill="#B8385E"/>
+        <text x="257" y="23" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">20% de la Nota</text>
+      </g>
+    </g>
+
+    <!-- Slide Title & Subtitle -->
+    <g transform="translate(100, 150)">
+      <text x="0" y="55" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="52" font-weight="900" fill="#1E0C30" letter-spacing="-1">Evidencia Real de Venta o Intento de Pago</text>
+      <text x="0" y="98" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="20" font-weight="400" fill="#59483E">Comprobantes de pedidos, transacciones Nequi/Wompi y disposición a pagar demostrada.</text>
+    </g>
+  
+
+    <g transform="translate(100, 270)">
+      <!-- Left: Metrics Column -->
+      <g transform="translate(0, 0)">
+        <rect width="480" height="690" rx="28" fill="#FFFFFF" stroke="#EFE8E6" stroke-width="2"/>
+        <text x="40" y="55" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="24" font-weight="900" fill="#1E0C30">Tracción Validada</text>
+        
+        <g transform="translate(40, 90)">
+          <rect width="400" height="120" rx="18" fill="#FAF6F5"/>
+          <text x="24" y="36" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#B8385E">TICKET PROMEDIO</text>
+          <text x="24" y="80" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="38" font-weight="900" fill="#1E0C30">$4.500 COP</text>
+          <text x="24" y="105" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="13" fill="#59483E">Por snack artesanal consumido</text>
+        </g>
+
+        <g transform="translate(40, 230)">
+          <rect width="400" height="120" rx="18" fill="#FAF6F5"/>
+          <text x="24" y="36" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#B8385E">MÉTODOS DE PAGO</text>
+          <text x="24" y="80" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="28" font-weight="900" fill="#1E0C30">Nequi / Wompi / Cash</text>
+          <text x="24" y="105" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="13" fill="#59483E">Pasarela integrada y pago en mano</text>
+        </g>
+
+        <g transform="translate(40, 370)">
+          <rect width="400" height="120" rx="18" fill="#1E0C30"/>
+          <text x="24" y="36" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#E27D7D">TASA DE ÉXITO</text>
+          <text x="24" y="80" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="38" font-weight="900" fill="#FFFFFF">100%</text>
+          <text x="24" y="105" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="13" fill="#D4C5D0">Pedidos entregados sin incidentes</text>
+        </g>
+
+        <rect x="40" y="520" width="400" height="130" rx="18" fill="#F3ECE9"/>
+        <text x="60" y="555" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#1E0C30">CONCLUSIÓN COMERCIAL</text>
+        <text x="60" y="585" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" font-weight="600" fill="#1E0C30">Se demostró intención de compra</text>
+        <text x="60" y="610" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" font-weight="600" fill="#1E0C30">explícita con dinero real en campus.</text>
+      </g>
+
+      <!-- Right: Large Evidence Placeholder Frame -->
+      <g transform="translate(520, 0)">
+        <rect width="1200" height="690" rx="28" fill="#FFFFFF" stroke="#B8385E" stroke-width="3" stroke-dasharray="12 12"/>
+        
+        <g transform="translate(600, 270)">
+          <circle cx="0" cy="0" r="44" fill="#B8385E" opacity="0.12"/>
+          <text x="0" y="12" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="34" font-weight="900" fill="#B8385E" text-anchor="middle">🧾</text>
+          
+          <text x="0" y="75" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="24" font-weight="900" fill="#1E0C30" text-anchor="middle">
+            [ESPACIO PARA EVIDENCIA: COMPROBANTES DE PAGO Y TRANSACCIONES REALES]
+          </text>
+          <text x="0" y="115" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="16" fill="#59483E" text-anchor="middle">
+            Pega aquí capturas de pantalla de transferencias Nequi recibidas, registros de Wompi
+          </text>
+          <text x="0" y="145" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="16" fill="#59483E" text-anchor="middle">
+            o el registro de pedidos completados en la consola de la plataforma.
+          </text>
+          <text x="0" y="195" font-family="monospace, Courier New, sans-serif" font-size="13" font-weight="700" fill="#B8385E" text-anchor="middle">
+            (Pega la imagen de Nequi directamente sobre este marco en Figma)
+          </text>
+        </g>
+      </g>
+    </g>
+
+    
+    <g transform="translate(100, 1010)">
+      <line x1="0" y1="0" x2="1720" y2="0" stroke="#EFE8E6" stroke-width="1"/>
+      <text x="0" y="28" font-family="monospace, Courier New, sans-serif" font-size="13" font-weight="600" fill="#59483E">Bocado · Sustentación Junta Directiva · Innovación 3</text>
+      <text x="1720" y="28" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="800" fill="#B8385E" text-anchor="end">Slide 6 de 10</text>
+    </g>
+  
+  
+</svg>

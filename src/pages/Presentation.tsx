@@ -11,6 +11,9 @@ import {
   Bike,
   CheckCircle2,
   Home,
+  Copy,
+  Check,
+  Download,
 } from 'lucide-react'
 import { BrandMark } from '../components/BrandMark'
 import { playKeyBeep } from '../lib/sounds'
@@ -305,12 +308,40 @@ const SLIDES: Slide[] = [
   },
 ]
 
+const SLIDE_FILES = [
+  'slide_01_portada.svg',
+  'slide_02_contexto_problema.svg',
+  'slide_03_pmv_entrega_valor_30pct.svg',
+  'slide_04_evolucion_aprendizajes_30pct.svg',
+  'slide_05_estrategia_gtm_15pct.svg',
+  'slide_06_evidencia_venta_20pct.svg',
+  'slide_07_validacion_perfil_20pct.svg',
+  'slide_08_modelo_economico_25pct.svg',
+  'slide_09_gestion_riesgos_25pct.svg',
+  'slide_10_cierre_proximos_pasos.svg',
+]
+
 export function PresentationPage() {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
   const [showNotes, setShowNotes] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const currentSlide = SLIDES[currentSlideIndex]
+
+  const handleCopySvg = async () => {
+    try {
+      const fileName = SLIDE_FILES[currentSlideIndex]
+      const res = await fetch(`/presentation_figma/${fileName}`)
+      const svgText = await res.text()
+      await navigator.clipboard.writeText(svgText)
+      playKeyBeep(750)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2500)
+    } catch (err) {
+      console.error('Failed to copy SVG:', err)
+    }
+  }
 
   // Keyboard navigation
   useEffect(() => {
@@ -377,6 +408,26 @@ export function PresentationPage() {
 
         {/* Controls */}
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleCopySvg}
+            className="px-3 py-1.5 rounded-full text-xs font-display font-bold flex items-center gap-1.5 bg-[#B8385E] text-white hover:bg-[#A32F51] transition-all shadow-xs cursor-pointer active:scale-95"
+            title="Copiar el vector SVG de esta diapositiva para pegarlo con Ctrl+V dentro de Figma"
+          >
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+            <span>{copied ? '¡Copiado para Figma!' : 'Copiar para Figma'}</span>
+          </button>
+
+          <a
+            href="/presentation_figma/PRESENTACION_COMPLETA_10_SLIDES.svg"
+            download="Bocado_Presentacion_10_Slides_Figma.svg"
+            className="hidden lg:inline-flex px-3 py-1.5 rounded-full text-xs font-display font-bold items-center gap-1.5 bg-white dark:bg-[#1D102E] text-[#1E0C30] dark:text-[#F6EEF2] border border-[#EFE8E6] dark:border-[#2D1945] hover:bg-neutral-50 dark:hover:bg-[#25153A] transition-all cursor-pointer"
+            title="Descargar el lienzo maestro con las 10 diapositivas para arrastrarlo a Figma"
+          >
+            <Download size={14} className="text-[#B8385E]" />
+            <span>Descargar 10 Slides (.svg)</span>
+          </a>
+
           <button
             type="button"
             onClick={() => setShowNotes(!showNotes)}

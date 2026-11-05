@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+    <rect width="1920" height="1080" fill="#FAF6F5"/>
+    
+    <!-- Top Branding & Slide Meta -->
+    <g transform="translate(100, 70)">
+      
+    <g transform="translate(0, 0) scale(1.3333333333333333)">
+      <circle cx="12" cy="12" r="12" fill="#B8385E"/>
+      <path d="M12 4C12.3 8 16 11.7 20 12C16 12.3 12.3 16 12 20C11.7 16 8 12.3 4 12C8 11.7 11.7 8 12 4Z" fill="#FFFFFF"/>
+      <circle cx="18" cy="6" r="1.5" fill="#FFFFFF"/>
+    </g>
+  
+      <text x="44" y="24" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="24" font-weight="900" fill="#1E0C30" letter-spacing="-0.5">bocado<tspan fill="#B8385E"> .</tspan></text>
+      <text x="180" y="23" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="700" fill="#B8385E">|  UNIVERSIDAD ICESI</text>
+      
+      <!-- Rubric Pills Right -->
+      <g transform="translate(1380, 0)">
+        <rect x="0" y="0" width="160" height="36" rx="18" fill="#1E0C30"/>
+        <text x="80" y="23" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">Gestión de Riesgos</text>
+        
+        <rect x="175" y="0" width="165" height="36" rx="18" fill="#B8385E"/>
+        <text x="257" y="23" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">25% de la Nota</text>
+      </g>
+    </g>
+
+    <!-- Slide Title & Subtitle -->
+    <g transform="translate(100, 150)">
+      <text x="0" y="55" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="52" font-weight="900" fill="#1E0C30" letter-spacing="-1">Identificación Proactiva de Riesgos y Mitigación</text>
+      <text x="0" y="98" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="20" font-weight="400" fill="#59483E">Estrategias de contingencia validadas para garantizar la continuidad operativa en el campus.</text>
+    </g>
+  
+
+    <g transform="translate(100, 270)">
+      <!-- Risk 1 -->
+      <g transform="translate(0, 0)">
+        <rect width="830" height="330" rx="24" fill="#FFFFFF" stroke="#EFE8E6" stroke-width="2"/>
+        <rect x="40" y="35" width="160" height="30" rx="15" fill="#FEF3C7"/>
+        <text x="120" y="55" font-family="monospace, Courier New, sans-serif" font-size="11" font-weight="700" fill="#B45309" text-anchor="middle">IMPACTO: ALTO / FRECUENTE</text>
+        
+        <text x="40" y="105" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="24" font-weight="900" fill="#1E0C30">Fluctuación de Demanda por Horarios</text>
+        <text x="40" y="135" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" fill="#59483E">La demanda se concentra en los 10 minutos de cambio de materia.</text>
+
+        <rect x="40" y="175" width="750" height="115" rx="16" fill="#FAF6F5"/>
+        <text x="65" y="210" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="800" fill="#B8385E">ESTRATEGIA DE MITIGACIÓN:</text>
+        <text x="65" y="240" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" font-weight="600" fill="#1E0C30">Sistema de Preventa y Apartado de Stock antes del receso.</text>
+        <text x="65" y="265" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">El cocinero sabe con 30 minutos de antelación qué pedidos debe preparar.</text>
+      </g>
+
+      <!-- Risk 2 -->
+      <g transform="translate(890, 0)">
+        <rect width="830" height="330" rx="24" fill="#FFFFFF" stroke="#EFE8E6" stroke-width="2"/>
+        <rect x="40" y="35" width="160" height="30" rx="15" fill="#FEE2E2"/>
+        <text x="120" y="55" font-family="monospace, Courier New, sans-serif" font-size="11" font-weight="700" fill="#B91C1C" text-anchor="middle">IMPACTO: MEDIO / CRÍTICO</text>
+        
+        <text x="40" y="105" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="24" font-weight="900" fill="#1E0C30">Escasez de Domiciliarios en Horas Pico</text>
+        <text x="40" y="135" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" fill="#59483E">Coincidencia de horarios de clase que limite la disponibilidad de caminantes.</text>
+
+        <rect x="40" y="175" width="750" height="115" rx="16" fill="#FAF6F5"/>
+        <text x="65" y="210" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="800" fill="#B8385E">ESTRATEGIA DE MITIGACIÓN:</text>
+        <text x="65" y="240" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" font-weight="600" fill="#1E0C30">Tarifas Dinámicas por Distancia ($100 a $500 COP).</text>
+        <text x="65" y="265" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">Incentivo extra inmediato para compañeros que ya se desplazan por esa ruta.</text>
+      </g>
+
+      <!-- Risk 3 -->
+      <g transform="translate(0, 360)">
+        <rect width="830" height="330" rx="24" fill="#FFFFFF" stroke="#EFE8E6" stroke-width="2"/>
+        <rect x="40" y="35" width="160" height="30" rx="15" fill="#FEE2E2"/>
+        <text x="120" y="55" font-family="monospace, Courier New, sans-serif" font-size="11" font-weight="700" fill="#B91C1C" text-anchor="middle">IMPACTO: BAJO / CRÍTICO</text>
+        
+        <text x="40" y="105" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="24" font-weight="900" fill="#1E0C30">Inocuidad y Calidad de Alimentos</text>
+        <text x="40" y="135" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" fill="#59483E">Garantía de frescura e higiene en preparaciones artesanales caseras.</text>
+
+        <rect x="40" y="175" width="750" height="115" rx="16" fill="#FAF6F5"/>
+        <text x="65" y="210" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="800" fill="#B8385E">ESTRATEGIA DE MITIGACIÓN:</text>
+        <text x="65" y="240" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" font-weight="600" fill="#1E0C30">Perfil Verificado de Cocineros y Fotos Reales.</text>
+        <text x="65" y="265" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">Control comunitario estricto: reputación visible y retiro inmediato si hay incidentes.</text>
+      </g>
+
+      <!-- Risk 4 -->
+      <g transform="translate(890, 360)">
+        <rect width="830" height="330" rx="24" fill="#FFFFFF" stroke="#EFE8E6" stroke-width="2"/>
+        <rect x="40" y="35" width="160" height="30" rx="15" fill="#FEF3C7"/>
+        <text x="120" y="55" font-family="monospace, Courier New, sans-serif" font-size="11" font-weight="700" fill="#B45309" text-anchor="middle">IMPACTO: BAJO / MODERADO</text>
+        
+        <text x="40" y="105" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="24" font-weight="900" fill="#1E0C30">Incumplimiento en Entrega o Dinero</text>
+        <text x="40" y="135" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" fill="#59483E">Falta de confirmación de recibido o malentendidos con el efectivo.</text>
+
+        <rect x="40" y="175" width="750" height="115" rx="16" fill="#FAF6F5"/>
+        <text x="65" y="210" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="800" fill="#B8385E">ESTRATEGIA DE MITIGACIÓN:</text>
+        <text x="65" y="240" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" font-weight="600" fill="#1E0C30">Protocolo de Triple Confirmación en la Plataforma.</text>
+        <text x="65" y="265" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">El pedido solo se cierra cuando comprador, repartidor y cocinero validan.</text>
+      </g>
+    </g>
+
+    
+    <g transform="translate(100, 1010)">
+      <line x1="0" y1="0" x2="1720" y2="0" stroke="#EFE8E6" stroke-width="1"/>
+      <text x="0" y="28" font-family="monospace, Courier New, sans-serif" font-size="13" font-weight="600" fill="#59483E">Bocado · Sustentación Junta Directiva · Innovación 3</text>
+      <text x="1720" y="28" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="800" fill="#B8385E" text-anchor="end">Slide 9 de 10</text>
+    </g>
+  
+  
+</svg>

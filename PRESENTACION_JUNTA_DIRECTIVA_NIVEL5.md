@@ -239,3 +239,4 @@ Casilleros Inteligentes      ───>  Costos de hardware altos      ───
 ### 🎙️ Guion del Expositor (Palabras finales)
 > *"En conclusión: Bocado demostró que dentro de la Universidad Icesi existe un mercado vivo, dispuesto a pagar y listo para organizarse a través de la tecnología. No solo resolvemos el antojo del estudiante sin interrumpir su clase, sino que construimos un motor de ingresos complementarios para decenas de compañeros que cocinan o caminan por el campus.  
 > Muchas gracias. Quedamos atentos a sus preguntas y retroalimentación de la Junta Directiva."*
+

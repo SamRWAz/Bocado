@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+    <rect width="1920" height="1080" fill="#FAF6F5"/>
+    
+    <!-- Top Branding & Slide Meta -->
+    <g transform="translate(100, 70)">
+      
+    <g transform="translate(0, 0) scale(1.3333333333333333)">
+      <circle cx="12" cy="12" r="12" fill="#B8385E"/>
+      <path d="M12 4C12.3 8 16 11.7 20 12C16 12.3 12.3 16 12 20C11.7 16 8 12.3 4 12C8 11.7 11.7 8 12 4Z" fill="#FFFFFF"/>
+      <circle cx="18" cy="6" r="1.5" fill="#FFFFFF"/>
+    </g>
+  
+      <text x="44" y="24" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="24" font-weight="900" fill="#1E0C30" letter-spacing="-0.5">bocado<tspan fill="#B8385E"> .</tspan></text>
+      <text x="180" y="23" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="700" fill="#B8385E">|  UNIVERSIDAD ICESI</text>
+      
+      <!-- Rubric Pills Right -->
+      <g transform="translate(1380, 0)">
+        <rect x="0" y="0" width="160" height="36" rx="18" fill="#1E0C30"/>
+        <text x="80" y="23" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">Evolución & Iteración</text>
+        
+        <rect x="175" y="0" width="165" height="36" rx="18" fill="#B8385E"/>
+        <text x="257" y="23" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">30% de la Nota</text>
+      </g>
+    </g>
+
+    <!-- Slide Title & Subtitle -->
+    <g transform="translate(100, 150)">
+      <text x="0" y="55" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="52" font-weight="900" fill="#1E0C30" letter-spacing="-1">Evolución y Aprendizajes: De Smart Lockers a Peer-to-Peer</text>
+      <text x="0" y="98" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="20" font-weight="400" fill="#59483E">Cómo la validación con usuarios nos llevó a simplificar la arquitectura eliminando costos millonarios.</text>
+    </g>
+  
+
+    <g transform="translate(100, 270)">
+      <!-- Left: Hipótesis Inicial (Descartada) -->
+      <g transform="translate(0, 0)">
+        <rect width="830" height="690" rx="28" fill="#FFFFFF" stroke="#EFE8E6" stroke-width="2"/>
+        <rect x="40" y="40" width="280" height="34" rx="17" fill="#EF4444"/>
+        <text x="180" y="62" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">HIPÓTESIS INICIAL (DESBANCADA)</text>
+        
+        <text x="40" y="125" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="34" font-weight="900" fill="#1E0C30">Red de Casilleros Inteligentes</text>
+        <text x="40" y="160" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="17" fill="#59483E">Módulos físicos con teclados numéricos y apertura remota por código.</text>
+
+        <g transform="translate(40, 210)">
+          <rect width="750" height="90" rx="16" fill="#FEF2F2"/>
+          <text x="24" y="35" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="18" font-weight="800" fill="#991B1B">Capex Alto e Inviable</text>
+          <text x="24" y="62" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">Fabricación, cerrajería electrónica, baterías y conectividad requerían más de $15M COP.</text>
+        </g>
+
+        <g transform="translate(40, 320)">
+          <rect width="750" height="90" rx="16" fill="#FEF2F2"/>
+          <text x="24" y="35" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="18" font-weight="800" fill="#991B1B">Fricción Regulatoria de Campus</text>
+          <text x="24" y="62" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">Permisos de planta física, anclaje en pasillos y mantenimiento técnico permanente.</text>
+        </g>
+
+        <g transform="translate(40, 430)">
+          <rect width="750" height="90" rx="16" fill="#FEF2F2"/>
+          <text x="24" y="35" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="18" font-weight="800" fill="#991B1B">No Resolvía el Dolor Real</text>
+          <text x="24" y="62" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">El comprador aún tenía que pararse de su salón y caminar hasta el casillero en otro piso.</text>
+        </g>
+
+        <rect x="40" y="550" width="750" height="95" rx="16" fill="#F3ECE9"/>
+        <text x="375" y="590" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="18" font-weight="800" fill="#1E0C30" text-anchor="middle">Aprendizaje Validado:</text>
+        <text x="375" y="618" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" fill="#59483E" text-anchor="middle">"El valor para el usuario no es el casillero; es no tener que levantarse de su puesto."</text>
+      </g>
+
+      <!-- Right: Solución Validada (Bocado P2P) -->
+      <g transform="translate(890, 0)">
+        <rect width="830" height="690" rx="28" fill="#1E0C30"/>
+        <rect x="40" y="40" width="280" height="34" rx="17" fill="#B8385E"/>
+        <text x="180" y="62" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">SOLUCIÓN FINAL (VALIDADA)</text>
+        
+        <text x="40" y="125" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="34" font-weight="900" fill="#FFFFFF">Red Colaborativa Peer-to-Peer</text>
+        <text x="40" y="160" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="17" fill="#D4C5D0">Estudiantes domiciliarios en huecos libres realizan entregas a pie.</text>
+
+        <g transform="translate(40, 210)">
+          <rect width="750" height="90" rx="16" fill="rgba(255,255,255,0.08)"/>
+          <text x="24" y="35" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="18" font-weight="800" fill="#E27D7D">$0 Inversión en Hardware</text>
+          <text x="24" y="62" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#D4C5D0">Cero costos de capital. Todo opera sobre la web app responsive y WhatsApp de apoyo.</text>
+        </g>
+
+        <g transform="translate(40, 320)">
+          <rect width="750" height="90" rx="16" fill="rgba(255,255,255,0.08)"/>
+          <text x="24" y="35" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="18" font-weight="800" fill="#E27D7D">Entrega Directa en el Aula / Puesto</text>
+          <text x="24" y="62" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#D4C5D0">El snack llega en mano al pupitre del estudiante sin interrumpir su clase ni perder su puesto.</text>
+        </g>
+
+        <g transform="translate(40, 430)">
+          <rect width="750" height="90" rx="16" fill="rgba(255,255,255,0.08)"/>
+          <text x="24" y="35" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="18" font-weight="800" fill="#E27D7D">Impacto Social en Campus</text>
+          <text x="24" y="62" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#D4C5D0">Crea el rol de Domiciliario: monetiza tiempos muertos de compañeros entre materias.</text>
+        </g>
+
+        <rect x="40" y="550" width="750" height="95" rx="16" fill="rgba(184,56,94,0.3)"/>
+        <text x="375" y="590" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="18" font-weight="800" fill="#FFFFFF" text-anchor="middle">Resultado de la Iteración:</text>
+        <text x="375" y="618" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" fill="#FCE7F3" text-anchor="middle">Velocidad de entrega x3 más rápida y modelo escalable a cualquier otra universidad.</text>
+      </g>
+    </g>
+
+    
+    <g transform="translate(100, 1010)">
+      <line x1="0" y1="0" x2="1720" y2="0" stroke="#EFE8E6" stroke-width="1"/>
+      <text x="0" y="28" font-family="monospace, Courier New, sans-serif" font-size="13" font-weight="600" fill="#59483E">Bocado · Sustentación Junta Directiva · Innovación 3</text>
+      <text x="1720" y="28" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="800" fill="#B8385E" text-anchor="end">Slide 4 de 10</text>
+    </g>
+  
+  
+</svg>

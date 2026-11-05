@@ -59,21 +59,13 @@ export function PublicHeader() {
 
 export function PublicFooter() {
   return (
-    <footer className="border-t border-[#EFE8E6] dark:border-[#2D1945] bg-[#FAF6F5] dark:bg-[#130920] py-8 text-xs text-[#59483E]/80 dark:text-[#C5B7C2]/80">
-      <div className="mx-auto flex max-w-6xl flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-6">
-        <p className="font-display font-bold text-[#1E0C30] dark:text-white text-sm">
-          bocado<span className="text-[#B8385E]">.</span>
+    <footer className="border-t border-border py-10 text-sm text-muted-foreground">
+      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <p className="font-display font-medium text-foreground text-sm tracking-tight">
+          Bocado · Micro-comercio universitario
         </p>
-        <p>Universidad Icesi · Micro-comercio gastronómico intra-campus · 2026</p>
-        <div className="flex items-center gap-4">
-          <Link
-            to="/presentacion"
-            className="font-mono text-[11px] font-bold text-[#B8385E] hover:underline flex items-center gap-1"
-          >
-            <span>Presentación Nivel 5</span>
-            <span>↗</span>
-          </Link>
-        </div>
+        <p>Universidad Icesi · Snacks frescos y domicilios entre estudiantes (Tendederos en campus).</p>
+        <p className="text-xs">Validación de concepto · 2026</p>
       </div>
     </footer>
   )

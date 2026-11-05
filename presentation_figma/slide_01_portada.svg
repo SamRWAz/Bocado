@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+    <rect width="1920" height="1080" fill="#FAF6F5"/>
+    
+    <!-- Top Branding -->
+    <g transform="translate(120, 90)">
+      
+    <g transform="translate(0, 0) scale(1.8333333333333333)">
+      <circle cx="12" cy="12" r="12" fill="#B8385E"/>
+      <path d="M12 4C12.3 8 16 11.7 20 12C16 12.3 12.3 16 12 20C11.7 16 8 12.3 4 12C8 11.7 11.7 8 12 4Z" fill="#FFFFFF"/>
+      <circle cx="18" cy="6" r="1.5" fill="#FFFFFF"/>
+    </g>
+  
+      <text x="58" y="32" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="36" font-weight="900" fill="#1E0C30">bocado<tspan fill="#B8385E"> .</tspan></text>
+      <text x="230" y="30" font-family="monospace, Courier New, sans-serif" font-size="15" font-weight="700" fill="#B8385E">MICRO-COMERCIO GASTRONÓMICO INTRA-CAMPUS</text>
+    </g>
+
+    <!-- Big Headline with Outline Words -->
+    <g transform="translate(120, 230)">
+      <rect x="0" y="0" width="360" height="36" rx="18" fill="#B8385E"/>
+      <text x="180" y="23" font-family="monospace, Courier New, sans-serif" font-size="13" font-weight="800" fill="#FFFFFF" text-anchor="middle">APERTURA · PRIMEROS 45 SEGUNDOS</text>
+
+      <text x="0" y="130" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="110" font-weight="900" fill="#1E0C30" letter-spacing="-3">Tu antojo.</text>
+      <text x="0" y="240" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="110" font-weight="300" fill="none" stroke="#B8385E" stroke-width="3" letter-spacing="-3">En movimiento.</text>
+
+      <text x="0" y="320" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="26" font-weight="400" fill="#59483E">
+        La red colaborativa que conecta a cocineros y repartidores con estudiantes
+      </text>
+      <text x="0" y="360" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="26" font-weight="700" fill="#1E0C30">
+        directamente en su salón o puesto de estudio en la Universidad Icesi.
+      </text>
+    </g>
+
+    <!-- 3 Quick Metrics Cards Bottom -->
+    <g transform="translate(120, 680)">
+      <g transform="translate(0, 0)">
+        <rect width="320" height="180" rx="24" fill="#FFFFFF" stroke="#EFE8E6" stroke-width="2"/>
+        <text x="36" y="55" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="700" fill="#B8385E">TIEMPO DE PEDIDO</text>
+        <text x="36" y="115" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="48" font-weight="900" fill="#1E0C30">2 min</text>
+        <text x="36" y="148" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">Desde cualquier celular en campus</text>
+      </g>
+
+      <g transform="translate(350, 0)">
+        <rect width="320" height="180" rx="24" fill="#FFFFFF" stroke="#EFE8E6" stroke-width="2"/>
+        <text x="36" y="55" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="700" fill="#B8385E">TIEMPO DE ENTREGA</text>
+        <text x="36" y="115" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="48" font-weight="900" fill="#1E0C30">&lt; 15 min</text>
+        <text x="36" y="148" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">Entregas a pie entre edificios</text>
+      </g>
+
+      <g transform="translate(700, 0)">
+        <rect width="320" height="180" rx="24" fill="#1E0C30"/>
+        <text x="36" y="55" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="700" fill="#E27D7D">INFRAESTRUCTURA</text>
+        <text x="36" y="115" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="48" font-weight="900" fill="#FFFFFF">$0 Capex</text>
+        <text x="36" y="148" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#D4C5D0">Modelo 100% peer-to-peer</text>
+      </g>
+    </g>
+
+    <!-- Right Graphic Artboard Frame (Representation of 3D / Campus) -->
+    <g transform="translate(1220, 220)">
+      <circle cx="300" cy="300" r="280" fill="#B8385E" opacity="0.12"/>
+      <circle cx="300" cy="300" r="210" fill="#1E0C30" opacity="0.08"/>
+      <circle cx="300" cy="300" r="140" fill="#FFFFFF" stroke="#EFE8E6" stroke-width="2"/>
+      <text x="300" y="290" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="32" font-weight="900" fill="#1E0C30" text-anchor="middle">🥐 Bocado</text>
+      <text x="300" y="325" font-family="monospace, Courier New, sans-serif" font-size="13" font-weight="700" fill="#B8385E" text-anchor="middle">SABOR EN MOVIMIENTO</text>
+      
+      <!-- Floating Badge -->
+      <rect x="180" y="470" width="240" height="50" rx="25" fill="#1E0C30"/>
+      <text x="300" y="501" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">bocado-gamma.vercel.app ↗</text>
+    </g>
+
+    
+    <g transform="translate(100, 1010)">
+      <line x1="0" y1="0" x2="1720" y2="0" stroke="#EFE8E6" stroke-width="1"/>
+      <text x="0" y="28" font-family="monospace, Courier New, sans-serif" font-size="13" font-weight="600" fill="#59483E">Bocado · Sustentación Junta Directiva · Innovación 3</text>
+      <text x="1720" y="28" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="800" fill="#B8385E" text-anchor="end">Slide 1 de 10</text>
+    </g>
+  
+  
+</svg>

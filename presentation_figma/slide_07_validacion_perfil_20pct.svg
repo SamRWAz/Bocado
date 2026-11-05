@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+    <rect width="1920" height="1080" fill="#FAF6F5"/>
+    
+    <!-- Top Branding & Slide Meta -->
+    <g transform="translate(100, 70)">
+      
+    <g transform="translate(0, 0) scale(1.3333333333333333)">
+      <circle cx="12" cy="12" r="12" fill="#B8385E"/>
+      <path d="M12 4C12.3 8 16 11.7 20 12C16 12.3 12.3 16 12 20C11.7 16 8 12.3 4 12C8 11.7 11.7 8 12 4Z" fill="#FFFFFF"/>
+      <circle cx="18" cy="6" r="1.5" fill="#FFFFFF"/>
+    </g>
+  
+      <text x="44" y="24" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="24" font-weight="900" fill="#1E0C30" letter-spacing="-0.5">bocado<tspan fill="#B8385E"> .</tspan></text>
+      <text x="180" y="23" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="700" fill="#B8385E">|  UNIVERSIDAD ICESI</text>
+      
+      <!-- Rubric Pills Right -->
+      <g transform="translate(1380, 0)">
+        <rect x="0" y="0" width="160" height="36" rx="18" fill="#1E0C30"/>
+        <text x="80" y="23" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">Match de Mercado</text>
+        
+        <rect x="175" y="0" width="165" height="36" rx="18" fill="#B8385E"/>
+        <text x="257" y="23" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">20% de la Nota</text>
+      </g>
+    </g>
+
+    <!-- Slide Title & Subtitle -->
+    <g transform="translate(100, 150)">
+      <text x="0" y="55" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="52" font-weight="900" fill="#1E0C30" letter-spacing="-1">Validación del Perfil del Cliente en Campus Icesi</text>
+      <text x="0" y="98" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="20" font-weight="400" fill="#59483E">Verificación rigurosa de que los compradores corresponden al arquetipo estudiantil planteado.</text>
+    </g>
+  
+
+    <g transform="translate(100, 270)">
+      <!-- Left: Profile Checklist -->
+      <g transform="translate(0, 0)">
+        <rect width="520" height="690" rx="28" fill="#FFFFFF" stroke="#EFE8E6" stroke-width="2"/>
+        <text x="40" y="55" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="24" font-weight="900" fill="#1E0C30">Arquetipo de Usuario</text>
+        <text x="40" y="85" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" fill="#59483E">Criterios de correspondencia verificados.</text>
+
+        <!-- Check 1 -->
+        <g transform="translate(40, 120)">
+          <rect width="440" height="110" rx="16" fill="#FAF6F5"/>
+          <text x="24" y="35" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="17" font-weight="800" fill="#1E0C30">Comunidad Icesi Activa</text>
+          <text x="24" y="60" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="13" fill="#59483E">100% de las ventas fueron realizadas por estudiantes y profesores matriculados.</text>
+        </g>
+
+        <!-- Check 2 -->
+        <g transform="translate(40, 250)">
+          <rect width="440" height="110" rx="16" fill="#FAF6F5"/>
+          <text x="24" y="35" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="17" font-weight="800" fill="#1E0C30">Ubicaciones Clave del Campus</text>
+          <text x="24" y="60" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="13" fill="#59483E">Entregas registradas en aulas de Edificios D, M, E y puestos de estudio del Boreal.</text>
+        </g>
+
+        <!-- Check 3 -->
+        <g transform="translate(40, 380)">
+          <rect width="440" height="110" rx="16" fill="#FAF6F5"/>
+          <text x="24" y="35" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="17" font-weight="800" fill="#1E0C30">Horarios de Mayor Demanda</text>
+          <text x="24" y="60" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="13" fill="#59483E">Picos validados: 9:30 AM a 10:00 AM (receso mañana) y 3:30 PM a 4:30 PM (tarde).</text>
+        </g>
+
+        <!-- Check 4 -->
+        <g transform="translate(40, 510)">
+          <rect width="440" height="130" rx="16" fill="#1E0C30"/>
+          <text x="24" y="35" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="17" font-weight="800" fill="#E27D7D">Disposición a Pagar Micro-Tarifa</text>
+          <text x="24" y="65" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="13" fill="#D4C5D0">El usuario prefiere pagar $200-$500 COP de delivery antes que interrumpir su jornada académica.</text>
+        </g>
+      </g>
+
+      <!-- Right: Large Evidence Placeholder Frame -->
+      <g transform="translate(560, 0)">
+        <rect width="1160" height="690" rx="28" fill="#FFFFFF" stroke="#B8385E" stroke-width="3" stroke-dasharray="12 12"/>
+        
+        <g transform="translate(580, 270)">
+          <circle cx="0" cy="0" r="44" fill="#B8385E" opacity="0.12"/>
+          <text x="0" y="12" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="34" font-weight="900" fill="#B8385E" text-anchor="middle">💬</text>
+          
+          <text x="0" y="75" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="24" font-weight="900" fill="#1E0C30" text-anchor="middle">
+            [ESPACIO PARA EVIDENCIA: FOTOS Y CHATS DE CLIENTES REALES ICESI]
+          </text>
+          <text x="0" y="115" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="16" fill="#59483E" text-anchor="middle">
+            Pega aquí capturas de chats de coordinación en WhatsApp con compradores,
+          </text>
+          <text x="0" y="145" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="16" fill="#59483E" text-anchor="middle">
+            testimonios de satisfacción o fotografías tomadas durante la entrega en el salón.
+          </text>
+          <text x="0" y="195" font-family="monospace, Courier New, sans-serif" font-size="13" font-weight="700" fill="#B8385E" text-anchor="middle">
+            (Pega tu testimonio o foto del comprador directamente aquí)
+          </text>
+        </g>
+      </g>
+    </g>
+
+    
+    <g transform="translate(100, 1010)">
+      <line x1="0" y1="0" x2="1720" y2="0" stroke="#EFE8E6" stroke-width="1"/>
+      <text x="0" y="28" font-family="monospace, Courier New, sans-serif" font-size="13" font-weight="600" fill="#59483E">Bocado · Sustentación Junta Directiva · Innovación 3</text>
+      <text x="1720" y="28" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="800" fill="#B8385E" text-anchor="end">Slide 7 de 10</text>
+    </g>
+  
+  
+</svg>

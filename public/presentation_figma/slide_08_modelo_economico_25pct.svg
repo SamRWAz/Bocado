@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+    <rect width="1920" height="1080" fill="#FAF6F5"/>
+    
+    <!-- Top Branding & Slide Meta -->
+    <g transform="translate(100, 70)">
+      
+    <g transform="translate(0, 0) scale(1.3333333333333333)">
+      <circle cx="12" cy="12" r="12" fill="#B8385E"/>
+      <path d="M12 4C12.3 8 16 11.7 20 12C16 12.3 12.3 16 12 20C11.7 16 8 12.3 4 12C8 11.7 11.7 8 12 4Z" fill="#FFFFFF"/>
+      <circle cx="18" cy="6" r="1.5" fill="#FFFFFF"/>
+    </g>
+  
+      <text x="44" y="24" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="24" font-weight="900" fill="#1E0C30" letter-spacing="-0.5">bocado<tspan fill="#B8385E"> .</tspan></text>
+      <text x="180" y="23" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="700" fill="#B8385E">|  UNIVERSIDAD ICESI</text>
+      
+      <!-- Rubric Pills Right -->
+      <g transform="translate(1380, 0)">
+        <rect x="0" y="0" width="160" height="36" rx="18" fill="#1E0C30"/>
+        <text x="80" y="23" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">Unit Economics</text>
+        
+        <rect x="175" y="0" width="165" height="36" rx="18" fill="#B8385E"/>
+        <text x="257" y="23" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#FFFFFF" text-anchor="middle">25% de la Nota</text>
+      </g>
+    </g>
+
+    <!-- Slide Title & Subtitle -->
+    <g transform="translate(100, 150)">
+      <text x="0" y="55" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="52" font-weight="900" fill="#1E0C30" letter-spacing="-1">Modelo Económico y Sostenibilidad Financiera</text>
+      <text x="0" y="98" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="20" font-weight="400" fill="#59483E">Desglose transparente de 1 pedido promedio ($4.500 COP) y distribución de márgenes.</text>
+    </g>
+  
+
+    <g transform="translate(100, 270)">
+      <!-- Main Economics Breakdown Table -->
+      <rect width="1720" height="420" rx="28" fill="#FFFFFF" stroke="#EFE8E6" stroke-width="2"/>
+      
+      <!-- Table Header -->
+      <g transform="translate(60, 40)">
+        <rect width="1600" height="50" rx="14" fill="#FAF6F5"/>
+        <text x="40" y="32" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="800" fill="#59483E">ACTOR / CONCEPTO</text>
+        <text x="500" y="32" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="800" fill="#59483E">VALOR (COP)</text>
+        <text x="850" y="32" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="800" fill="#59483E">% DEL TOTAL</text>
+        <text x="1150" y="32" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="800" fill="#59483E">JUSTIFICACIÓN & ROL</text>
+      </g>
+
+      <!-- Row 1: Cocinero -->
+      <g transform="translate(60, 115)">
+        <text x="40" y="38" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="22" font-weight="900" fill="#1E0C30">Estudiante Cocinero</text>
+        <text x="40" y="60" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">Precio del snack (brownie, galleta, wrap)</text>
+        <text x="500" y="45" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="26" font-weight="900" fill="#B8385E">$4.500 COP</text>
+        <text x="850" y="45" font-family="monospace, Courier New, sans-serif" font-size="20" font-weight="800" fill="#1E0C30">93.3%</text>
+        <text x="1150" y="35" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" font-weight="600" fill="#1E0C30">Ingreso directo para el emprendedor.</text>
+        <text x="1150" y="58" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">Cero costo fijo; solo produce bajo demanda o stock fijo.</text>
+        <line x1="0" y1="80" x2="1600" y2="80" stroke="#EFE8E6" stroke-width="1"/>
+      </g>
+
+      <!-- Row 2: Domiciliario -->
+      <g transform="translate(60, 215)">
+        <text x="40" y="38" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="22" font-weight="900" fill="#1E0C30">Estudiante Domiciliario</text>
+        <text x="40" y="60" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">Tarifa micro-escalada por distancia intra-campus</text>
+        <text x="500" y="45" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="26" font-weight="900" fill="#B8385E">$200 COP</text>
+        <text x="850" y="45" font-family="monospace, Courier New, sans-serif" font-size="20" font-weight="800" fill="#1E0C30">100% Tarifa</text>
+        <text x="1150" y="35" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" font-weight="600" fill="#1E0C30">Incentivo por caminata de 3 a 5 min.</text>
+        <text x="1150" y="58" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">Rango entre $100 y $500 COP según distancia entre bloques.</text>
+        <line x1="0" y1="80" x2="1600" y2="80" stroke="#EFE8E6" stroke-width="1"/>
+      </g>
+
+      <!-- Row 3: Plataforma Bocado -->
+      <g transform="translate(60, 315)">
+        <text x="40" y="38" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="22" font-weight="900" fill="#1E0C30">Plataforma Bocado</text>
+        <text x="40" y="60" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">Comisión operativa por intermediación digital</text>
+        <text x="500" y="45" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="26" font-weight="900" fill="#B8385E">$300 COP</text>
+        <text x="850" y="45" font-family="monospace, Courier New, sans-serif" font-size="20" font-weight="800" fill="#1E0C30">Margen Bruto</text>
+        <text x="1150" y="35" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" font-weight="600" fill="#1E0C30">Sostenibilidad del software y pasarela.</text>
+        <text x="1150" y="58" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="14" fill="#59483E">Cubre servidor en la nube, API Wompi y reinversión táctica.</text>
+      </g>
+
+      <!-- Total Bar -->
+      <g transform="translate(0, 450)">
+        <rect width="1720" height="100" rx="22" fill="#1E0C30"/>
+        <text x="60" y="58" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="24" font-weight="900" fill="#FFFFFF">TOTAL PAGADO POR EL COMPRADOR EN ICESI</text>
+        <text x="1250" y="62" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="44" font-weight="900" fill="#E27D7D">$4.700 COP</text>
+        <text x="1560" y="58" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" fill="#D4C5D0">Super accesible</text>
+      </g>
+
+      <!-- 3 Key Model Highlights -->
+      <g transform="translate(0, 580)">
+        <rect width="550" height="100" rx="18" fill="#FFFFFF" stroke="#EFE8E6" stroke-width="2"/>
+        <text x="30" y="40" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#B8385E">SIN COSTO DE ENTRADA</text>
+        <text x="30" y="68" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" font-weight="600" fill="#1E0C30">El cocinero no paga nada por listar sus productos.</text>
+      </g>
+
+      <g transform="translate(585, 580)">
+        <rect width="550" height="100" rx="18" fill="#FFFFFF" stroke="#EFE8E6" stroke-width="2"/>
+        <text x="30" y="40" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#B8385E">LIQUIDEZ INMEDIATA</text>
+        <text x="30" y="68" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" font-weight="600" fill="#1E0C30">El domiciliario cobra su carrera en el acto.</text>
+      </g>
+
+      <g transform="translate(1170, 580)">
+        <rect width="550" height="100" rx="18" fill="#FFFFFF" stroke="#EFE8E6" stroke-width="2"/>
+        <text x="30" y="40" font-family="monospace, Courier New, sans-serif" font-size="12" font-weight="700" fill="#B8385E">ESCALABILIDAD HORIZONTAL</text>
+        <text x="30" y="68" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" font-weight="600" fill="#1E0C30">Cero Capex permite replicarlo en Javeriana o Univalle.</text>
+      </g>
+    </g>
+
+    
+    <g transform="translate(100, 1010)">
+      <line x1="0" y1="0" x2="1720" y2="0" stroke="#EFE8E6" stroke-width="1"/>
+      <text x="0" y="28" font-family="monospace, Courier New, sans-serif" font-size="13" font-weight="600" fill="#59483E">Bocado · Sustentación Junta Directiva · Innovación 3</text>
+      <text x="1720" y="28" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="800" fill="#B8385E" text-anchor="end">Slide 8 de 10</text>
+    </g>
+  
+  
+</svg>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+    <rect width="1920" height="1080" fill="#B8385E"/>
+
+    <!-- Top Branding -->
+    <g transform="translate(120, 90)">
+      
+    <g transform="translate(0, 0) scale(1.8333333333333333)">
+      <circle cx="12" cy="12" r="12" fill="#B8385E"/>
+      <path d="M12 4C12.3 8 16 11.7 20 12C16 12.3 12.3 16 12 20C11.7 16 8 12.3 4 12C8 11.7 11.7 8 12 4Z" fill="#FFFFFF"/>
+      <circle cx="18" cy="6" r="1.5" fill="#FFFFFF"/>
+    </g>
+  
+      <text x="58" y="32" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="36" font-weight="900" fill="#FFFFFF">bocado<tspan fill="#1E0C30"> .</tspan></text>
+      <text x="230" y="30" font-family="monospace, Courier New, sans-serif" font-size="15" font-weight="700" fill="#FFFFFF">UNIVERSIDAD ICESI · INNOVACIÓN 3</text>
+    </g>
+
+    <g transform="translate(120, 240)">
+      <text x="0" y="80" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="88" font-weight="900" fill="#FFFFFF" letter-spacing="-2">Haz que el campus</text>
+      <text x="0" y="175" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="88" font-weight="300" fill="none" stroke="#FFFFFF" stroke-width="2.5" letter-spacing="-2">se mueva.</text>
+
+      <text x="0" y="260" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="24" font-weight="400" fill="rgba(255,255,255,0.95)">
+        Bocado demostró que el micro-comercio universitario puede ser ágil, colaborativo y rentable.
+      </text>
+    </g>
+
+    <!-- 4 Value Delivery Summary Cards -->
+    <g transform="translate(120, 560)">
+      <g transform="translate(0, 0)">
+        <rect width="380" height="260" rx="24" fill="#1E0C30"/>
+        <text x="36" y="55" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="700" fill="#E27D7D">3 ROLES ACTIVOS</text>
+        <text x="36" y="105" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="32" font-weight="900" fill="#FFFFFF">Comunidad Viva</text>
+        <text x="36" y="145" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" fill="#D4C5D0">Compradores, cocineros y domiciliarios conectados en un solo ecosistema.</text>
+      </g>
+
+      <g transform="translate(420, 0)">
+        <rect width="380" height="260" rx="24" fill="#1E0C30"/>
+        <text x="36" y="55" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="700" fill="#E27D7D">$0 CAPEX</text>
+        <text x="36" y="105" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="32" font-weight="900" fill="#FFFFFF">Cero Hardware</text>
+        <text x="36" y="145" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" fill="#D4C5D0">Infraestructura 100% digital desplegada sobre la nube y accesible desde móvil.</text>
+      </g>
+
+      <g transform="translate(840, 0)">
+        <rect width="380" height="260" rx="24" fill="#1E0C30"/>
+        <text x="36" y="55" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="700" fill="#E27D7D">PMV EN VIVO</text>
+        <text x="36" y="105" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="32" font-weight="900" fill="#FFFFFF">100% Operativo</text>
+        <text x="36" y="145" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" fill="#D4C5D0">Catálogo, checkout, pedidos y métricas funcionando en producción real.</text>
+      </g>
+
+      <g transform="translate(1260, 0)">
+        <rect width="380" height="260" rx="24" fill="#FFFFFF"/>
+        <text x="36" y="55" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="700" fill="#B8385E">TRACCIÓN ICESI</text>
+        <text x="36" y="105" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="32" font-weight="900" fill="#1E0C30">Ventas Reales</text>
+        <text x="36" y="145" font-family="Plus Jakarta Sans, Outfit, Inter, sans-serif" font-size="15" fill="#59483E">Validación con pagos y entregas completadas en aulas del campus.</text>
+      </g>
+    </g>
+
+    <!-- Bottom Question & Final Link -->
+    <g transform="translate(120, 920)">
+      <text x="0" y="40" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="28" font-weight="800" fill="#FFFFFF">¿Preguntas o comentarios de la Junta Directiva?</text>
+      
+      <rect x="1350" y="0" width="330" height="60" rx="30" fill="#1E0C30"/>
+      <text x="1515" y="37" font-family="Outfit, Plus Jakarta Sans, Inter, sans-serif" font-size="16" font-weight="800" fill="#FFFFFF" text-anchor="middle">bocado-gamma.vercel.app ↗</text>
+    </g>
+
+    
+    <g transform="translate(100, 1010)">
+      <line x1="0" y1="0" x2="1720" y2="0" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="0" y="28" font-family="monospace, Courier New, sans-serif" font-size="13" font-weight="600" fill="rgba(255,255,255,0.6)">Bocado · Sustentación Junta Directiva · Innovación 3</text>
+      <text x="1720" y="28" font-family="monospace, Courier New, sans-serif" font-size="14" font-weight="800" fill="#B8385E" text-anchor="end">Slide 10 de 10</text>
+    </g>
+  
+  
+</svg>
