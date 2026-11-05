@@ -1,9 +1,13 @@
 export type UserRole =
-  | 'comprar_vender'
-  | 'ambos'
+  | 'comprador'
+  | 'vendedor'
+  | 'domiciliario'
+  // Compatibilidad hacia atrás con registros previos
   | 'comprar'
   | 'vender'
   | 'entregar'
+  | 'comprar_vender'
+  | 'ambos'
   | 'admin'
 
 export type AuthUser = {

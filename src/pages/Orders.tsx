@@ -502,7 +502,7 @@ export function OrdersPage() {
 
                   {/* 3 Bloques de verificación horizontal lado a lado */}
                   <div className="grid grid-cols-3 gap-1.5">
-                    {/* Tendedero */}
+                    {/* Domiciliario */}
                     <div
                       className={`p-2 rounded-xl border text-center transition-all ${
                         order.tendederoConfirmed
@@ -510,13 +510,13 @@ export function OrdersPage() {
                           : 'bg-secondary/40 border-border text-muted-foreground'
                       }`}
                     >
-                      <span className="text-[9px] uppercase font-mono block font-bold truncate">1. Tendedero</span>
+                      <span className="text-[9px] uppercase font-mono block font-bold truncate">1. Domiciliario</span>
                       <span className="text-xs font-bold block mt-0.5">
-                        {order.tendederoConfirmed ? '✓ Enviado' : '⏳ Pendiente'}
+                        {order.tendederoConfirmed ? '✓ Entregado' : '⏳ Pendiente'}
                       </span>
                     </div>
 
-                    {/* Cliente */}
+                    {/* Comprador */}
                     <div
                       className={`p-2 rounded-xl border text-center transition-all ${
                         order.buyerConfirmed
@@ -524,7 +524,7 @@ export function OrdersPage() {
                           : 'bg-secondary/40 border-border text-muted-foreground'
                       }`}
                     >
-                      <span className="text-[9px] uppercase font-mono block font-bold truncate">2. Cliente</span>
+                      <span className="text-[9px] uppercase font-mono block font-bold truncate">2. Comprador</span>
                       <span className="text-xs font-bold block mt-0.5">
                         {order.buyerConfirmed ? '✓ Recibido' : '⏳ Pendiente'}
                       </span>

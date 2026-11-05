@@ -73,11 +73,12 @@ export function AppShell() {
 
   // Role labels for display
   const roleNameMap: Record<string, string> = {
+    comprador: 'Comprador',
+    vendedor: 'Vendedor',
+    domiciliario: 'Domiciliario',
     comprar: 'Comprador',
     vender: 'Vendedor',
-    comprar_vender: 'Comprar y Vender (Ambos)',
-    ambos: 'Comprar y Vender (Ambos)',
-    entregar: 'Tendedero / Repartidor',
+    entregar: 'Domiciliario',
     admin: 'Administrador',
   }
 

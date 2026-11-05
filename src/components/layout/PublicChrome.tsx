@@ -1,6 +1,6 @@
 import { ShoppingCart } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
-import { canSell, useAuth } from '../../context/AuthContext'
+import { canSell, isTendedero, useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
 import { BrandMark } from '../BrandMark'
 import { ThemeToggle } from '../ThemeToggle'
@@ -61,7 +61,7 @@ export function PublicHeader() {
           </Link>
           {user ? (
             <Link
-              to={canSell(user.role) ? '/vender' : '/pedidos'}
+              to={canSell(user.role) ? '/vender' : isTendedero(user.role) ? '/entregas' : '/pedidos'}
               className="rounded-xl bg-primary px-4 py-2 text-xs sm:text-sm font-display font-semibold text-primary-foreground shadow-sm hover:opacity-90"
             >
               Ir a la app

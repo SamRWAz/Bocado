@@ -1,4 +1,4 @@
-import { Bike, ChefHat, ShoppingBag, Sparkles, UserCheck } from 'lucide-react'
+import { Bike, ChefHat, Sparkles, UserCheck } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { PageTransition } from '../components/PageTransition'
@@ -41,9 +41,9 @@ export function LoginPage() {
       const target =
         from && from !== '/'
           ? from
-          : role === 'vender' || role === 'comprar_vender' || role === 'ambos'
+          : role === 'vendedor' || role === 'vender'
           ? '/vender'
-          : role === 'entregar'
+          : role === 'domiciliario' || role === 'entregar'
           ? '/entregas'
           : '/catalogo'
       navigate(target, { replace: true })
@@ -63,10 +63,10 @@ export function LoginPage() {
             Tu cuenta en <span className="text-[#8F1414] dark:text-red-400">Bocado</span>.
           </h1>
           <p className="mt-4 text-muted-foreground text-sm sm:text-base leading-relaxed">
-            Compra snacks directos de estudiantes, realiza domicilios independientes como Tendedero o comercializa tus preparaciones gastronómicas.
+            Pide snacks preparados por estudiantes, vende tus recetas culinarias o realiza entregas independientes entre clases en el campus.
           </p>
 
-          {/* 1-Click Interactive Demo Access for testing */}
+          {/* 1-Click Interactive Demo Access con los 3 roles oficiales */}
           <div className="mt-8 rounded-3xl border border-primary/20 bg-primary/5 p-5 space-y-3">
             <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase text-primary">
               <Sparkles size={14} />
@@ -75,38 +75,30 @@ export function LoginPage() {
             <p className="text-xs text-muted-foreground">
               Selecciona tu rol para acceder con permisos delimitados:
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-2 gap-2 pt-1">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
               <button
                 type="button"
-                onClick={() => handleDemoAccess('comprar', 'Sofía (Comprar)')}
-                className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-card hover:bg-secondary p-2.5 text-xs font-bold text-foreground transition-all active:scale-95 cursor-pointer shadow-xs"
+                onClick={() => handleDemoAccess('comprador', 'Sofía (Compradora)')}
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-card hover:bg-secondary p-3 text-xs font-bold text-foreground transition-all active:scale-95 cursor-pointer shadow-xs"
               >
-                <UserCheck size={14} className="text-primary" />
-                <span>1. Comprar</span>
+                <UserCheck size={15} className="text-primary shrink-0" />
+                <span>1. Comprador</span>
               </button>
               <button
                 type="button"
-                onClick={() => handleDemoAccess('vender', 'Valentina (Vender)')}
-                className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-card hover:bg-secondary p-2.5 text-xs font-bold text-foreground transition-all active:scale-95 cursor-pointer shadow-xs"
+                onClick={() => handleDemoAccess('vendedor', 'Valentina (Vendedora)')}
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-card hover:bg-secondary p-3 text-xs font-bold text-foreground transition-all active:scale-95 cursor-pointer shadow-xs"
               >
-                <ChefHat size={14} className="text-amber-600 dark:text-amber-400" />
-                <span>2. Vender</span>
+                <ChefHat size={15} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                <span>2. Vendedor</span>
               </button>
               <button
                 type="button"
-                onClick={() => handleDemoAccess('comprar_vender', 'Alejandro (Comprar y Vender)')}
-                className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-card hover:bg-secondary p-2.5 text-xs font-bold text-foreground transition-all active:scale-95 cursor-pointer shadow-xs"
+                onClick={() => handleDemoAccess('domiciliario', 'Mateo (Domiciliario)')}
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-card hover:bg-secondary p-3 text-xs font-bold text-foreground transition-all active:scale-95 cursor-pointer shadow-xs"
               >
-                <ShoppingBag size={14} className="text-blue-600 dark:text-blue-400" />
-                <span>3. Comprar y Vender</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoAccess('entregar', 'Mateo (Entregar)')}
-                className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-card hover:bg-secondary p-2.5 text-xs font-bold text-foreground transition-all active:scale-95 cursor-pointer shadow-xs"
-              >
-                <Bike size={14} className="text-emerald-600 dark:text-emerald-400" />
-                <span>4. Entregar (Domiciliario)</span>
+                <Bike size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>3. Domiciliario</span>
               </button>
             </div>
           </div>

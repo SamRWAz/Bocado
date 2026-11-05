@@ -8,7 +8,7 @@ import {
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { PageTransition } from '../components/PageTransition'
-import { useAuth } from '../context/AuthContext'
+import { isTendedero, useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { formatTime, money, sellerUserId } from '../lib/format'
 import { DELIVERY_FEE } from '../lib/pricing'
@@ -40,11 +40,31 @@ export function DeliveriesPage() {
     return (
       <div className="py-20 text-center space-y-4">
         <Bike size={48} className="mx-auto text-primary opacity-60" />
-        <h2 className="font-display text-xl font-bold">Inicia sesión para ver solicitudes de Tendedero</h2>
-        <p className="text-xs text-muted-foreground">Regístrate o inicia sesión como Tendedero para hacer entregas en el campus.</p>
+        <h2 className="font-display text-xl font-bold">Inicia sesión para ver solicitudes de Domiciliario</h2>
+        <p className="text-xs text-muted-foreground">Regístrate o inicia sesión como Domiciliario para hacer entregas en el campus.</p>
         <Link to="/login" className="inline-block rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground">
           Iniciar sesión
         </Link>
+      </div>
+    )
+  }
+
+  if (!isTendedero(user.role)) {
+    return (
+      <div className="py-20 text-center space-y-4 max-w-md mx-auto px-4">
+        <Bike size={48} className="mx-auto text-primary opacity-60" />
+        <h2 className="font-display text-xl font-bold">Módulo Exclusivo para Domiciliarios</h2>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          Actualmente tienes el rol de <strong className="capitalize">{user.role}</strong>. Para tomar pedidos y ganar por carreras de entrega en el campus, actualiza tu rol a <strong>Domiciliario</strong> en tu perfil.
+        </p>
+        <div className="flex justify-center gap-3 pt-2">
+          <Link to="/cuenta" className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-xs">
+            Cambiar Rol en Mi Cuenta
+          </Link>
+          <Link to="/catalogo" className="rounded-xl border border-border bg-card px-4 py-2 text-xs font-bold text-foreground">
+            Ir al Catálogo
+          </Link>
+        </div>
       </div>
     )
   }

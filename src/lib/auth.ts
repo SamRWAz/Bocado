@@ -5,24 +5,21 @@ import { signJwt, verifyJwt } from './jwt'
 import { findStoredUser, saveStoredUser } from './storage-db'
 import { supabase } from './supabase'
 
-export const ROLES: UserRole[] = ['comprar_vender', 'comprar', 'vender', 'entregar', 'admin']
+// Únicamente 3 roles oficiales en la plataforma: Comprador, Vendedor y Domiciliario
+export const ROLES: UserRole[] = ['comprador', 'vendedor', 'domiciliario']
 
 export const normalizeRole = (role?: string): UserRole => {
   const r = (role || '').trim().toLowerCase()
+  if (r === 'vendedor' || r === 'vender') return 'vendedor'
   if (
-    r === 'comprar_vender' ||
-    r === 'ambos' ||
-    r === 'ambos roles' ||
-    r === 'comprar y vender' ||
-    r === 'comprar_y_vender'
+    r === 'domiciliario' ||
+    r === 'entregar' ||
+    r === 'tendedero' ||
+    r === 'repartidor'
   ) {
-    return 'comprar_vender'
+    return 'domiciliario'
   }
-  if (r === 'comprar' || r === 'comprador') return 'comprar'
-  if (r === 'vender' || r === 'vendedor') return 'vender'
-  if (r === 'entregar' || r === 'tendedero' || r === 'repartidor') return 'entregar'
-  if (r === 'admin' || r === 'administrador') return 'admin'
-  return 'comprar'
+  return 'comprador'
 }
 
 const asUser = (input: {
@@ -122,12 +119,14 @@ export async function registerAccount(input: {
     throw new Error('La contraseña debe tener al menos 6 caracteres')
   }
 
+  const role = normalizeRole(input.role)
+
   const user = asUser({
     id: crypto.randomUUID(),
     email,
     name: input.name,
     campus: input.campus,
-    role: input.role,
+    role,
   })
 
   try {
@@ -208,39 +207,76 @@ export async function updateAccount(user: AuthUser) {
   return persist({ ...session, user: normalizedUser })
 }
 
-export async function loginDemoUser(role: UserRole = 'comprar') {
-  const demos: Record<string, { id: string; name: string; email: string; role: UserRole; campus: string }> = {
+export async function loginDemoUser(role: UserRole = 'comprador') {
+  const normalized = normalizeRole(role)
+  const demos: Record<UserRole, { id: string; name: string; email: string; role: UserRole; campus: string }> = {
+    comprador: {
+      id: 'demo-buyer-sofia',
+      name: 'Sofía Gómez (Compradora)',
+      email: 'sofia.gomez@icesi.edu.co',
+      role: 'comprador',
+      campus: 'Universidad Icesi',
+    },
+    vendedor: {
+      id: 'demo-seller-valentina',
+      name: 'Chef Valentina (Vendedora)',
+      email: 'valentina.bocados@icesi.edu.co',
+      role: 'vendedor',
+      campus: 'Universidad Icesi',
+    },
+    domiciliario: {
+      id: 'demo-tendedero-mateo',
+      name: 'Mateo Rivas (Domiciliario)',
+      email: 'mateo.domicilios@icesi.edu.co',
+      role: 'domiciliario',
+      campus: 'Universidad Icesi',
+    },
+    // Aliases para compatibilidad
     comprar: {
       id: 'demo-buyer-sofia',
       name: 'Sofía Gómez (Compradora)',
       email: 'sofia.gomez@icesi.edu.co',
-      role: 'comprar',
+      role: 'comprador',
       campus: 'Universidad Icesi',
     },
     vender: {
       id: 'demo-seller-valentina',
       name: 'Chef Valentina (Vendedora)',
       email: 'valentina.bocados@icesi.edu.co',
-      role: 'vender',
-      campus: 'Universidad Icesi',
-    },
-    comprar_vender: {
-      id: 'demo-user-alejandro',
-      name: 'Alejandro Campus (Comprar y Vender)',
-      email: 'alejandro.demo@icesi.edu.co',
-      role: 'comprar_vender',
+      role: 'vendedor',
       campus: 'Universidad Icesi',
     },
     entregar: {
       id: 'demo-tendedero-mateo',
-      name: 'Mateo Rivas (Tendedero / Entregar)',
-      email: 'mateo.tendedero@icesi.edu.co',
-      role: 'entregar',
+      name: 'Mateo Rivas (Domiciliario)',
+      email: 'mateo.domicilios@icesi.edu.co',
+      role: 'domiciliario',
+      campus: 'Universidad Icesi',
+    },
+    comprar_vender: {
+      id: 'demo-seller-valentina',
+      name: 'Chef Valentina (Vendedora)',
+      email: 'valentina.bocados@icesi.edu.co',
+      role: 'vendedor',
+      campus: 'Universidad Icesi',
+    },
+    ambos: {
+      id: 'demo-seller-valentina',
+      name: 'Chef Valentina (Vendedora)',
+      email: 'valentina.bocados@icesi.edu.co',
+      role: 'vendedor',
+      campus: 'Universidad Icesi',
+    },
+    admin: {
+      id: 'demo-seller-valentina',
+      name: 'Chef Valentina (Vendedora)',
+      email: 'valentina.bocados@icesi.edu.co',
+      role: 'vendedor',
       campus: 'Universidad Icesi',
     },
   }
 
-  const selected = demos[role] || demos.comprar
+  const selected = demos[normalized] || demos.comprador
   return createLocalSession(asUser(selected))
 }
 
@@ -248,4 +284,3 @@ export async function logoutAccount() {
   localStorage.removeItem(SESSION_KEY)
   await supabase.auth.signOut()
 }
-

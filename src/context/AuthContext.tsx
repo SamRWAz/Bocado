@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login: async (email, password) => {
         setSession(await loginAccount(email, password))
       },
-      loginDemo: async (role = 'comprar_vender') => {
+      loginDemo: async (role: UserRole = 'comprador') => {
         setSession(await loginDemoUser(role))
       },
       register: async (input) => {
@@ -74,16 +74,18 @@ export function useAuth() {
 }
 
 export function canSell(role?: UserRole | string) {
-  return role === 'vender' || role === 'comprar_vender' || role === 'ambos' || role === 'admin'
+  const r = (role || '').trim().toLowerCase()
+  return r === 'vendedor' || r === 'vender' || r === 'comprar_vender' || r === 'ambos' || r === 'admin'
 }
 
 export function canBuy(role?: UserRole | string) {
-  return role === 'comprar' || role === 'comprar_vender' || role === 'ambos' || role === 'admin'
+  const r = (role || '').trim().toLowerCase()
+  return r === 'comprador' || r === 'comprar' || r === 'comprar_vender' || r === 'ambos' || r === 'admin' || !role
 }
 
 export function isTendedero(role?: UserRole | string) {
-  // Estrictamente domiciliarios externos dedicados a entregas
-  return role === 'entregar' || role === 'tendedero' || role === 'admin'
+  const r = (role || '').trim().toLowerCase()
+  return r === 'domiciliario' || r === 'entregar' || r === 'tendedero' || r === 'repartidor' || r === 'admin'
 }
 
 export function isAdmin(role?: UserRole | string) {

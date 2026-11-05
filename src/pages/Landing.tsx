@@ -266,9 +266,9 @@ export function LandingPage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#751010] text-white">
                 <ChefHat size={24} />
               </div>
-              <h3 className="font-display text-xl font-bold text-foreground">2. Cocineros</h3>
+              <h3 className="font-display text-xl font-bold text-foreground">2. Vendedores</h3>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                Publicas tus preparaciones fijando tu precio. Se le suman $200 de logística y no tienes que salir de clase para hacer las entregas: los tendederos lo hacen por ti.
+                Publicas tus preparaciones fijando tu precio. Los domiciliarios recogen tu producto y lo llevan al comprador: vendes más sin tener que salir de tu salón.
               </p>
             </div>
             <div className="mt-6 border-t border-border pt-4 text-xs font-mono text-[#8F1414] dark:text-red-400 font-bold flex items-center gap-1.5">
@@ -276,15 +276,15 @@ export function LandingPage() {
             </div>
           </div>
 
-          {/* Pillar 3: Tendederos */}
+          {/* Pillar 3: Domiciliarios */}
           <div className="rounded-3xl border-2 border-border bg-[#FAF6F0] dark:bg-[#1E1917] p-6 sm:p-8 shadow-xs flex flex-col justify-between">
             <div className="space-y-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#5C0C0C] text-white">
                 <Bike size={24} />
               </div>
-              <h3 className="font-display text-xl font-bold text-foreground">3. Tendederos</h3>
+              <h3 className="font-display text-xl font-bold text-foreground">3. Domiciliarios</h3>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                Estudiantes que aceptan solicitudes en sus huecos libres. Recogen el snack del vendedor, se lo llevan al comprador y ganan <strong>$200 COP</strong> por cada entrega rápida.
+                Estudiantes que aceptan solicitudes en sus huecos libres. Recogen el snack del vendedor, se lo llevan al comprador y ganan de <strong>$100 a $500 COP</strong> por cada entrega rápida.
               </p>
             </div>
             <div className="mt-6 border-t border-border pt-4 text-xs font-mono text-[#8F1414] dark:text-red-400 font-bold flex items-center gap-1.5">
